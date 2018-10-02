@@ -18,8 +18,7 @@
 
 proto_library(
     name = "client-proto",
-    srcs = glob(["*.proto"]),
-    proto_source_root = "client-protocol/proto",
+    srcs = glob(["proto/*.proto"]),
 )
 
 java_proto_library(
@@ -32,4 +31,8 @@ java_grpc_library(
     name = "client-java-grpc",
     srcs = [":client-proto"],
     deps = [":client-java-proto"],
+    visibility = [
+        "//server:__subpackages__",
+        "//client-java:__subpackages__",
+    ]
 )
