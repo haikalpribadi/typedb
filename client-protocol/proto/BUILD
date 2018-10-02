@@ -16,20 +16,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-def antlr_dependencies():
+proto_library(
+    name = "client-proto",
+    srcs = glob(["*.proto"]),
+    proto_source_root = "client-protocol/proto",
+)
 
-    native.http_archive(
-        name = "rules_antlr",
-        sha256 = "acd2a25f31aeeea5f58cdb434ae109d03826ae7cc11fe9efce1740102e3f4531",
-        strip_prefix = "rules_antlr-0.1.0",
-        urls = ["https://github.com/marcohu/rules_antlr/archive/0.1.0.tar.gz"],
-    )
+java_proto_library(
+    name = "client-java-proto",
+    deps = [":client-proto"],
+)
 
-
-def grpc_dependencies():
-
-    native.git_repository(
-        name = "io_grpc_grpc_java",
-        remote = "https://github.com/grpc/grpc-java",
-        tag = "v1.15.0"
-    )
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+java_grpc_library(
+    name = "client-java-grpc",
+    srcs = [":client-proto"],
+    deps = [":client-java-proto"],
+)
