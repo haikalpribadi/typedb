@@ -16,8 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-load("@org_pubref_rules_proto//java:compile.bzl", "java_grpc_compile")
-java_grpc_compile(
+load("@org_pubref_rules_proto//java:library.bzl", "java_grpc_library")
+java_grpc_library(
     name = "client-java-proto",
     deps = [
         "//protocol/session:session-proto",

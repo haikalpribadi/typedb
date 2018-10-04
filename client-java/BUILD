@@ -44,5 +44,6 @@ java_library(
         "//dependencies/maven/artifacts/org/slf4j:slf4j-api",
         "//dependencies/maven/artifacts/org/slf4j:slf4j-simple",
         "//grakn-graql:grakn-graql",
+        "//protocol/client-java-proto:client-java-proto.jar",
     ]
 )

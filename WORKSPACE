@@ -53,8 +53,8 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", com_github_grpc_grpc_bazel_gr
 com_github_grpc_grpc_bazel_grpc_deps()
 
 # Load Java Protobuf dependencies
-load("@org_pubref_rules_proto//java:deps.bzl", "java_grpc_compile")
-java_grpc_compile()
+load("@org_pubref_rules_proto//java:deps.bzl", "java_grpc_library")
+java_grpc_library()
 
 # Load Python Protobuf dependencies
 load("@org_pubref_rules_proto//python:deps.bzl", "python_grpc_compile")
