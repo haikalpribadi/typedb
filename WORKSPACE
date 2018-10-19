@@ -46,9 +46,10 @@ antlr_dependencies()
 ####################################
 
 # Load GRPC dependencies
-load("//dependencies/compilers:dependencies.bzl", "grpc_dependencies", "python_dependencies")
+load("//dependencies/compilers:dependencies.bzl", "grpc_dependencies", "python_dependencies", "node_dependencies")
 grpc_dependencies()
 python_dependencies()
+node_dependencies()
 
 ## Python PIP dependencies
 load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories", "pip3_import")
@@ -63,6 +64,19 @@ pip_install()
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", com_github_grpc_grpc_bazel_grpc_deps = "grpc_deps")
 com_github_grpc_grpc_bazel_grpc_deps()
 
+# Node deps
+load("@org_pubref_rules_node//node:rules.bzl", "node_repositories", "yarn_modules")
+node_repositories()
+
+yarn_modules(
+    name = "grpc_node_modules",
+    deps = {
+        "google-protobuf": "3.6.1",
+        "grpc": "1.15.1",
+        "jest": "^23.4.0"
+    },
+)
+
 # Load GRPC Java dependencies
 load("@org_pubref_rules_proto//java:deps.bzl", "java_grpc_compile")
 java_grpc_compile()
@@ -72,10 +86,9 @@ load("@org_pubref_rules_proto//python:deps.bzl", "python_grpc_compile")
 python_grpc_compile()
 
 # Load GRPC Node.js dependencies
-load("@org_pubref_rules_proto//node:deps.bzl", "node_grpc_compile")
+load("@org_pubref_rules_proto//node:deps.bzl", "node_grpc_compile", "node_grpc_library")
 node_grpc_compile()
-
-
+node_grpc_library()
 
 
 

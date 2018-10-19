@@ -25,17 +25,16 @@ def antlr_dependencies():
     )
 
 def grpc_dependencies():
-
     native.git_repository(
         name = "com_github_grpc_grpc",
-        remote = "https://github.com/grpc/grpc",
-        tag = "v1.15.1"
+        remote = "https://github.com/graknlabs/grpc",
+        commit = "da829a5ac902ab99eef14e6aad1d8e0cd173ec64"
     )
 
     native.git_repository(
         name = "org_pubref_rules_proto",
         remote = "https://github.com/graknlabs/rules_proto",
-        commit = "9fd93eb7a81e4d6082d2236ba492e13338080945",
+        commit = "7ee52188c0193eeb7d6cdda22789fd24763d715d",
     )
 
 def python_dependencies():
@@ -44,4 +43,12 @@ def python_dependencies():
         remote = "https://github.com/graknlabs/rules_python.git",
         commit = "abd475a72ae6a098cc9f859eb435dddd992bc884",
         sha256 = "fe468b9396ef5c933679e1a5d846f777d0ea4731927df2149e5a01b328afd9b6"
+    )
+
+
+def node_dependencies():
+    native.git_repository(
+        name = "org_pubref_rules_node",
+        remote = "https://github.com/pubref/rules_node.git",
+        commit = "1c60708c599e6ebd5213f0987207a1d854f13e23",
     )
