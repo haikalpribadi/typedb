@@ -19,6 +19,8 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@org_pubref_rules_proto//java:compile.bzl", "java_grpc_compile")
+load("//dependencies/maven/deployment:maven_nexus_deploy.bzl", "maven_nexus_deploy")
+
 java_grpc_compile(
     name = "client-java-proto",
     deps = [
@@ -64,6 +66,15 @@ java_library(
         "//dependencies/maven/artifacts/org/sharegov:mjson", # PREVIOUSLY UNDECLARED
         "//dependencies/maven/artifacts/org/slf4j:slf4j-api"
     ]
+)
+
+maven_nexus_deploy(
+    name = "deploy",
+    targets = [":client-java"],
+    parent_group_id = "ai.grakn",
+    parent_artifact_id = "client-java",
+    artifact_id = "client-java",
+    version_file = "//:VERSION",
 )
 
 java_test(

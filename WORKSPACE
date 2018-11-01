@@ -95,3 +95,6 @@ yarn_install(
 
 load("//dependencies/maven:dependencies.bzl", "maven_dependencies")
 maven_dependencies()
+
+load("//dependencies/maven/deployment:dependencies.bzl", "maven_deployment_dependencies")
+maven_deployment_dependencies()

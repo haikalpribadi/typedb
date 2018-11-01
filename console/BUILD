@@ -16,6 +16,9 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+load("//dependencies/maven/deployment:maven_nexus_deploy.bzl", "maven_nexus_deploy")
+
+
 java_library(
     name = "console",
     srcs = glob(["src/**/*.java"]),
@@ -42,6 +45,16 @@ java_library(
         "//dependencies/maven/artifacts/org/codehaus/janino:janino"
     ]
 )
+
+maven_nexus_deploy(
+    name = "deploy",
+    targets = [":console"],
+    parent_group_id = "ai.grakn",
+    parent_artifact_id = "core",
+    artifact_id = "console",
+    version_file = "//:VERSION",
+)
+
 
 java_binary(
     name = "console-binary",

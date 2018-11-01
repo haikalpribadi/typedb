@@ -17,6 +17,8 @@
 #
 
 load("@org_pubref_rules_proto//java:compile.bzl", "java_grpc_compile")
+load("//dependencies/maven/deployment:maven_nexus_deploy.bzl", "maven_nexus_deploy")
+
 java_grpc_compile(
     name = "server-java-proto",
     deps = [
@@ -88,6 +90,17 @@ java_library(
     ],
     visibility = ["//visibility:public"]
 )
+
+
+maven_nexus_deploy(
+    name = "deploy",
+    targets = [":server"],
+    parent_group_id = "ai.grakn",
+    parent_artifact_id = "core",
+    artifact_id = "server",
+    version_file = "//:VERSION",
+)
+
 
 java_binary(
     name = "server-binary",

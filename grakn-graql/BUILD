@@ -19,6 +19,8 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@rules_antlr//antlr:antlr4.bzl", "antlr4")
+load("//dependencies/maven/deployment:maven_nexus_deploy.bzl", "maven_nexus_deploy")
+
 
 antlr4(
     name = "graql-java",
@@ -88,4 +90,14 @@ java_library(
     ],
     resources = glob(["src/resources/*"]),
     javacopts = ["-XepDisableAllChecks"], # TODO: THIS NEEDS TO BE REMOVED
+)
+
+
+maven_nexus_deploy(
+    name = "deploy",
+    targets = [":grakn-graql"],
+    parent_group_id = "ai.grakn",
+    parent_artifact_id = "grakn-graql",
+    artifact_id = "grakn-graql",
+    version_file = "//:VERSION",
 )
