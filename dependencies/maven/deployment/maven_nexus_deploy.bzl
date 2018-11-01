@@ -6,10 +6,11 @@ load(
 def warn(msg):
     print('{red}{msg}{nc}'.format(red='\033[0;31m', msg=msg, nc='\033[0m'))
 
-def _maven_nexus_deploy_impl(ctx):
+def _generate_pom_xml(ctx):
+    # Final 'pom.xml' is generated in 2 steps
     preprocessed_template = ctx.actions.declare_file("_pom.xml")
-    preprocessed_script = ctx.actions.declare_file("_deploy.sh")
-    
+
+    # Prepare a fake context object for rule execution
     mock_ctx = struct(
         attr = struct(
             targets = ctx.attr.targets,
@@ -33,20 +34,29 @@ def _maven_nexus_deploy_impl(ctx):
         )
     )
 
+    # Step 1: fill in everything except version using `pom_file` rule implementation
     pom_file_exports._pom_file(mock_ctx)
 
-    if (len(ctx.attr.targets) != 1):
-        fail("should specify single jar to deploy")
+    # Step 2: fill in {pom_version} from version_file
+    ctx.actions.run_shell(
+        inputs = [preprocessed_template, ctx.file.version_file],
+        outputs = [ctx.outputs.pom_file],
+        command = "VERSION=`cat %s` && sed -e s/{pom_version}/$VERSION/g %s > %s" % (
+            ctx.file.version_file.path, preprocessed_template.path, ctx.outputs.pom_file.path)
+    )
 
-    if (len(ctx.attr.targets[0].java.outputs.jars) != 1):
-        fail("should specify rule that produces a single jar")
+def _generate_deployment_script(ctx):
+    # Final 'deploy.sh' is generated in 2 steps
+    preprocessed_script = ctx.actions.declare_file("_deploy.sh")
 
-    jar = ctx.attr.targets[0].java.outputs.jars[0].class_jar
+    # Maven artifact coordinates split by slash i.e. io/grakn/grakn-graql/grakn-graql
     parent_coords = "/".join([
         ctx.attr.parent_group_id.replace('.', '/'),
         ctx.attr.parent_artifact_id
     ])
 
+    # Arguments are passed to `bazel run` via `--define=VAR=VALUE`
+    # `warn` instead of `fail` because otherwise `bazel build //...` will fail 
     if not ctx.var.get("MAVEN_USERNAME"):
         warn("should specify username via --define=MAVEN_USERNAME= argument to bazel run")
 
@@ -56,13 +66,7 @@ def _maven_nexus_deploy_impl(ctx):
     if not ctx.var.get("MAVEN_URL"):
         warn("should specify Maven url via --define=MAVEN_URL= argument to bazel run")
 
-    ctx.actions.run_shell(
-        inputs = [preprocessed_template, ctx.file.version_file],
-        outputs = [ctx.outputs.pom_file],
-        command = "VERSION=`cat %s` && sed -e s/{pom_version}/$VERSION/g %s > %s" % (
-            ctx.file.version_file.path, preprocessed_template.path, ctx.outputs.pom_file.path)
-    )
-
+    # Step 1: fill in {pom_version} from version_file
     ctx.actions.run_shell(
         inputs = [ctx.file._deployment_script_template, ctx.file.version_file],
         outputs = [preprocessed_script],
@@ -70,6 +74,7 @@ def _maven_nexus_deploy_impl(ctx):
             ctx.file.version_file.path, ctx.file._deployment_script_template.path, preprocessed_script.path)
     )
 
+    # Step 2: fill in everything except version
     ctx.actions.expand_template(
         template = preprocessed_script,
         output = ctx.outputs.deployment_script,
@@ -83,9 +88,24 @@ def _maven_nexus_deploy_impl(ctx):
         is_executable = True
     )
 
+def _maven_nexus_deploy_impl(ctx):
+    # Perform input checks first
+    if (len(ctx.attr.targets) != 1):
+        fail("should specify single jar to deploy")
+
+    if (len(ctx.attr.targets[0].java.outputs.jars) != 1):
+        fail("should specify rule that produces a single jar")
+    
+    # there is also .source_jar which produces '.srcjar'
+    jar = ctx.attr.targets[0].java.outputs.jars[0].class_jar
+
+    _generate_pom_xml(ctx)
+    _generate_deployment_script(ctx)
+
     return DefaultInfo(executable = ctx.outputs.deployment_script,
         runfiles = ctx.runfiles(
             files=[jar, ctx.outputs.pom_file],
+            # generate symlinks with predictable names
             symlinks={
                 "lib.jar": jar,
                 "pom.xml": ctx.outputs.pom_file
