@@ -24,7 +24,6 @@ import java.util.List;
 
 /**
  * Generic interface to a backend storage engine.
- *
  */
 
 public interface StoreManager {
@@ -51,6 +50,7 @@ public interface StoreManager {
 
     /**
      * Check whether database exists in this storage manager.
+     *
      * @return Flag indicating whether database exists
      * @throws BackendException
      */
@@ -86,9 +86,8 @@ public interface StoreManager {
      * end must each be at least 4 bytes in length.
      *
      * @return A list of local key ranges
-     * @throws UnsupportedOperationException
-     *             if the underlying store does not support this operation.
-     *             Check StoreFeatures#hasLocalKeyPartition() first.
+     * @throws UnsupportedOperationException if the underlying store does not support this operation.
+     *                                       Check StoreFeatures#hasLocalKeyPartition() first.
      */
     List<KeyRange> getLocalKeyPartition() throws BackendException;
 

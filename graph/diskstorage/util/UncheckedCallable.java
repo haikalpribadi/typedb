@@ -20,7 +20,7 @@ package grakn.core.graph.diskstorage.util;
 import java.util.concurrent.Callable;
 
 public interface UncheckedCallable<T> extends Callable<T> {
-    
+
     @Override
     T call();
 }

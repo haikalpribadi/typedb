@@ -28,6 +28,7 @@ import grakn.core.kb.graql.reasoner.query.ReasonerQuery;
 import graql.lang.property.ValueProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
 import java.util.Objects;
 
 /**
@@ -43,7 +44,6 @@ import java.util.Objects;
  * - bound predicates (with specific value, either hard (equality) or soft (inequality) - store them internally as part of
  * attributes
  * - unbound (variable) predicates - store them outside attributes to be used in VariableComparisonStates
- *
  */
 public class VariableValuePredicate extends VariablePredicate {
 
@@ -63,11 +63,11 @@ public class VariableValuePredicate extends VariablePredicate {
         return new VariableValuePredicate(varName, predicateVar, op, pattern, parent);
     }
 
-    public static VariableValuePredicate fromValuePredicate(ValuePredicate predicate){
+    public static VariableValuePredicate fromValuePredicate(ValuePredicate predicate) {
         return create(predicate.getVarName(), predicate.getPredicate(), predicate.getParentQuery());
     }
 
-    public ValueProperty.Operation operation(){ return op;}
+    public ValueProperty.Operation operation() { return op;}
 
     @Override
     public Atomic copy(ReasonerQuery parent) {
@@ -104,7 +104,7 @@ public class VariableValuePredicate extends VariablePredicate {
     }
 
     @Override
-    public boolean isAlphaEquivalent(Object obj){
+    public boolean isAlphaEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         if (!super.isAlphaEquivalent(obj)) return false;
@@ -114,7 +114,7 @@ public class VariableValuePredicate extends VariablePredicate {
     }
 
     @Override
-    public boolean isStructurallyEquivalent(Object obj){
+    public boolean isStructurallyEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         if (!super.isStructurallyEquivalent(obj)) return false;
@@ -134,7 +134,7 @@ public class VariableValuePredicate extends VariablePredicate {
     }
 
     @Override
-    public boolean isSubsumedBy(Atomic atomic){
+    public boolean isSubsumedBy(Atomic atomic) {
         if (this.isAlphaEquivalent(atomic)) return true;
         if (atomic == null || this.getClass() != atomic.getClass()) return false;
         if (atomic == this) return true;
@@ -144,17 +144,17 @@ public class VariableValuePredicate extends VariablePredicate {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return "[" + getVarName() + " " + op.comparator() + " " + getPredicate() + "]";
     }
 
     @Override
     public boolean isSatisfied(ConceptMap sub) {
-        Concept concept = sub.containsVar(getVarName())? sub.get(getVarName()) : null;
-        Concept referenceConcept = sub.containsVar(getPredicate())? sub.get(getPredicate()) : null;
+        Concept concept = sub.containsVar(getVarName()) ? sub.get(getVarName()) : null;
+        Concept referenceConcept = sub.containsVar(getPredicate()) ? sub.get(getPredicate()) : null;
 
         if (concept == null || referenceConcept == null
-                || !concept.isAttribute() || !referenceConcept.isAttribute()){
+                || !concept.isAttribute() || !referenceConcept.isAttribute()) {
             throw ReasonerException.invalidVariablePredicateState(this, sub);
         }
 

@@ -36,12 +36,12 @@ public class TypeDefinitionDescriptionSerializer implements AttributeSerializer<
     public TypeDefinitionDescription read(ScanBuffer buffer) {
         TypeDefinitionCategory defCategory = serializer.readObjectNotNull(buffer, TypeDefinitionCategory.class);
         Object modifier = serializer.readClassAndObject(buffer);
-        return new TypeDefinitionDescription(defCategory,modifier);
+        return new TypeDefinitionDescription(defCategory, modifier);
     }
 
     @Override
     public void write(WriteBuffer buffer, TypeDefinitionDescription attribute) {
-        DataOutput out = (DataOutput)buffer;
+        DataOutput out = (DataOutput) buffer;
         out.writeObjectNotNull(attribute.getCategory());
         out.writeClassAndObject(attribute.getModifier());
     }

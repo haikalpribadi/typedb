@@ -40,12 +40,11 @@ import java.util.Set;
 public abstract class GraknMapReduce<T> extends CommonOLAP
         implements MapReduce<Serializable, T, Serializable, T, Map<Serializable, T>> {
 
-    private static final String ATTRIBUTE_VALUE_TYPE_KEY = "ATTRIBUTE_VALUE_TYPE_KEY";
-
     // In MapReduce, vertex emits type label id, but has-resource edge can not. Instead, a message is sent via the edge,
     // and a vertex property is added. So the resource vertex can emit an extra key value pair, key being this constant.
     // Here, -10 is just a number that is not used as a type id.
     public static final int RESERVED_TYPE_LABEL_KEY = -10;
+    private static final String ATTRIBUTE_VALUE_TYPE_KEY = "ATTRIBUTE_VALUE_TYPE_KEY";
 
     GraknMapReduce(Set<LabelId> selectedTypes) {
         this.selectedTypes = selectedTypes;

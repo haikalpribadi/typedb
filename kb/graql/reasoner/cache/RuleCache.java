@@ -55,6 +55,7 @@ public interface RuleCache {
 
     /**
      * acknowledge addition of an instance of a specific type
+     *
      * @param type to be acked
      */
     void ackTypeInstanceInsertion(Type type);

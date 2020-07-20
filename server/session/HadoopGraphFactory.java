@@ -39,22 +39,19 @@ import java.util.Properties;
  */
 public class HadoopGraphFactory {
     // Keep visibility to protected as this is used by KGMS
-    protected Config config;
+    protected static final String STORAGE_KEYSPACE = ConfigKey.STORAGE_KEYSPACE.name();
+    // Keep visibility to protected as this is used by KGMS
+    protected static final String JANUSGRAPHMR_IOFORMAT_CONF = "janusgraphmr.ioformat.conf.";
     //These properties are loaded in by default and can optionally be overwritten
     private static final Properties DEFAULT_OLAP_PROPERTIES;
     private static final String DEFAULT_OLAP_PATH = "resources/default-OLAP-configs.properties";
     private static final String STORAGE_HOSTNAME = ConfigKey.STORAGE_HOSTNAME.name();
-    // Keep visibility to protected as this is used by KGMS
-    protected static final String STORAGE_KEYSPACE = ConfigKey.STORAGE_KEYSPACE.name();
 
     //NOTE: In JanusGraphHadoopConfiguration class there is the definition of this prefix (MAPRED_NS)
     // which is used to prefix all the properties that will be passed to OLAP operations
     // The prefix is there so that one can connect to different backends for OLTP and OLAP operations
     // using different authentication methods and so on. This might be too generic for Grakn usecase,
     // in the future might be worth to just remove this prefix and let all the configs be the same.
-
-    // Keep visibility to protected as this is used by KGMS
-    protected static final String JANUSGRAPHMR_IOFORMAT_CONF = "janusgraphmr.ioformat.conf.";
 
     static {
         DEFAULT_OLAP_PROPERTIES = new Properties();
@@ -64,6 +61,9 @@ public class HadoopGraphFactory {
             throw new RuntimeException(ErrorMessage.INVALID_PATH_TO_CONFIG.getMessage(DEFAULT_OLAP_PATH), e);
         }
     }
+
+    // Keep visibility to protected as this is used by KGMS
+    protected Config config;
 
     public HadoopGraphFactory(Config config) {
         this.config = config;
@@ -84,6 +84,7 @@ public class HadoopGraphFactory {
 
     /**
      * Clone Grakn config and adds OLAP specific keyspace property
+     *
      * @param keyspaceName keyspace value to add as a property
      * @return new copy of configuration, specific for current keyspace
      */

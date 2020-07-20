@@ -25,7 +25,6 @@ import grakn.core.graql.reasoner.query.ReasonerQueryEquivalence;
 import grakn.core.graql.reasoner.query.ReasonerQueryImpl;
 import grakn.core.graql.reasoner.unifier.UnifierType;
 import grakn.core.kb.concept.api.ConceptId;
-import grakn.core.kb.graql.executor.ExecutorFactory;
 import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.kb.graql.planning.gremlin.GraqlTraversal;
 import grakn.core.kb.graql.planning.gremlin.TraversalPlanFactory;
@@ -46,14 +45,14 @@ import java.util.stream.Stream;
  *
  * @param <Q> the type of query that is being cached
  */
-public class StructuralCache<Q extends ReasonerQueryImpl>{
+public class StructuralCache<Q extends ReasonerQueryImpl> {
 
     private final ReasonerQueryEquivalence equivalence = ReasonerQueryEquivalence.StructuralEquivalence;
     private final Map<Equivalence.Wrapper<Q>, CacheEntry<Q, GraqlTraversal>> structCache;
     private TraversalPlanFactory traversalPlanFactory;
     private TraversalExecutor traversalExecutor;
 
-    StructuralCache(TraversalPlanFactory traversalPlanFactory, TraversalExecutor traversalExecutor){
+    StructuralCache(TraversalPlanFactory traversalPlanFactory, TraversalExecutor traversalExecutor) {
         this.traversalPlanFactory = traversalPlanFactory;
         this.traversalExecutor = traversalExecutor;
         this.structCache = new HashMap<>();
@@ -63,11 +62,11 @@ public class StructuralCache<Q extends ReasonerQueryImpl>{
      * @param query to be retrieved
      * @return answer stream of provided query
      */
-    public Stream<ConceptMap> get(Q query){
+    public Stream<ConceptMap> get(Q query) {
         Equivalence.Wrapper<Q> structQuery = equivalence.wrap(query);
 
         CacheEntry<Q, GraqlTraversal> match = structCache.get(structQuery);
-        if (match != null){
+        if (match != null) {
             Q equivalentQuery = match.query();
             GraqlTraversal traversal = match.cachedElement();
             MultiUnifier multiUnifier = equivalentQuery.getMultiUnifier(query, UnifierType.STRUCTURAL);
@@ -88,7 +87,7 @@ public class StructuralCache<Q extends ReasonerQueryImpl>{
                 .map(a -> new ConceptMap(a.map(), new LookupExplanation(), query.withSubstitution(a).getPattern()));
     }
 
-    public void clear(){
+    public void clear() {
         structCache.clear();
     }
 }

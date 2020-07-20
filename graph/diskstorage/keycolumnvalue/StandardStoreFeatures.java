@@ -45,6 +45,35 @@ public class StandardStoreFeatures implements StoreFeatures {
     private final boolean supportsInterruption;
     private final boolean optimisticLocking;
 
+    private StandardStoreFeatures(boolean unorderedScan, boolean orderedScan,
+                                  boolean multiQuery, boolean locking, boolean batchMutation,
+                                  boolean localKeyPartition, boolean keyOrdered, boolean distributed,
+                                  boolean transactional, boolean keyConsistent,
+                                  boolean timestamps, TimestampProviders preferredTimestamps,
+                                  boolean cellLevelTTL, boolean storeLevelTTL, boolean supportsPersist,
+                                  Configuration keyConsistentTxConfig,
+                                  Configuration localKeyConsistentTxConfig, boolean supportsInterruption, boolean optimisticLocking) {
+        this.unorderedScan = unorderedScan;
+        this.orderedScan = orderedScan;
+        this.multiQuery = multiQuery;
+        this.locking = locking;
+        this.batchMutation = batchMutation;
+        this.localKeyPartition = localKeyPartition;
+        this.keyOrdered = keyOrdered;
+        this.distributed = distributed;
+        this.transactional = transactional;
+        this.keyConsistent = keyConsistent;
+        this.timestamps = timestamps;
+        this.preferredTimestamps = preferredTimestamps;
+        this.cellLevelTTL = cellLevelTTL;
+        this.storeLevelTTL = storeLevelTTL;
+        this.supportsPersist = supportsPersist;
+        this.keyConsistentTxConfig = keyConsistentTxConfig;
+        this.localKeyConsistentTxConfig = localKeyConsistentTxConfig;
+        this.supportsInterruption = supportsInterruption;
+        this.optimisticLocking = optimisticLocking;
+    }
+
     @Override
     public boolean hasScan() {
         return hasOrderedScan() || hasUnorderedScan();
@@ -291,41 +320,12 @@ public class StandardStoreFeatures implements StoreFeatures {
 
         public StandardStoreFeatures build() {
             return new StandardStoreFeatures(unorderedScan, orderedScan,
-                    multiQuery, locking, batchMutation, localKeyPartition,
-                    keyOrdered, distributed, transactional, keyConsistent,
-                    timestamps, preferredTimestamps, cellLevelTTL,
-                    storeLevelTTL, supportsPersist,
-                    keyConsistentTxConfig,
-                    localKeyConsistentTxConfig, supportsInterruption, optimisticLocking);
+                                             multiQuery, locking, batchMutation, localKeyPartition,
+                                             keyOrdered, distributed, transactional, keyConsistent,
+                                             timestamps, preferredTimestamps, cellLevelTTL,
+                                             storeLevelTTL, supportsPersist,
+                                             keyConsistentTxConfig,
+                                             localKeyConsistentTxConfig, supportsInterruption, optimisticLocking);
         }
-    }
-
-    private StandardStoreFeatures(boolean unorderedScan, boolean orderedScan,
-                                  boolean multiQuery, boolean locking, boolean batchMutation,
-                                  boolean localKeyPartition, boolean keyOrdered, boolean distributed,
-                                  boolean transactional, boolean keyConsistent,
-                                  boolean timestamps, TimestampProviders preferredTimestamps,
-                                  boolean cellLevelTTL, boolean storeLevelTTL, boolean supportsPersist,
-                                  Configuration keyConsistentTxConfig,
-                                  Configuration localKeyConsistentTxConfig, boolean supportsInterruption, boolean optimisticLocking) {
-        this.unorderedScan = unorderedScan;
-        this.orderedScan = orderedScan;
-        this.multiQuery = multiQuery;
-        this.locking = locking;
-        this.batchMutation = batchMutation;
-        this.localKeyPartition = localKeyPartition;
-        this.keyOrdered = keyOrdered;
-        this.distributed = distributed;
-        this.transactional = transactional;
-        this.keyConsistent = keyConsistent;
-        this.timestamps = timestamps;
-        this.preferredTimestamps = preferredTimestamps;
-        this.cellLevelTTL = cellLevelTTL;
-        this.storeLevelTTL = storeLevelTTL;
-        this.supportsPersist = supportsPersist;
-        this.keyConsistentTxConfig = keyConsistentTxConfig;
-        this.localKeyConsistentTxConfig = localKeyConsistentTxConfig;
-        this.supportsInterruption = supportsInterruption;
-        this.optimisticLocking = optimisticLocking;
     }
 }

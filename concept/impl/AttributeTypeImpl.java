@@ -79,7 +79,7 @@ public class AttributeTypeImpl<D> extends TypeImpl<AttributeType<D>, Attribute<D
     @Override
     public Stream<Type> owners() {
         // note that sups() includes self
-        Stream<Type> owners = sups().flatMap(parent -> (((AttributeTypeImpl<D>)parent).directOwners()));
+        Stream<Type> owners = sups().flatMap(parent -> (((AttributeTypeImpl<D>) parent).directOwners()));
         return owners;
     }
 

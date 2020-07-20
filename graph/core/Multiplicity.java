@@ -56,6 +56,20 @@ public enum Multiplicity {
     ONE2ONE;
 
 
+    public static Multiplicity convert(Cardinality cardinality) {
+        Preconditions.checkNotNull(cardinality);
+        switch (cardinality) {
+            case LIST:
+                return MULTI;
+            case SET:
+                return SIMPLE;
+            case SINGLE:
+                return MANY2ONE;
+            default:
+                throw new AssertionError("Unknown cardinality: " + cardinality);
+        }
+    }
+
     /**
      * Whether this multiplicity imposes any constraint on the number of edges that may exist between a pair of vertices.
      */
@@ -68,6 +82,7 @@ public enum Multiplicity {
         return this != MULTI && (this == SIMPLE || isUnique(direction));
     }
 
+    //######### CONVERTING MULTIPLICITY <-> CARDINALITY ########
 
     /**
      * If this multiplicity implies edge uniqueness in the given direction for any given vertex.
@@ -82,22 +97,6 @@ public enum Multiplicity {
                 return this == ONE2ONE;
             default:
                 throw new AssertionError("Unknown direction: " + direction);
-        }
-    }
-
-    //######### CONVERTING MULTIPLICITY <-> CARDINALITY ########
-
-    public static Multiplicity convert(Cardinality cardinality) {
-        Preconditions.checkNotNull(cardinality);
-        switch (cardinality) {
-            case LIST:
-                return MULTI;
-            case SET:
-                return SIMPLE;
-            case SINGLE:
-                return MANY2ONE;
-            default:
-                throw new AssertionError("Unknown cardinality: " + cardinality);
         }
     }
 

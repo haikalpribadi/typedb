@@ -28,7 +28,6 @@ import java.util.function.Predicate;
 
 /**
  * Internal Vertex interface adding methods that should only be used by JanusGraph
- *
  */
 public interface InternalVertex extends JanusGraphVertex, InternalElement {
 

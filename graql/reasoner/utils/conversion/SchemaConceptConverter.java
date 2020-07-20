@@ -30,18 +30,19 @@ import java.util.stream.Stream;
  * Interface for conversion between compatible SchemaConcepts.
  * NB: assumes MATCH semantics - all types and their subs are considered.
  * </p>
- * @param <T> SchemaConcept type to convert from
  *
+ * @param <T> SchemaConcept type to convert from
  */
-public interface SchemaConceptConverter<T extends SchemaConcept>{
+public interface SchemaConceptConverter<T extends SchemaConcept> {
 
     /**
      * convert a given type to a map of relation types in which it can play roles
      * and the corresponding role types including entity type hierarchy
+     *
      * @param entryConcept to be converted
      * @return map of relation types in which it can play roles and the corresponding role types
      */
-    default Multimap<RelationType, Role> toRelationMultimap(T entryConcept){
+    default Multimap<RelationType, Role> toRelationMultimap(T entryConcept) {
         Multimap<RelationType, Role> relationMap = HashMultimap.create();
 
         toCompatibleRoles(entryConcept)

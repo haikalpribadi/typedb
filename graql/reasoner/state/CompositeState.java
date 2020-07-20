@@ -24,12 +24,12 @@ import grakn.core.graql.reasoner.query.CompositeQuery;
 import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
 import grakn.core.graql.reasoner.query.ResolvableQuery;
 import grakn.core.kb.graql.reasoner.unifier.Unifier;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
- *
  * <p>
  * Query state corresponding to a conjunctive query with negated patterns present(CompositeQuery).
  *
@@ -56,7 +56,6 @@ import java.util.Set;
  * </p>
  *
  * @author Kasper Piskorski
- *
  */
 public class CompositeState extends AnswerPropagatorState<CompositeQuery> {
 
@@ -92,7 +91,7 @@ public class CompositeState extends AnswerPropagatorState<CompositeQuery> {
                 .map(q -> q.withSubstitution(answer))
                 .noneMatch(q -> q.resolve(subGoals, true).findFirst().isPresent());
 
-        return isNegationSatisfied?
+        return isNegationSatisfied ?
                 new AnswerState(
                         new ConceptMap(answer.map(), answer.explanation(), getQuery().getPattern(answer.map())),
                         getUnifier(),

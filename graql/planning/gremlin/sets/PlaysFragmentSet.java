@@ -29,7 +29,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#plays(VarProperty, Variable, Variable, boolean)
- *
  */
 class PlaysFragmentSet extends EquivalentFragmentSetImpl {
 
@@ -55,6 +54,7 @@ class PlaysFragmentSet extends EquivalentFragmentSetImpl {
                 Fragments.inPlays(varProperty(), role, type, required)
         );
     }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) {

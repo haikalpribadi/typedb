@@ -33,10 +33,14 @@ public class IndexEntry implements MetaAnnotated, MetaAnnotatable {
 
     public final String field;
     public final Object value;
+    private Map<EntryMetaData, Object> metadata = EntryMetaData.EMPTY_METADATA;
 
     public IndexEntry(String field, Object value) {
         this(field, value, null);
     }
+
+    //########## META DATA ############
+    //copied from StaticArrayEntry
 
     public IndexEntry(String field, Object value, Map<EntryMetaData, Object> metadata) {
         Preconditions.checkNotNull(field);
@@ -54,11 +58,6 @@ public class IndexEntry implements MetaAnnotated, MetaAnnotatable {
             setMetaData(e.getKey(), e.getValue());
         }
     }
-
-    //########## META DATA ############
-    //copied from StaticArrayEntry
-
-    private Map<EntryMetaData, Object> metadata = EntryMetaData.EMPTY_METADATA;
 
     @Override
     public synchronized Object setMetaData(EntryMetaData key, Object value) {

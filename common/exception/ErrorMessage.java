@@ -24,7 +24,6 @@ import javax.annotation.CheckReturnValue;
  *
  * Each error message contains a single format string, with a method ErrorMessage#getMessage(Object...) that
  * accepts arguments to be passed to the format string.
- *
  */
 public enum ErrorMessage {
     //--------------------------------------------- Bootup Errors -----------------------------------------------
@@ -46,7 +45,7 @@ public enum ErrorMessage {
     INVALID_VALUETYPE("The value [%s] of type [%s] must be of value type [%s] for attribute type [%s]"),
     INVALID_OBJECT_TYPE("The concept [%s] is not of type [%s]"),
     REGEX_INSTANCE_FAILURE("The regex [%s] of Attribute Type [%s] cannot be applied because value [%s] " +
-            "does not conform to the regular expression"),
+                                   "does not conform to the regular expression"),
     REGEX_NOT_STRING("The Attribute Type [%s] is not of type String so it cannot support regular expressions"),
     IMMUTABLE_VALUE("The value [%s] cannot be changed to [%s] due to the property [%s] being immutable"),
     META_TYPE_IMMUTABLE("The meta type [%s] is immutable"),
@@ -74,14 +73,14 @@ public enum ErrorMessage {
     UNKNOWN_CONCEPT("Unknown concept type [%s]"),
     LABEL_TAKEN("The label [%s] has already been used"),
     INVALID_KEYSPACE_NAME("Keyspace name is invalid: [%s]. Keyspace name cannot start with a number, " +
-            "and can only contain maximum 48 characters of lower case, alphanumeric and underscore characters."),
+                                  "and can only contain maximum 48 characters of lower case, alphanumeric and underscore characters."),
     FILE_WRITE_EXCEPTION("Failed to write to file: %s"),
     UNKNOWN_META_TYPE("Type [%s] has unknown meta type class [%s]"),
 
     //--------------------------------------------- Validation Errors
     VALIDATION("A structural validation error has occurred. Please correct the [`%s`] errors found. \n"),
     VALIDATION_RELATION_CASTING_LOOP_FAIL("The relation [%s] has a role player playing the role [%s] " +
-            "which it's type [%s] is not connecting to via a relates connection \n"),
+                                                  "which it's type [%s] is not connecting to via a relates connection \n"),
     VALIDATION_RELATION_WITH_NO_ROLE_PLAYERS("Cannot commit relation [%s] of type [%s] because it does not have any role players. \n"),
 
     VALIDATION_CASTING("The type [%s] of role player [%s] is not allowed to play Role [%s] \n"),
@@ -93,7 +92,7 @@ public enum ErrorMessage {
     VALIDATION_MORE_THAN_ONE_USE_OF_KEY("There is more than one thing of type [%s] that owns the key [%s] of type [%s]. \n"),
 
     VALIDATION_RELATION_TYPES_ROLES_SCHEMA("The Role [%s] which is connected to Relation Type [%s] " +
-            "does not have a %s Role Type which is connected to the %s Relation Type [%s] \n"),
+                                                   "does not have a %s Role Type which is connected to the %s Relation Type [%s] \n"),
 
     VALIDATION_REQUIRED_RELATION("The role player [%s] of type [%s] can only play the role of [%s] once but is currently doing so [%s] times \n"),
 

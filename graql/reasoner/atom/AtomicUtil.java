@@ -52,14 +52,13 @@ public class AtomicUtil {
     }
 
     /**
-     *
-     * @param parentAtom atom wrt which we check the compatibility
-     * @param unifier mappings between this (child) and parent variables
+     * @param parentAtom  atom wrt which we check the compatibility
+     * @param unifier     mappings between this (child) and parent variables
      * @param unifierType unifier type in question
      * @return true if predicates between this (child) and parent are compatible based on the mappings provided by unifier
      */
     @CheckReturnValue
-    public static boolean isPredicateCompatible(Atom childAtom, Atom parentAtom, Unifier unifier, UnifierType unifierType, ConceptManager conceptManager){
+    public static boolean isPredicateCompatible(Atom childAtom, Atom parentAtom, Unifier unifier, UnifierType unifierType, ConceptManager conceptManager) {
         //check value predicates compatibility
         return unifier.mappings().stream().allMatch(mapping -> {
             Variable childVar = mapping.getKey();

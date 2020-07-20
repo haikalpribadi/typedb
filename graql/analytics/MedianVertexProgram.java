@@ -43,14 +43,12 @@ import static grakn.core.graql.analytics.Utility.vertexHasSelectedTypeId;
 /**
  * The vertex program for computing the median of given resource using quick select algorithm.
  * <p>
- *
  */
 
 public class MedianVertexProgram extends GraknVertexProgram<Long> {
 
-    private static final int MAX_ITERATION = 40;
     public static final String MEDIAN = "medianVertexProgram.median";
-
+    private static final int MAX_ITERATION = 40;
     private static final String ATTRIBUTE_VALUE_TYPE = "medianVertexProgram.attributeValueType";
     private static final String ATTRIBUTE_TYPE = "medianVertexProgram.attributeType";
     private static final String LABEL = "medianVertexProgram.label";
@@ -133,7 +131,7 @@ public class MedianVertexProgram extends GraknVertexProgram<Long> {
     public void loadState(Graph graph, Configuration configuration) {
         super.loadState(graph, configuration);
         configuration.subset(ATTRIBUTE_TYPE).getKeys().forEachRemaining(key ->
-                statisticsResourceLabelIds.add((LabelId) configuration.getProperty(ATTRIBUTE_TYPE + "." + key)));
+                                                                                statisticsResourceLabelIds.add((LabelId) configuration.getProperty(ATTRIBUTE_TYPE + "." + key)));
     }
 
     @Override
@@ -175,7 +173,7 @@ public class MedianVertexProgram extends GraknVertexProgram<Long> {
                     // select pivot randomly
                     if (degree > 0) {
                         memory.add(PIVOT,
-                                vertex.value((String) persistentProperties.get(ATTRIBUTE_VALUE_TYPE)));
+                                   vertex.value((String) persistentProperties.get(ATTRIBUTE_VALUE_TYPE)));
                         memory.add(COUNT, degree);
                     }
                 }

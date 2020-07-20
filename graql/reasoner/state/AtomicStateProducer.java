@@ -26,12 +26,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- *
  * <p>
  * State producing AtomicStates when when atom type is unknown and type inference is required
  * </p>
- *
- *
  */
 public class AtomicStateProducer extends AnswerPropagatorState<ReasonerAtomicQuery> {
 

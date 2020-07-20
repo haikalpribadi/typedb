@@ -36,7 +36,7 @@ public class IsaAtomValidator implements AtomValidator<IsaAtom> {
 
     private final BasicAtomValidator basicValidator;
 
-    public IsaAtomValidator(){
+    public IsaAtomValidator() {
         this.basicValidator = new BasicAtomValidator();
     }
 
@@ -80,8 +80,8 @@ public class IsaAtomValidator implements AtomValidator<IsaAtom> {
                     .map(isaAtom -> isaAtom.getSchemaConcept())
                     .filter(Objects::nonNull)
                     .anyMatch(schemaConcept -> type.isAttributeType() && schemaConcept.isAttributeType() ||
-                                        type.isEntityType() && schemaConcept.isEntityType() ||
-                                        type.isAttributeType() && schemaConcept.isAttributeType());
+                            type.isEntityType() && schemaConcept.isEntityType() ||
+                            type.isAttributeType() && schemaConcept.isAttributeType());
 
             if (!typeMatchesBody) {
                 Variable headVariable = atom.getVarName();

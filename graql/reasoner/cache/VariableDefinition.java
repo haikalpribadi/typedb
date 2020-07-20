@@ -20,11 +20,8 @@ package grakn.core.graql.reasoner.cache;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import com.google.common.collect.Sets;
-import grakn.core.common.util.ListsUtil;
 import grakn.core.graql.reasoner.atom.predicate.ValuePredicate;
-import grakn.core.graql.reasoner.utils.ReasonerUtils;
 import grakn.core.kb.concept.api.Role;
 import grakn.core.kb.concept.api.Type;
 import graql.lang.statement.Variable;

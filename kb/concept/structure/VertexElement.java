@@ -23,14 +23,15 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 public interface VertexElement extends AbstractElement<Vertex> {
     EdgeElement addEdge(VertexElement to, Schema.EdgeLabel type);
+
     EdgeElement putEdge(VertexElement to, Schema.EdgeLabel type);
+
     void deleteEdge(Direction direction, Schema.EdgeLabel edgeLabel, VertexElement... targets);
 
     /**
@@ -42,10 +43,13 @@ public interface VertexElement extends AbstractElement<Vertex> {
      * @param converter  Helper method to ensure data is persisted in the correct format
      */
     <X> void propertyImmutable(Schema.VertexProperty property, X newValue, @Nullable X foundValue, Function<X, Object> converter);
+
     <X> void propertyImmutable(Schema.VertexProperty property, X newValue, X foundValue);
 
     void property(Schema.VertexProperty key, Object value);
+
     <X> X property(Schema.VertexProperty key);
+
     Boolean propertyBoolean(Schema.VertexProperty key);
 
     /**
@@ -61,6 +65,7 @@ public interface VertexElement extends AbstractElement<Vertex> {
 
     /**
      * Retrieve this vertex as a Shard object
+     *
      * @return
      */
     Shard asShard();
@@ -68,11 +73,14 @@ public interface VertexElement extends AbstractElement<Vertex> {
     /**
      * Retrieve the current shard connected to this vertex
      * (currently only applies to Types)
+     *
      * @return
      */
     Shard currentShard();
+
     /**
      * Create a new vertex that is a shard and connect it to the owning vertex (this vertex)
+     *
      * @return
      */
     Shard shard();
@@ -83,9 +91,9 @@ public interface VertexElement extends AbstractElement<Vertex> {
     Stream<Shard> shards();
 
 
-
     // methods that should probably be removed from the interface
     Stream<EdgeElement> roleCastingsEdges(Integer typeLabelId, Set<Integer> allowedRoleTypeIds);
+
     Stream<VertexElement> relations(Set<Integer> roleIds);
 }
 

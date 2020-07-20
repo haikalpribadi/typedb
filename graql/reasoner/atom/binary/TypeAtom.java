@@ -23,8 +23,8 @@ import grakn.core.graql.reasoner.ReasoningContext;
 import grakn.core.graql.reasoner.atom.Atom;
 import grakn.core.graql.reasoner.atom.predicate.IdPredicate;
 import grakn.core.graql.reasoner.atom.predicate.Predicate;
-import grakn.core.graql.reasoner.atom.task.relate.TypeAtomSemanticProcessor;
 import grakn.core.graql.reasoner.atom.task.relate.SemanticProcessor;
+import grakn.core.graql.reasoner.atom.task.relate.TypeAtomSemanticProcessor;
 import grakn.core.graql.reasoner.cache.SemanticDifference;
 import grakn.core.graql.reasoner.unifier.MultiUnifierImpl;
 import grakn.core.graql.reasoner.unifier.UnifierType;
@@ -40,14 +40,14 @@ import graql.lang.pattern.Pattern;
 import graql.lang.property.IsaProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
- *
  * <p>
  *
  * Atom implementation defining type atoms of the general form:
@@ -61,8 +61,6 @@ import javax.annotation.Nullable;
  * RelatesProperty
  * HasAttributeTypeProperty
  * </p>
- *
- *
  */
 public abstract class TypeAtom extends Atom {
 
@@ -73,7 +71,7 @@ public abstract class TypeAtom extends Atom {
     private IdPredicate typePredicate = null;
 
     TypeAtom(Variable varName, Statement pattern, ReasonerQuery reasonerQuery, @Nullable Label label,
-           Variable predicateVariable, ReasoningContext ctx) {
+             Variable predicateVariable, ReasoningContext ctx) {
         super(reasonerQuery, varName, pattern, label, ctx);
         this.predicateVariable = predicateVariable;
     }
@@ -82,13 +80,13 @@ public abstract class TypeAtom extends Atom {
         return predicateVariable;
     }
 
-    public boolean isDirect(){
+    public boolean isDirect() {
         return getPattern().getProperties(IsaProperty.class).findFirst()
                 .map(IsaProperty::isExplicit).orElse(false);
     }
 
     @Nullable
-    public IdPredicate getTypePredicate(){
+    public IdPredicate getTypePredicate() {
         if (typePredicate == null && getTypeLabel() != null) {
             ConceptId typeId = context().conceptManager().getSchemaConcept(getTypeLabel()).id();
             typePredicate = IdPredicate.create(new Statement(getPredicateVariable()).id(typeId.getValue()), getParentQuery());
@@ -98,7 +96,7 @@ public abstract class TypeAtom extends Atom {
 
     @Nullable
     @Override
-    public SchemaConcept getSchemaConcept(){
+    public SchemaConcept getSchemaConcept() {
         if (type == null && getTypeLabel() != null) {
             SchemaConcept concept = context().conceptManager().getSchemaConcept(getTypeLabel());
             if (concept == null) throw ReasonerCheckedException.labelNotFound(getTypeLabel());
@@ -114,7 +112,7 @@ public abstract class TypeAtom extends Atom {
     }
 
     @Override
-    public boolean isCompatibleWithTypeAtom(){ return true;}
+    public boolean isCompatibleWithTypeAtom() { return true;}
 
     @Override
     public boolean isRuleApplicableViaAtom(Atom ruleAtom) {
@@ -161,7 +159,7 @@ public abstract class TypeAtom extends Atom {
         return alphaEquivalenceHashCode();
     }
 
-    boolean isBaseEquivalent(Object obj){
+    boolean isBaseEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         TypeAtom that = (TypeAtom) obj;
@@ -180,7 +178,7 @@ public abstract class TypeAtom extends Atom {
     }
 
     @Override
-    protected Pattern createCombinedPattern(){
+    protected Pattern createCombinedPattern() {
         Set<Pattern> vars = Sets.newHashSet((Pattern) getPattern());
         IdPredicate typePredicate = getTypePredicate();
         if (typePredicate != null) vars.add(typePredicate.getPattern());
@@ -188,9 +186,9 @@ public abstract class TypeAtom extends Atom {
     }
 
     @Override
-    public Stream<Predicate> getInnerPredicates(){
+    public Stream<Predicate> getInnerPredicates() {
         IdPredicate typePredicate = getTypePredicate();
-        return typePredicate != null? Stream.of(typePredicate) : Stream.empty();
+        return typePredicate != null ? Stream.of(typePredicate) : Stream.empty();
     }
 
     @Override

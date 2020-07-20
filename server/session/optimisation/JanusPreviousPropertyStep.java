@@ -53,11 +53,10 @@ public class JanusPreviousPropertyStep<S> extends FlatMapStep<S, JanusGraphVerte
     private final String stepLabel;
 
     /**
-     * @param traversal the traversal that contains this step
+     * @param traversal   the traversal that contains this step
      * @param propertyKey the property key that we are looking up
-     * @param stepLabel
-     * the step label that refers to a previously visited value in the traversal.
-     * e.g. in {@code g.V().as(b)}, {@code b} is a step label.
+     * @param stepLabel   the step label that refers to a previously visited value in the traversal.
+     *                    e.g. in {@code g.V().as(b)}, {@code b} is a step label.
      */
     public JanusPreviousPropertyStep(Traversal.Admin traversal, String propertyKey, String stepLabel) {
         super(traversal);
@@ -78,7 +77,8 @@ public class JanusPreviousPropertyStep<S> extends FlatMapStep<S, JanusGraphVerte
     /**
      * Look up vertices in Janus which have a property JanusPreviousPropertyStep#propertyKey with the given
      * value.
-     * @param tx the Janus transaction to read from
+     *
+     * @param tx    the Janus transaction to read from
      * @param value the value that the property should have
      */
     private Iterator<JanusGraphVertex> verticesWithProperty(JanusGraphTransaction tx, Object value) {

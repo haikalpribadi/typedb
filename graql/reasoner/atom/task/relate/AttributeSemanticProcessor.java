@@ -62,7 +62,7 @@ public class AttributeSemanticProcessor implements SemanticProcessor<AttributeAt
         if (ownerUnifier == null) return UnifierImpl.nonExistent();
         unifier = unifier.merge(ownerUnifier);
 
-        return AtomicUtil.isPredicateCompatible(childAtom, parentAtom, unifier, unifierType, ctx.conceptManager())?
+        return AtomicUtil.isPredicateCompatible(childAtom, parentAtom, unifier, unifierType, ctx.conceptManager()) ?
                 unifier : UnifierImpl.nonExistent();
     }
 
@@ -71,7 +71,8 @@ public class AttributeSemanticProcessor implements SemanticProcessor<AttributeAt
         if (!(parentAtom instanceof AttributeAtom)) {
             // in general this >= parent, hence for rule unifiers we can potentially specialise child to match parent
             if (unifierType.equals(UnifierType.RULE)) {
-                if (parentAtom instanceof IsaAtom) return childAtom.toIsaAtom().getMultiUnifier(parentAtom, unifierType);
+                if (parentAtom instanceof IsaAtom)
+                    return childAtom.toIsaAtom().getMultiUnifier(parentAtom, unifierType);
             }
             return MultiUnifierImpl.nonExistent();
         }

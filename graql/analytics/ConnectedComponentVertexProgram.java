@@ -34,7 +34,6 @@ import static grakn.core.graql.analytics.ConnectedComponentsVertexProgram.CLUSTE
 
 /**
  * The vertex program for computing connected components of a give instance.
- *
  */
 
 public class ConnectedComponentVertexProgram extends GraknVertexProgram<Boolean> {
@@ -55,6 +54,13 @@ public class ConnectedComponentVertexProgram extends GraknVertexProgram<Boolean>
 
     public ConnectedComponentVertexProgram(ConceptId sourceId) {
         this.persistentProperties.put(SOURCE, Schema.elementId(sourceId));
+    }
+
+    private static void update(Vertex vertex, Messenger<Boolean> messenger, Memory memory, String label) {
+        messenger.sendMessage(messageScopeIn, MESSAGE);
+        messenger.sendMessage(messageScopeOut, MESSAGE);
+        vertex.property(CLUSTER_LABEL, label);
+        memory.add(VOTE_TO_HALT, false);
     }
 
     @Override
@@ -84,13 +90,6 @@ public class ConnectedComponentVertexProgram extends GraknVertexProgram<Boolean>
                 update(vertex, messenger, memory, persistentProperties.get(SOURCE).toString());
             }
         }
-    }
-
-    private static void update(Vertex vertex, Messenger<Boolean> messenger, Memory memory, String label) {
-        messenger.sendMessage(messageScopeIn, MESSAGE);
-        messenger.sendMessage(messageScopeOut, MESSAGE);
-        vertex.property(CLUSTER_LABEL, label);
-        memory.add(VOTE_TO_HALT, false);
     }
 
     @Override

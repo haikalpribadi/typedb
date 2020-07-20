@@ -246,7 +246,7 @@ public class VertexElementImpl extends AbstractElementImpl<Vertex> implements Ve
             return elementFactory.inFromSourceId(id().toString(), Schema.EdgeLabel.ROLE_PLAYER);
         } else {
             return elementFactory.inFromSourceIdWithProperty(id().toString(), Schema.EdgeLabel.ROLE_PLAYER,
-                    Schema.EdgeProperty.ROLE_LABEL_ID, roleLabelIds);
+                                                             Schema.EdgeProperty.ROLE_LABEL_ID, roleLabelIds);
         }
     }
 }

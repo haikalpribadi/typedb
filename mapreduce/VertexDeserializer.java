@@ -57,11 +57,10 @@ import java.util.NoSuchElementException;
 
 public class VertexDeserializer implements AutoCloseable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(VertexDeserializer.class);
     private final HadoopSetup setup;
     private final TypeInspector typeManager;
     private final IDManager idManager;
-
-    private static final Logger LOG = LoggerFactory.getLogger(VertexDeserializer.class);
 
     VertexDeserializer(Configuration conf) {
         this.setup = new HadoopSetup(conf);

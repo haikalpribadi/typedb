@@ -38,76 +38,22 @@ import java.util.Collections;
 
 public class BaseKey extends BaseRelationType implements PropertyKey {
 
-    private enum Index {NONE, STANDARD, UNIQUE}
-
     //We rely on the vertex-existence property to be the smallest (in byte-order) when iterating over the entire graph
     public static final BaseKey VertexExists =
             new BaseKey("VertexExists", Boolean.class, 1, Index.NONE, Cardinality.SINGLE);
-
     public static final BaseKey SchemaName =
             new BaseKey("SchemaName", String.class, 32, Index.UNIQUE, Cardinality.SINGLE);
-
     public static final BaseKey SchemaDefinitionProperty =
             new BaseKey("SchemaDefinitionProperty", Object.class, 33, Index.NONE, Cardinality.LIST);
-
     public static final BaseKey SchemaCategory =
             new BaseKey("SchemaCategory", JanusGraphSchemaCategory.class, 34, Index.STANDARD, Cardinality.SINGLE);
-
     public static final BaseKey SchemaDefinitionDesc =
             new BaseKey("SchemaDefinitionDescription", TypeDefinitionDescription.class, 35, Index.NONE, Cardinality.SINGLE);
-
     public static final BaseKey SchemaUpdateTime =
             new BaseKey("SchemaUpdateTimestamp", Long.class, 36, Index.NONE, Cardinality.SINGLE);
-
-
     private final Class<?> dataType;
     private final Index index;
     private final Cardinality cardinality;
-
-    private BaseKey(String name, Class<?> dataType, int id, Index index, Cardinality cardinality) {
-        super(name, id, JanusGraphSchemaCategory.PROPERTYKEY);
-        Preconditions.checkArgument(index != null && cardinality != null);
-        this.dataType = dataType;
-        this.index = index;
-        this.cardinality = cardinality;
-    }
-
-    @Override
-    public Class<?> dataType() {
-        return dataType;
-    }
-
-    @Override
-    public final boolean isPropertyKey() {
-        return true;
-    }
-
-    @Override
-    public final boolean isEdgeLabel() {
-        return false;
-    }
-
-    @Override
-    public Multiplicity multiplicity() {
-        return Multiplicity.convert(cardinality());
-    }
-
-    @Override
-    public boolean isUnidirected(Direction dir) {
-        return dir == Direction.OUT;
-    }
-
-    @Override
-    public Cardinality cardinality() {
-        return cardinality;
-    }
-
-    @Override
-    public Iterable<IndexType> getKeyIndexes() {
-        if (index == Index.NONE) return Collections.EMPTY_LIST;
-        return ImmutableList.of(indexDef);
-    }
-
     private final CompositeIndexType indexDef = new CompositeIndexType() {
 
         private final IndexField[] fields = {IndexField.of(BaseKey.this)};
@@ -201,5 +147,51 @@ public class BaseKey extends BaseRelationType implements PropertyKey {
 
         //Use default hashcode and equals
     };
+
+    private BaseKey(String name, Class<?> dataType, int id, Index index, Cardinality cardinality) {
+        super(name, id, JanusGraphSchemaCategory.PROPERTYKEY);
+        Preconditions.checkArgument(index != null && cardinality != null);
+        this.dataType = dataType;
+        this.index = index;
+        this.cardinality = cardinality;
+    }
+
+    @Override
+    public Class<?> dataType() {
+        return dataType;
+    }
+
+    @Override
+    public final boolean isPropertyKey() {
+        return true;
+    }
+
+    @Override
+    public final boolean isEdgeLabel() {
+        return false;
+    }
+
+    @Override
+    public Multiplicity multiplicity() {
+        return Multiplicity.convert(cardinality());
+    }
+
+    @Override
+    public boolean isUnidirected(Direction dir) {
+        return dir == Direction.OUT;
+    }
+
+    @Override
+    public Cardinality cardinality() {
+        return cardinality;
+    }
+
+    @Override
+    public Iterable<IndexType> getKeyIndexes() {
+        if (index == Index.NONE) return Collections.EMPTY_LIST;
+        return ImmutableList.of(indexDef);
+    }
+
+    private enum Index {NONE, STANDARD, UNIQUE}
 
 }

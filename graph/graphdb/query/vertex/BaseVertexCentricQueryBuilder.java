@@ -51,7 +51,11 @@ public abstract class BaseVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q>
 
     private static final String[] NO_TYPES = new String[0];
     private static final List<PredicateCondition<String, JanusGraphRelation>> NO_CONSTRAINTS = ImmutableList.of();
-
+    /**
+     * The order in which the relations should be returned. None by default.
+     */
+    protected final OrderList orders = new OrderList();
+    private final SchemaInspector schemaInspector;
     /**
      * The direction of this query. BOTH by default
      */
@@ -69,15 +73,9 @@ public abstract class BaseVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q>
      */
     protected JanusGraphVertex adjacentVertex = null;
     /**
-     * The order in which the relations should be returned. None by default.
-     */
-    protected final OrderList orders = new OrderList();
-    /**
      * The limit of this query. No limit by default.
      */
     protected int limit = Query.NO_LIMIT;
-
-    private final SchemaInspector schemaInspector;
 
     protected BaseVertexCentricQueryBuilder(SchemaInspector schemaInspector) {
         this.schemaInspector = schemaInspector;

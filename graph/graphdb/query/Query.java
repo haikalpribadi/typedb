@@ -19,7 +19,6 @@ package grakn.core.graph.graphdb.query;
 
 /**
  * Standard Query interface specifying that a query may have a limit.
- *
  */
 public interface Query {
 
@@ -33,11 +32,9 @@ public interface Query {
     boolean hasLimit();
 
     /**
-     *
      * @return The maximum number of results this query should return
      */
     int getLimit();
-
 
 
 }

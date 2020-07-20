@@ -28,12 +28,22 @@ public enum JanusGraphSchemaCategory {
     EDGELABEL, PROPERTYKEY, VERTEXLABEL, GRAPHINDEX, TYPE_MODIFIER;
 
 
+    public static String getRelationTypeName(String name) {
+        return EDGELABEL.getSchemaName(name);
+    }
+
+    public static String getName(String schemaName) {
+        String[] comps = Token.splitSeparatedName(schemaName);
+        Preconditions.checkArgument(comps.length == 2);
+        return comps[1];
+    }
+
     public boolean isRelationType() {
-        return this== EDGELABEL || this== PROPERTYKEY;
+        return this == EDGELABEL || this == PROPERTYKEY;
     }
 
     public boolean hasName() {
-        switch(this) {
+        switch (this) {
             case EDGELABEL:
             case PROPERTYKEY:
             case GRAPHINDEX:
@@ -41,15 +51,16 @@ public enum JanusGraphSchemaCategory {
                 return true;
             case TYPE_MODIFIER:
                 return false;
-            default: throw new AssertionError();
+            default:
+                throw new AssertionError();
         }
     }
 
     public String getSchemaName(String name) {
         Preconditions.checkState(hasName());
-        TypeUtil.checkTypeName(this,name);
+        TypeUtil.checkTypeName(this, name);
         String prefix;
-        switch(this) {
+        switch (this) {
             case EDGELABEL:
             case PROPERTYKEY:
                 prefix = "rt";
@@ -60,24 +71,15 @@ public enum JanusGraphSchemaCategory {
             case VERTEXLABEL:
                 prefix = "vl";
                 break;
-            default: throw new AssertionError();
+            default:
+                throw new AssertionError();
         }
-        return Token.getSeparatedName(prefix,name);
-    }
-
-    public static String getRelationTypeName(String name) {
-        return EDGELABEL.getSchemaName(name);
-    }
-
-    public static String getName(String schemaName) {
-        String[] comps = Token.splitSeparatedName(schemaName);
-        Preconditions.checkArgument(comps.length==2);
-        return comps[1];
+        return Token.getSeparatedName(prefix, name);
     }
 
     public void verifyValidDefinition(TypeDefinitionMap definition) {
 
-        switch(this) {
+        switch (this) {
             case EDGELABEL:
                 definition.isValidDefinition(TypeDefinitionCategory.EDGELABEL_DEFINITION_CATEGORIES);
                 break;
@@ -93,7 +95,8 @@ public enum JanusGraphSchemaCategory {
             case VERTEXLABEL:
                 definition.isValidDefinition(TypeDefinitionCategory.VERTEXLABEL_DEFINITION_CATEGORIES);
                 break;
-            default: throw new AssertionError();
+            default:
+                throw new AssertionError();
         }
     }
 

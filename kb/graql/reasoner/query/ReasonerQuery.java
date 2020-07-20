@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 /**
  * Interface for conjunctive reasoner queries.
  */
-public interface ReasonerQuery{
+public interface ReasonerQuery {
 
     /**
      * @param q query to combine
@@ -49,10 +49,10 @@ public interface ReasonerQuery{
      * @return true if this query contains strictly non-negated atomics
      */
     @CheckReturnValue
-    default boolean isPositive(){ return true;}
+    default boolean isPositive() { return true;}
 
     @CheckReturnValue
-    default boolean isComposite(){return false;}
+    default boolean isComposite() {return false;}
 
     /**
      * @return true if this query is atomic
@@ -88,7 +88,7 @@ public interface ReasonerQuery{
 
     /**
      * @param type the class of Atomic to return
-     * @param <T> the type of Atomic to return
+     * @param <T>  the type of Atomic to return
      * @return stream of atoms of specified type defined in this query
      */
     @CheckReturnValue
@@ -123,6 +123,7 @@ public interface ReasonerQuery{
 
     /**
      * Returns a var-type map local to this query. Map is cached.
+     *
      * @return map of variable name - corresponding type pairs
      */
     @CheckReturnValue
@@ -137,6 +138,7 @@ public interface ReasonerQuery{
 
     /**
      * Returns a var-type of this query with possible additions coming from supplied partial answer.
+     *
      * @param sub partial answer
      * @return map of variable name - corresponding type pairs
      */

@@ -34,22 +34,18 @@ import static com.google.common.collect.Sets.newHashSet;
 
 /**
  * The vertex program for computing k-core.
- *
  */
 
 public class KCoreVertexProgram extends GraknVertexProgram<String> {
 
-    private static final int MAX_ITERATION = 200;
-    private static final String EMPTY_MESSAGE = "";
-
     public static final String K_CORE_LABEL = "kCoreVertexProgram.kCoreLabel";
-
     static final String IMPLICIT_MESSAGE_COUNT = "kCoreVertexProgram.implicitMessageCount";
     static final String MESSAGE_COUNT = "corenessVertexProgram.messageCount";
     static final String K_CORE_STABLE = "kCoreVertexProgram.stable";
     static final String K_CORE_EXIST = "kCoreVertexProgram.exist";
     static final String K = "kCoreVertexProgram.k";
-
+    private static final int MAX_ITERATION = 200;
+    private static final String EMPTY_MESSAGE = "";
     private static final String CONNECTED_COMPONENT_STARTED = "kCoreVertexProgram.ccStarted";
     private static final String VOTE_TO_HALT = "kCoreVertexProgram.voteToHalt";
 
@@ -70,61 +66,6 @@ public class KCoreVertexProgram extends GraknVertexProgram<String> {
 
     public KCoreVertexProgram(long kValue) {
         this.persistentProperties.put(K, kValue);
-    }
-
-    @Override
-    public Set<VertexComputeKey> getVertexComputeKeys() {
-        return VERTEX_COMPUTE_KEYS;
-    }
-
-    @Override
-    public Set<MemoryComputeKey> getMemoryComputeKeys() {
-        return MEMORY_COMPUTE_KEYS;
-    }
-
-    @Override
-    public void setup(final Memory memory) {
-        LOGGER.debug("KCoreVertexProgram Started !!!!!!!!");
-
-        // K_CORE_STABLE is true by default, and we reset it after each odd iteration.
-        memory.set(K_CORE_STABLE, false);
-        memory.set(K_CORE_EXIST, false);
-        memory.set(K, persistentProperties.get(K));
-        memory.set(VOTE_TO_HALT, true);
-        memory.set(CONNECTED_COMPONENT_STARTED, false);
-    }
-
-    @Override
-    public void safeExecute(final Vertex vertex, Messenger<String> messenger, final Memory memory) {
-        switch (memory.getIteration()) {
-            case 0:
-                sendMessage(messenger, EMPTY_MESSAGE);
-                break;
-
-            case 1: // get degree first, as degree must >= k
-                filterByDegree(vertex, messenger, memory, true);
-                break;
-
-            default:
-                if (memory.<Boolean>get(CONNECTED_COMPONENT_STARTED)) {
-                    if (messenger.receiveMessages().hasNext()) {
-                        if (vertex.property(K_CORE_LABEL).isPresent()) {
-                            updateClusterLabel(vertex, messenger, memory);
-                        } else if (vertex.label().equals(Schema.BaseType.RELATION.name())) {
-                            relayClusterLabel(messenger, memory);
-                        }
-                    }
-                } else {
-                    // relay message through relation vertices in even iterations
-                    // send message from regular entities in odd iterations
-                    if (atRelations(memory)) {
-                        relayOrSaveMessages(vertex, messenger);
-                    } else {
-                        updateEntityAndAttribute(vertex, messenger, memory, false);
-                    }
-                }
-                break;
-        }
     }
 
     static void filterByDegree(Vertex vertex, Messenger<String> messenger, Memory memory, boolean persistId) {
@@ -191,7 +132,7 @@ public class KCoreVertexProgram extends GraknVertexProgram<String> {
     private static void updateClusterLabel(Vertex vertex, Messenger<String> messenger, Memory memory) {
         String currentMax = vertex.value(K_CORE_LABEL);
         String max = IteratorUtils.reduce(messenger.receiveMessages(), currentMax,
-                (a, b) -> a.compareTo(b) > 0 ? a : b);
+                                          (a, b) -> a.compareTo(b) > 0 ? a : b);
         if (!max.equals(currentMax)) {
             LOGGER.trace("Cluster label of {} changed from {} to {}", vertex, currentMax, max);
             vertex.property(K_CORE_LABEL, max);
@@ -205,7 +146,7 @@ public class KCoreVertexProgram extends GraknVertexProgram<String> {
     private static void relayClusterLabel(Messenger<String> messenger, Memory memory) {
         String firstMessage = messenger.receiveMessages().next();
         String max = IteratorUtils.reduce(messenger.receiveMessages(), firstMessage,
-                (a, b) -> a.compareTo(b) > 0 ? a : b);
+                                          (a, b) -> a.compareTo(b) > 0 ? a : b);
         sendMessage(messenger, max);
         memory.add(VOTE_TO_HALT, false);
     }
@@ -224,6 +165,61 @@ public class KCoreVertexProgram extends GraknVertexProgram<String> {
 
     static boolean atRelations(Memory memory) {
         return memory.getIteration() % 2 == 0;
+    }
+
+    @Override
+    public Set<VertexComputeKey> getVertexComputeKeys() {
+        return VERTEX_COMPUTE_KEYS;
+    }
+
+    @Override
+    public Set<MemoryComputeKey> getMemoryComputeKeys() {
+        return MEMORY_COMPUTE_KEYS;
+    }
+
+    @Override
+    public void setup(final Memory memory) {
+        LOGGER.debug("KCoreVertexProgram Started !!!!!!!!");
+
+        // K_CORE_STABLE is true by default, and we reset it after each odd iteration.
+        memory.set(K_CORE_STABLE, false);
+        memory.set(K_CORE_EXIST, false);
+        memory.set(K, persistentProperties.get(K));
+        memory.set(VOTE_TO_HALT, true);
+        memory.set(CONNECTED_COMPONENT_STARTED, false);
+    }
+
+    @Override
+    public void safeExecute(final Vertex vertex, Messenger<String> messenger, final Memory memory) {
+        switch (memory.getIteration()) {
+            case 0:
+                sendMessage(messenger, EMPTY_MESSAGE);
+                break;
+
+            case 1: // get degree first, as degree must >= k
+                filterByDegree(vertex, messenger, memory, true);
+                break;
+
+            default:
+                if (memory.<Boolean>get(CONNECTED_COMPONENT_STARTED)) {
+                    if (messenger.receiveMessages().hasNext()) {
+                        if (vertex.property(K_CORE_LABEL).isPresent()) {
+                            updateClusterLabel(vertex, messenger, memory);
+                        } else if (vertex.label().equals(Schema.BaseType.RELATION.name())) {
+                            relayClusterLabel(messenger, memory);
+                        }
+                    }
+                } else {
+                    // relay message through relation vertices in even iterations
+                    // send message from regular entities in odd iterations
+                    if (atRelations(memory)) {
+                        relayOrSaveMessages(vertex, messenger);
+                    } else {
+                        updateEntityAndAttribute(vertex, messenger, memory, false);
+                    }
+                }
+                break;
+        }
     }
 
     @Override

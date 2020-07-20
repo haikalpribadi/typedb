@@ -36,10 +36,10 @@ public class ReasoningContext {
     private final KeyspaceStatistics keyspaceStatistics;
 
     public ReasoningContext(ReasonerQueryFactory queryFactory,
-                     ConceptManager conceptManager,
-                     QueryCache queryCache,
-                     RuleCache ruleCache,
-                     KeyspaceStatistics keyspaceStatistics){
+                            ConceptManager conceptManager,
+                            QueryCache queryCache,
+                            RuleCache ruleCache,
+                            KeyspaceStatistics keyspaceStatistics) {
         this.queryFactory = queryFactory;
         this.conceptManager = conceptManager;
         this.queryCache = queryCache;
@@ -47,9 +47,13 @@ public class ReasoningContext {
         this.keyspaceStatistics = keyspaceStatistics;
     }
 
-    public ReasonerQueryFactory queryFactory(){return queryFactory;}
-    public ConceptManager conceptManager(){return conceptManager;}
-    public QueryCache queryCache(){return queryCache;}
-    public RuleCache ruleCache(){return ruleCache;}
-    public KeyspaceStatistics keyspaceStatistics(){return keyspaceStatistics;}
+    public ReasonerQueryFactory queryFactory() {return queryFactory;}
+
+    public ConceptManager conceptManager() {return conceptManager;}
+
+    public QueryCache queryCache() {return queryCache;}
+
+    public RuleCache ruleCache() {return ruleCache;}
+
+    public KeyspaceStatistics keyspaceStatistics() {return keyspaceStatistics;}
 }

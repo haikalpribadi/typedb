@@ -23,10 +23,9 @@ import java.lang.reflect.Constructor;
  * Utility methods for hexadecimal representation of bytes
  */
 public class Hex {
-    private static final Constructor<String> stringConstructor = getStringProtectedConstructor(int.class, int.class, char[].class);
-
     // package protected for use by BufferUtil. Do not modify this array !!
     static final char[] byteToChar = new char[16];
+    private static final Constructor<String> stringConstructor = getStringProtectedConstructor(int.class, int.class, char[].class);
 
     static {
         for (int i = 0; i < 16; ++i) {

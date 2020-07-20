@@ -33,14 +33,14 @@ import java.util.stream.Collectors;
 
 public class CacheVertexProperty extends AbstractVertexProperty {
 
+    private final Entry data;
+
+    //############## Similar code as CacheEdge but be careful when copying #############################
+
     public CacheVertexProperty(long id, PropertyKey key, InternalVertex start, Object value, Entry data) {
         super(id, key, start.it(), value);
         this.data = data;
     }
-
-    //############## Similar code as CacheEdge but be careful when copying #############################
-
-    private final Entry data;
 
     @Override
     public InternalRelation it() {

@@ -20,12 +20,9 @@ package grakn.core.concept.impl;
 
 import grakn.core.kb.concept.api.Entity;
 import grakn.core.kb.concept.api.EntityType;
-import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.manager.ConceptManager;
 import grakn.core.kb.concept.manager.ConceptNotificationChannel;
 import grakn.core.kb.concept.structure.VertexElement;
-
-import java.util.stream.Stream;
 
 /**
  * An instance of Entity Type EntityType

@@ -22,7 +22,6 @@ import grakn.core.concept.answer.ConceptMap;
 import grakn.core.concept.answer.Explanation;
 import grakn.core.graql.reasoner.query.ReasonerQueryImpl;
 import grakn.core.graql.reasoner.unifier.UnifierType;
-import grakn.core.kb.graql.executor.ExecutorFactory;
 import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.kb.graql.planning.gremlin.TraversalPlanFactory;
 import grakn.core.kb.graql.reasoner.ReasonerException;
@@ -62,6 +61,13 @@ public abstract class QueryCacheBase<
         sCache = new StructuralCache<>(traversalPlanFactory, traversalExecutor);
     }
 
+    static <T extends ReasonerQueryImpl> void validateAnswer(ConceptMap answer, T query, Set<Variable> expectedVars) {
+        if (!answer.vars().equals(expectedVars)
+                || answer.explanation().getClass().equals(Explanation.class)) {
+            throw ReasonerException.invalidQueryCacheEntry(query, answer);
+        }
+    }
+
     abstract UnifierType unifierType();
 
     abstract QE queryToKey(Q query);
@@ -94,7 +100,7 @@ public abstract class QueryCacheBase<
     public boolean contains(Q query) { return getEntry(query) != null; }
 
     @Override
-    public Set<Q> queries(){ return cache.keySet().stream().map(this::keyToQuery).collect(Collectors.toSet());}
+    public Set<Q> queries() { return cache.keySet().stream().map(this::keyToQuery).collect(Collectors.toSet());}
 
     /**
      * @param query to find unifier for
@@ -124,12 +130,5 @@ public abstract class QueryCacheBase<
      */
     CacheEntry<Q, SE> removeEntry(Q query) {
         return cache.remove(queryToKey(query));
-    }
-
-    static <T extends ReasonerQueryImpl> void validateAnswer(ConceptMap answer, T query, Set<Variable> expectedVars){
-        if (!answer.vars().equals(expectedVars)
-                || answer.explanation().getClass().equals(Explanation.class)) {
-            throw ReasonerException.invalidQueryCacheEntry(query, answer);
-        }
     }
 }

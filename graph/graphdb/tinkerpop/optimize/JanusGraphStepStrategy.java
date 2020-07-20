@@ -34,6 +34,10 @@ public class JanusGraphStepStrategy extends AbstractTraversalStrategy<TraversalS
     private JanusGraphStepStrategy() {
     }
 
+    public static JanusGraphStepStrategy instance() {
+        return INSTANCE;
+    }
+
     @Override
     public void apply(Traversal.Admin<?, ?> traversal) {
         if (TraversalHelper.onGraphComputer(traversal)) {
@@ -66,9 +70,5 @@ public class JanusGraphStepStrategy extends AbstractTraversalStrategy<TraversalS
             }
 
         });
-    }
-
-    public static JanusGraphStepStrategy instance() {
-        return INSTANCE;
     }
 }

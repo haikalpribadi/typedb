@@ -29,7 +29,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#regex(VarProperty, Variable, String)
- *
  */
 class RegexFragmentSet extends EquivalentFragmentSetImpl {
 

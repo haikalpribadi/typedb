@@ -61,11 +61,6 @@ public class GraqlSemanticException extends GraknException {
         super(error, cause, false);
     }
 
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
     public static GraqlSemanticException create(String formatString, Object... args) {
         return new GraqlSemanticException(String.format(formatString, args));
     }
@@ -294,6 +289,11 @@ public class GraqlSemanticException extends GraknException {
 
     public static GraqlSemanticException unexpectedResult(Variable var) {
         return new GraqlSemanticException(UNEXPECTED_RESULT.getMessage(var.name()));
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 
 }

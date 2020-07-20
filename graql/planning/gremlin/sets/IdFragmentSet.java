@@ -30,7 +30,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#id(VarProperty, Variable, ConceptId)
- *
  */
 class IdFragmentSet extends EquivalentFragmentSetImpl {
 

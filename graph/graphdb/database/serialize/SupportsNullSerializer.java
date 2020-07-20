@@ -20,7 +20,6 @@ package grakn.core.graph.graphdb.database.serialize;
 /**
  * Marker interface to indicate that a given serializer supports serializing
  * null values effectively.
- *
  */
 public interface SupportsNullSerializer {
 

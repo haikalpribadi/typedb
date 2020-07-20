@@ -293,8 +293,8 @@ public class RelationSemanticProcessor implements SemanticProcessor<RelationAtom
                 // by either case. We therefore explicitly require N role players to be repeatedly present
                 // this is less efficient, but also less common
                 List<Role> filteredChildRoles = childRoles.stream()
-                    .filter(playedRole -> !Schema.MetaSchema.isMetaLabel(playedRole.label()))
-                    .collect(Collectors.toList());
+                        .filter(playedRole -> !Schema.MetaSchema.isMetaLabel(playedRole.label()))
+                        .collect(Collectors.toList());
                 diff.add(new VariableDefinition(parentVar, null, requiredRole, filteredChildRoles, new HashSet<>()));
             }
         });

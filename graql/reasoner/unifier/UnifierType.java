@@ -163,7 +163,6 @@ public enum UnifierType implements UnifierComparison, EquivalenceCoupling {
      *
      * P: $x has age >= 10
      * Q: $x has age 10
-     *
      */
     RULE {
         @Override
@@ -196,7 +195,7 @@ public enum UnifierType implements UnifierComparison, EquivalenceCoupling {
         @Override
         public boolean typeCompatibility(Set<? extends SchemaConcept> parentTypes, Set<? extends SchemaConcept> childTypes) {
             return super.typeCompatibility(parentTypes, childTypes)
-                && (childTypes.isEmpty() || !ConceptUtils.areDisjointTypeSets(parentTypes, childTypes, false));
+                    && (childTypes.isEmpty() || !ConceptUtils.areDisjointTypeSets(parentTypes, childTypes, false));
         }
 
         @Override
@@ -250,7 +249,6 @@ public enum UnifierType implements UnifierComparison, EquivalenceCoupling {
      * Used in the query cache
      */
     SUBSUMPTIVE {
-
         @Override
         public ReasonerQueryEquivalence equivalence() { return null; }
 
@@ -330,17 +328,23 @@ public enum UnifierType implements UnifierComparison, EquivalenceCoupling {
      * Used by query cache
      */
     STRUCTURAL_SUBSUMPTIVE {
-        @Override public ReasonerQueryEquivalence equivalence() { return SUBSUMPTIVE.equivalence(); }
+        @Override
+        public ReasonerQueryEquivalence equivalence() { return SUBSUMPTIVE.equivalence(); }
 
-        @Override public boolean inferTypes() { return SUBSUMPTIVE.inferTypes(); }
+        @Override
+        public boolean inferTypes() { return SUBSUMPTIVE.inferTypes(); }
 
-        @Override public boolean inferValues() { return SUBSUMPTIVE.inferValues(); }
+        @Override
+        public boolean inferValues() { return SUBSUMPTIVE.inferValues(); }
 
-        @Override public boolean allowsNonInjectiveMappings() { return SUBSUMPTIVE.allowsNonInjectiveMappings(); }
+        @Override
+        public boolean allowsNonInjectiveMappings() { return SUBSUMPTIVE.allowsNonInjectiveMappings(); }
 
-        @Override public boolean typeDirectednessCompatibility(Atomic parent, Atomic child) { return SUBSUMPTIVE.typeDirectednessCompatibility(parent, child); }
+        @Override
+        public boolean typeDirectednessCompatibility(Atomic parent, Atomic child) { return SUBSUMPTIVE.typeDirectednessCompatibility(parent, child); }
 
-        @Override public boolean roleCompatibility(Role parent, Role child) { return SUBSUMPTIVE.roleCompatibility(parent, child); }
+        @Override
+        public boolean roleCompatibility(Role parent, Role child) { return SUBSUMPTIVE.roleCompatibility(parent, child); }
 
         @Override
         public boolean typePlayabilityWithMatchSemantics(Atomic child, Variable var, Set<Type> types) {
@@ -378,7 +382,7 @@ public enum UnifierType implements UnifierComparison, EquivalenceCoupling {
         }
 
         @Override
-        public boolean idCompatibility(Set<Atomic> parent, Set<Atomic> child){
+        public boolean idCompatibility(Set<Atomic> parent, Set<Atomic> child) {
             return parent.isEmpty()
                     || isEquivalentCollection(parent, child, this::idCompatibility);
         }

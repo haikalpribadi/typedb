@@ -36,16 +36,24 @@ public enum ParameterType {
 
     STATUS("status"),
 
-    /** Maximum number of levels to be used in the spatial prefix tree where applicable. **/
+    /**
+     * Maximum number of levels to be used in the spatial prefix tree where applicable.
+     **/
     INDEX_GEO_MAX_LEVELS("index-geo-max-levels"),
 
-    /** Distance error percent used to determine precision in spatial prefix tree where applicable. **/
+    /**
+     * Distance error percent used to determine precision in spatial prefix tree where applicable.
+     **/
     INDEX_GEO_DIST_ERROR_PCT("index-geo-dist-error-pct"),
-    
-    /** Analyzer for String Type with mapping STRING**/
+
+    /**
+     * Analyzer for String Type with mapping STRING
+     **/
     STRING_ANALYZER("string-analyzer"),
 
-    /** Analyzer for String Type with mapping TEXT**/
+    /**
+     * Analyzer for String Type with mapping TEXT
+     **/
     TEXT_ANALYZER("text-analyzer"),
     ;
 
@@ -55,7 +63,19 @@ public enum ParameterType {
 
     ParameterType(String name) {
         Preconditions.checkArgument(StringUtils.isNotBlank(name));
-        this.name=name;
+        this.name = name;
+    }
+
+    public static String customParameterName(String name) {
+        return CUSTOM_PARAMETER_PREFIX + name;
+    }
+
+    public static List<Parameter> getCustomParameters(Parameter[] parameters) {
+
+        return Arrays.stream(parameters)
+                .filter(p -> p.key().startsWith(CUSTOM_PARAMETER_PREFIX))
+                .map(p -> new Parameter<>(p.key().substring(CUSTOM_PARAMETER_PREFIX.length()), p.value()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -67,38 +87,26 @@ public enum ParameterType {
         return name;
     }
 
-    public<V> V findParameter(Parameter[] parameters, V defaultValue) {
+    public <V> V findParameter(Parameter[] parameters, V defaultValue) {
         V result = null;
         for (Parameter p : parameters) {
             if (p.key().equalsIgnoreCase(name)) {
                 Object value = p.value();
-                Preconditions.checkNotNull(value, "Invalid mapping specified: %s",value);
-                Preconditions.checkArgument(result==null,"Multiple mappings specified");
-                result = (V)value;
+                Preconditions.checkNotNull(value, "Invalid mapping specified: %s", value);
+                Preconditions.checkArgument(result == null, "Multiple mappings specified");
+                result = (V) value;
             }
         }
-        if (result==null) return defaultValue;
+        if (result == null) return defaultValue;
         return result;
     }
 
     public boolean hasParameter(Parameter[] parameters) {
-        return findParameter(parameters,null)!=null;
+        return findParameter(parameters, null) != null;
     }
 
-    public<V> Parameter<V> getParameter(V value) {
+    public <V> Parameter<V> getParameter(V value) {
         return new Parameter<>(name, value);
-    }
-
-    public static String customParameterName(String name){
-        return CUSTOM_PARAMETER_PREFIX + name;
-    }
-
-    public static List<Parameter> getCustomParameters(Parameter[] parameters){
-
-        return Arrays.stream(parameters)
-            .filter(p -> p.key().startsWith(CUSTOM_PARAMETER_PREFIX))
-            .map(p -> new Parameter<>(p.key().substring(CUSTOM_PARAMETER_PREFIX.length()), p.value()))
-            .collect(Collectors.toList());
     }
 
 }

@@ -57,6 +57,33 @@ public class VertexArrayList implements VertexListInternal {
         sorted = true;
     }
 
+    private static List<JanusGraphVertex> mergeSort(Collection<JanusGraphVertex> a, Collection<JanusGraphVertex> b) {
+        Iterator<JanusGraphVertex> iteratorA = a.iterator(), iteratorB = b.iterator();
+        JanusGraphVertex headA = iteratorA.hasNext() ? iteratorA.next() : null;
+        JanusGraphVertex headB = iteratorB.hasNext() ? iteratorB.next() : null;
+        List<JanusGraphVertex> result = new ArrayList<>(a.size() + b.size());
+        while (headA != null || headB != null) {
+            JanusGraphVertex next;
+            if (headA == null) {
+                next = headB;
+                headB = null;
+            } else if (headB == null) {
+                next = headA;
+                headA = null;
+            } else if (VERTEX_ID_COMPARATOR.compare(headA, headB) <= 0) {
+                next = headA;
+                headA = null;
+            } else {
+                next = headB;
+                headB = null;
+            }
+
+            result.add(next);
+            if (headA == null) headA = iteratorA.hasNext() ? iteratorA.next() : null;
+            if (headB == null) headB = iteratorB.hasNext() ? iteratorB.next() : null;
+        }
+        return result;
+    }
 
     @Override
     public void add(JanusGraphVertex n) {
@@ -110,33 +137,5 @@ public class VertexArrayList implements VertexListInternal {
     @Override
     public Iterator<JanusGraphVertex> iterator() {
         return Iterators.unmodifiableIterator(vertices.iterator());
-    }
-
-    private static List<JanusGraphVertex> mergeSort(Collection<JanusGraphVertex> a, Collection<JanusGraphVertex> b) {
-        Iterator<JanusGraphVertex> iteratorA = a.iterator(), iteratorB = b.iterator();
-        JanusGraphVertex headA = iteratorA.hasNext() ? iteratorA.next() : null;
-        JanusGraphVertex headB = iteratorB.hasNext() ? iteratorB.next() : null;
-        List<JanusGraphVertex> result = new ArrayList<>(a.size() + b.size());
-        while (headA != null || headB != null) {
-            JanusGraphVertex next;
-            if (headA == null) {
-                next = headB;
-                headB = null;
-            } else if (headB == null) {
-                next = headA;
-                headA = null;
-            } else if (VERTEX_ID_COMPARATOR.compare(headA, headB) <= 0) {
-                next = headA;
-                headA = null;
-            } else {
-                next = headB;
-                headB = null;
-            }
-
-            result.add(next);
-            if (headA == null) headA = iteratorA.hasNext() ? iteratorA.next() : null;
-            if (headB == null) headB = iteratorB.hasNext() ? iteratorB.next() : null;
-        }
-        return result;
     }
 }

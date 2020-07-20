@@ -34,7 +34,7 @@ import java.util.Set;
  * Both variables and terms are defined in terms of graql Vars.
  * For a set of expressions Γ, the unifier θ maps elements from Γ to a single expression φ : Γθ = {φ}.
  */
-public interface Unifier{
+public interface Unifier {
 
     /**
      * @param key specific variable
@@ -89,6 +89,7 @@ public interface Unifier{
 
     /**
      * unifier merging by simple mapping addition (no variable clashes assumed)
+     *
      * @param u unifier to be merged with this unifier
      * @return merged unifier
      */

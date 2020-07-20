@@ -51,12 +51,10 @@ public class StandardSchemaCache implements SchemaCache {
     private final int maxCachedTypes;
     private final int maxCachedRelations;
     private final StoreRetrieval retriever;
-
-    private volatile ConcurrentMap<String, Long> typeNames;
     private final Cache<String, Long> typeNamesBackup;
-
-    private volatile ConcurrentMap<Long, EntryList> schemaRelations;
     private final Cache<Long, EntryList> schemaRelationsBackup;
+    private volatile ConcurrentMap<String, Long> typeNames;
+    private volatile ConcurrentMap<Long, EntryList> schemaRelations;
 
     public StandardSchemaCache(StoreRetrieval retriever) {
         this(MAX_CACHED_TYPES_DEFAULT, retriever);

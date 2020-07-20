@@ -43,7 +43,7 @@ public final class JanusGraphMultiQueryStep extends AbstractStep<Vertex, Vertex>
     private final String forStep;
     private boolean cachedStartsAccessed = false;
 
-    public JanusGraphMultiQueryStep(Step<Vertex,?> originalStep) {
+    public JanusGraphMultiQueryStep(Step<Vertex, ?> originalStep) {
         super(originalStep.getTraversal());
         this.forStep = originalStep.getClass().getSimpleName();
     }
@@ -51,8 +51,7 @@ public final class JanusGraphMultiQueryStep extends AbstractStep<Vertex, Vertex>
     @Override
     protected Admin<Vertex> processNextStart() throws NoSuchElementException {
         Admin<Vertex> start = this.starts.next();
-        if (!cachedStarts.contains(start))
-        {
+        if (!cachedStarts.contains(start)) {
             if (cachedStartsAccessed) {
                 cachedStarts.clear();
                 cachedStartsAccessed = false;

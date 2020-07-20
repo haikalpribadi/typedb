@@ -23,6 +23,7 @@ import grakn.core.kb.graql.reasoner.atom.Atomic;
 import grakn.core.kb.graql.reasoner.query.ReasonerQuery;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
 import java.util.Objects;
 
 /**
@@ -40,6 +41,7 @@ public abstract class Predicate<T> extends AtomicBase {
     }
 
     public T getPredicate() { return predicate; }
+
     public abstract String getPredicateValue();
 
     @Override

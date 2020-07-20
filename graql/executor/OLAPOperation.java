@@ -122,9 +122,9 @@ public class OLAPOperation {
             edgeFilter = includesRolePlayerEdge ?
                     __.union(
                             __.bothE(Schema.EdgeLabel.ROLE_PLAYER.getLabel()),
-                            __.bothE(Schema.EdgeLabel.ATTRIBUTE.getLabel()) ) :
+                            __.bothE(Schema.EdgeLabel.ATTRIBUTE.getLabel())) :
 //                                    .has(Schema.EdgeProperty.RELATION_TYPE_LABEL_ID.name(), P.within(labelIds))) :
-                    __.bothE(Schema.EdgeLabel.ATTRIBUTE.getLabel()) ;
+                    __.bothE(Schema.EdgeLabel.ATTRIBUTE.getLabel());
 //                            .has(Schema.EdgeProperty.RELATION_TYPE_LABEL_ID.name(), P.within(labelIds));
         }
 

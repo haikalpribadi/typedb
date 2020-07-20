@@ -31,7 +31,6 @@ import java.util.Set;
 /**
  * The MapReduce program for computing the standard deviation of the given resource.
  * <p>
- *
  */
 
 public class StdMapReduce extends StatisticsMapReduce<Map<String, Double>> {
@@ -75,11 +74,11 @@ public class StdMapReduce extends StatisticsMapReduce<Map<String, Double>> {
         emptyTuple.put(SQUARE_SUM, 0D);
         emptyTuple.put(COUNT, 0D);
         return IteratorUtils.reduce(values, emptyTuple,
-                (a, b) -> {
-                    a.put(COUNT, a.get(COUNT) + b.get(COUNT));
-                    a.put(SUM, a.get(SUM) + b.get(SUM));
-                    a.put(SQUARE_SUM, a.get(SQUARE_SUM) + b.get(SQUARE_SUM));
-                    return a;
-                });
+                                    (a, b) -> {
+                                        a.put(COUNT, a.get(COUNT) + b.get(COUNT));
+                                        a.put(SUM, a.get(SUM) + b.get(SUM));
+                                        a.put(SQUARE_SUM, a.get(SQUARE_SUM) + b.get(SQUARE_SUM));
+                                        return a;
+                                    });
     }
 }

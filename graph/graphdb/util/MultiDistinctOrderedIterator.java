@@ -74,7 +74,7 @@ public class MultiDistinctOrderedIterator<E extends Element> implements Iterator
             return false;
         }
         for (int i = 0; i < iterators.size(); i++) {
-            if (!values.containsKey(i) && iterators.get(i).hasNext()){
+            if (!values.containsKey(i) && iterators.get(i).hasNext()) {
                 E element = null;
                 do {
                     element = iterators.get(i).next();

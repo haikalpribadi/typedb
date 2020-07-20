@@ -70,16 +70,16 @@ public class BufferUtil {
 
     private static StaticBuffer fillBuffer(int len, byte value) {
         byte[] res = new byte[len];
-        for (int i = 0; i < len; i++) res[i]=value;
+        for (int i = 0; i < len; i++) res[i] = value;
         return StaticArrayBuffer.of(res);
     }
 
     public static StaticBuffer oneBuffer(int len) {
-        return fillBuffer(len,(byte)-1);
+        return fillBuffer(len, (byte) -1);
     }
 
     public static StaticBuffer zeroBuffer(int len) {
-        return fillBuffer(len,(byte)0);
+        return fillBuffer(len, (byte) 0);
     }
 
     /* ################
@@ -88,43 +88,43 @@ public class BufferUtil {
      */
 
     public static void writeEntry(DataOutput out, Entry entry) {
-        VariableLong.writePositive(out,entry.getValuePosition());
-        writeBuffer(out,entry);
-        if (!entry.hasMetaData()) out.putByte((byte)0);
+        VariableLong.writePositive(out, entry.getValuePosition());
+        writeBuffer(out, entry);
+        if (!entry.hasMetaData()) out.putByte((byte) 0);
         else {
-            Map<EntryMetaData,Object> metadata = entry.getMetaData();
-            out.putByte((byte)metadata.size());
-            for (Map.Entry<EntryMetaData,Object> metas : metadata.entrySet()) {
+            Map<EntryMetaData, Object> metadata = entry.getMetaData();
+            out.putByte((byte) metadata.size());
+            for (Map.Entry<EntryMetaData, Object> metas : metadata.entrySet()) {
                 EntryMetaData meta = metas.getKey();
-                out.putByte((byte)meta.ordinal());
+                out.putByte((byte) meta.ordinal());
                 out.writeObjectNotNull(metas.getValue());
             }
         }
     }
 
     public static void writeBuffer(DataOutput out, StaticBuffer buffer) {
-        VariableLong.writePositive(out,buffer.length());
+        VariableLong.writePositive(out, buffer.length());
         out.putBytes(buffer);
     }
 
     public static Entry readEntry(ReadBuffer in, Serializer serializer) {
         long valuePosition = VariableLong.readPositive(in);
-        Preconditions.checkArgument(valuePosition>0 && valuePosition<=Integer.MAX_VALUE);
+        Preconditions.checkArgument(valuePosition > 0 && valuePosition <= Integer.MAX_VALUE);
         StaticBuffer buffer = readBuffer(in);
 
         StaticArrayEntry entry = new StaticArrayEntry(buffer, (int) valuePosition);
         int metaSize = in.getByte();
-        for (int i=0;i<metaSize;i++) {
+        for (int i = 0; i < metaSize; i++) {
             EntryMetaData meta = EntryMetaData.values()[in.getByte()];
-            entry.setMetaData(meta,serializer.readObjectNotNull(in,meta.getDataType()));
+            entry.setMetaData(meta, serializer.readObjectNotNull(in, meta.getDataType()));
         }
         return entry;
     }
 
     private static StaticBuffer readBuffer(ScanBuffer in) {
         long length = VariableLong.readPositive(in);
-        Preconditions.checkArgument(length>=0 && length<=Integer.MAX_VALUE);
-        byte[] data = in.getBytes((int)length);
+        Preconditions.checkArgument(length >= 0 && length <= Integer.MAX_VALUE);
+        byte[] data = in.getBytes((int) length);
         return new StaticArrayBuffer(data);
     }
 
@@ -134,10 +134,10 @@ public class BufferUtil {
      */
 
     public static StaticBuffer padBuffer(StaticBuffer b, int length) {
-        if (b.length()>=length) return b;
+        if (b.length() >= length) return b;
         byte[] data = new byte[length]; //implicitly initialized to all 0s
         for (int i = 0; i < b.length(); i++) {
-            data[i]=b.getByte(i);
+            data[i] = b.getByte(i);
         }
         return new StaticArrayBuffer(data);
     }
@@ -147,7 +147,7 @@ public class BufferUtil {
     }
 
     public static StaticBuffer nextBiggerBuffer(StaticBuffer buffer) {
-        return nextBiggerBuffer(buffer,false);
+        return nextBiggerBuffer(buffer, false);
     }
 
     private static StaticBuffer nextBiggerBuffer(StaticBuffer buffer, boolean allowOverflow) {
@@ -160,7 +160,7 @@ public class BufferUtil {
                 b++;
                 if (b != 0) carry = false;
             }
-            next[i]=b;
+            next[i] = b;
         }
         if (carry && allowOverflow) {
             return zeroBuffer(len);
@@ -176,10 +176,10 @@ public class BufferUtil {
      * Thread safe equals method for StaticBuffer - ByteBuffer equality comparison
      */
     public static boolean equals(StaticBuffer b1, ByteBuffer b2) {
-        if (b1.length()!=b2.remaining()) return false;
+        if (b1.length() != b2.remaining()) return false;
         int p2 = b2.position();
-        for (int i=0;i<b1.length();i++) {
-            if (b1.getByte(i)!=b2.get(p2+i)) return false;
+        for (int i = 0; i < b1.length(); i++) {
+            if (b1.getByte(i) != b2.get(p2 + i)) return false;
         }
         return true;
     }

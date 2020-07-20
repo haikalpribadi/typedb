@@ -24,7 +24,6 @@ import java.util.Collection;
 
 /**
  * Describes an optimisation strategy that can be applied to EquivalentFragmentSets.
- *
  */
 @FunctionalInterface
 public interface FragmentSetOptimisation {
@@ -33,8 +32,8 @@ public interface FragmentSetOptimisation {
      * Apply the optimisation to the given EquivalentFragmentSets using the given Transaction.
      *
      * <p>
-     *     The strategy may modify the collection. If it does, it will return {@code true}, otherwise it will return
-     *     {@code false}.
+     * The strategy may modify the collection. If it does, it will return {@code true}, otherwise it will return
+     * {@code false}.
      * </p>
      *
      * @param fragmentSets a mutable collection of EquivalentFragmentSets

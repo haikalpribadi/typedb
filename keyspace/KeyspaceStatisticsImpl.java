@@ -98,9 +98,9 @@ public class KeyspaceStatisticsImpl implements KeyspaceStatistics {
                     Long delta = entry.getValue();
                     ownershipLabelsToPersist.add(attr);
                     ownershipCountsCache.compute(attr, (k, prior) ->
-                        prior == null ?
-                                retrieveOwnershipCount(conceptManager, attr) + delta :
-                                prior + delta
+                            prior == null ?
+                                    retrieveOwnershipCount(conceptManager, attr) + delta :
+                                    prior + delta
                     );
                 });
 

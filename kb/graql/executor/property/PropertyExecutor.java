@@ -68,6 +68,18 @@ public interface PropertyExecutor {
 
     interface Writer {
 
+        Variable var();
+
+        VarProperty property();
+
+        Set<Variable> requiredVars();
+
+        Set<Variable> producedVars();
+
+        void execute(WriteExecutor executor);
+
+        default TiebreakDeletionOrdering ordering(WriteExecutor executor) { return TiebreakDeletionOrdering.NOT_APPLICABLE; }
+
         enum TiebreakDeletionOrdering {
             // when no explicit ordering is possible, we first delete
             // 1. edge properties (eg. `DeleteHasAttribute` or `DeleteRelation`)
@@ -81,22 +93,11 @@ public interface PropertyExecutor {
             RELATION(3),
             NON_RELATION(4);
             private final int priority;
+
             TiebreakDeletionOrdering(int priority) {
                 this.priority = priority;
             }
         }
-
-        Variable var();
-
-        VarProperty property();
-
-        Set<Variable> requiredVars();
-
-        Set<Variable> producedVars();
-
-        void execute(WriteExecutor executor);
-
-        default TiebreakDeletionOrdering ordering(WriteExecutor executor) { return TiebreakDeletionOrdering.NOT_APPLICABLE; }
     }
 
     interface Referrer extends Writer {

@@ -25,7 +25,6 @@ import java.time.Instant;
 
 /**
  * Implementation of AbstractMessage for KCVSLog.
- *
  */
 public class KCVSMessage extends AbstractMessage {
 

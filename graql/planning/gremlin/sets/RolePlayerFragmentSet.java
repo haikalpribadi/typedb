@@ -39,41 +39,8 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * see EquivalentFragmentSets#rolePlayer(VarProperty, Variable, Variable, Variable, Variable)
- *
  */
 public class RolePlayerFragmentSet extends EquivalentFragmentSetImpl {
-
-    private final Variable relation;
-    private final Variable edge;
-    private final Variable rolePlayer;
-    private final Variable role;
-    private final ImmutableSet<Label> roleLabels;
-    private final ImmutableSet<Label> relationTypeLabels;
-
-    RolePlayerFragmentSet(
-            @Nullable VarProperty varProperty,
-            Variable relation,
-            Variable edge,
-            Variable rolePlayer,
-            @Nullable Variable role,
-            @Nullable ImmutableSet<Label> roleLabels,
-            @Nullable ImmutableSet<Label> relationTypeLabels) {
-        super(varProperty);
-        this.relation = relation;
-        this.edge = edge;
-        this.rolePlayer = rolePlayer;
-        this.role = role;
-        this.roleLabels = roleLabels;
-        this.relationTypeLabels = relationTypeLabels;
-    }
-
-    @Override
-    public final Set<Fragment> fragments() {
-        return ImmutableSet.of(
-                Fragments.inRolePlayer(varProperty(), rolePlayer, edge, relation, role, roleLabels, relationTypeLabels),
-                Fragments.outRolePlayer(varProperty(), relation, edge, rolePlayer, role, roleLabels, relationTypeLabels)
-        );
-    }
 
     /**
      * A query can use the role-type labels on a Schema.EdgeLabel#ROLE_PLAYER edge when the following criteria are met:
@@ -130,7 +97,6 @@ public class RolePlayerFragmentSet extends EquivalentFragmentSetImpl {
 
         return false;
     };
-
     /**
      * A query can use the RelationType Labels on a Schema.EdgeLabel#ROLE_PLAYER edge when the following criteria are met:
      * <ol>
@@ -182,25 +148,57 @@ public class RolePlayerFragmentSet extends EquivalentFragmentSetImpl {
 
         return false;
     };
+    private final Variable relation;
+    private final Variable edge;
+    private final Variable rolePlayer;
+    private final Variable role;
+    private final ImmutableSet<Label> roleLabels;
+    private final ImmutableSet<Label> relationTypeLabels;
 
-    private RolePlayerFragmentSet substituteLabels(Set<Role> roles, Set<RelationType> relTypes){
-        ImmutableSet<Label> newRoleTypeLabels = relTypes != null?
+    RolePlayerFragmentSet(
+            @Nullable VarProperty varProperty,
+            Variable relation,
+            Variable edge,
+            Variable rolePlayer,
+            @Nullable Variable role,
+            @Nullable ImmutableSet<Label> roleLabels,
+            @Nullable ImmutableSet<Label> relationTypeLabels) {
+        super(varProperty);
+        this.relation = relation;
+        this.edge = edge;
+        this.rolePlayer = rolePlayer;
+        this.role = role;
+        this.roleLabels = roleLabels;
+        this.relationTypeLabels = relationTypeLabels;
+    }
+
+    @Override
+    public final Set<Fragment> fragments() {
+        return ImmutableSet.of(
+                Fragments.inRolePlayer(varProperty(), rolePlayer, edge, relation, role, roleLabels, relationTypeLabels),
+                Fragments.outRolePlayer(varProperty(), relation, edge, rolePlayer, role, roleLabels, relationTypeLabels)
+        );
+    }
+
+    private RolePlayerFragmentSet substituteLabels(Set<Role> roles, Set<RelationType> relTypes) {
+        ImmutableSet<Label> newRoleTypeLabels = relTypes != null ?
                 relTypes.stream().flatMap(RelationType::subs).map(SchemaConcept::label).collect(ImmutableSet.toImmutableSet()) :
                 null;
-        ImmutableSet<Label> newRoleLabels = roles != null?
+        ImmutableSet<Label> newRoleLabels = roles != null ?
                 roles.stream().flatMap(Role::subs).map(SchemaConcept::label).collect(ImmutableSet.toImmutableSet()) :
                 null;
 
         return new RolePlayerFragmentSet(
                 varProperty(), relation, edge, rolePlayer, null,
-                newRoleLabels!= null? newRoleLabels : roleLabels,
-                newRoleTypeLabels != null? newRoleTypeLabels : relationTypeLabels
+                newRoleLabels != null ? newRoleLabels : roleLabels,
+                newRoleTypeLabels != null ? newRoleTypeLabels : relationTypeLabels
         );
     }
 
     /**
      * NB: doesn't allow overwrites
      * Apply an optimisation where we check the Role property instead of navigating to the Role directly.
+     *
      * @param roles the role-player must link to any of these (or their sub-types)
      * @return a new RolePlayerFragmentSet with the same properties excepting role-types
      */
@@ -219,6 +217,7 @@ public class RolePlayerFragmentSet extends EquivalentFragmentSetImpl {
     /**
      * NB: doesn't allow overwrites
      * Apply an optimisation where we check the RelationType property.
+     *
      * @param relTypeLabels the role-player fragment must link to any of these (not including sub-types)
      * @return a new RolePlayerFragmentSet with the same properties excepting relation-type labels
      */

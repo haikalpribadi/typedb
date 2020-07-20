@@ -30,12 +30,12 @@ public class IndexField {
         this.key = Preconditions.checkNotNull(key);
     }
 
-    public PropertyKey getFieldKey() {
-        return key;
-    }
-
     public static IndexField of(PropertyKey key) {
         return new IndexField(key);
+    }
+
+    public PropertyKey getFieldKey() {
+        return key;
     }
 
     @Override

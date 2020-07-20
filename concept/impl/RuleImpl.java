@@ -91,7 +91,6 @@ public class RuleImpl extends SchemaConceptImpl<Rule> implements Rule {
     }
 
     /**
-     *
      * @param type
      */
     public void addNegativeHypothesis(Type type) {

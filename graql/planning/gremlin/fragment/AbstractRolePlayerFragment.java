@@ -54,14 +54,45 @@ abstract class AbstractRolePlayerFragment extends EdgeFragment {
         return new Variable(value, Variable.Type.Reserved);
     }
 
+    static void applyLabelsToTraversal(
+            GraphTraversal<?, Edge> traversal, Schema.EdgeProperty property,
+            @Nullable Set<Label> typeLabels, ConceptManager conceptManager) {
+
+        if (typeLabels != null) {
+            Set<Integer> typeIds =
+                    typeLabels.stream().map(label -> conceptManager.convertToId(label).getValue()).collect(toSet());
+            traversal.has(property.name(), P.within(typeIds));
+        }
+    }
+
+    /**
+     * Optionally traverse from a Schema.EdgeLabel#ROLE_PLAYER edge to the Role it mentions, plus any super-types.
+     *
+     * @param traversal    the traversal, starting from the Schema.EdgeLabel#ROLE_PLAYER  edge
+     * @param role         the variable to assign to the role. If not present, do nothing
+     * @param edgeProperty the edge property to look up the role label ID
+     */
+    static void traverseToRole(
+            GraphTraversal<?, Edge> traversal, @Nullable Variable role, Schema.EdgeProperty edgeProperty,
+            Collection<Variable> vars) {
+        if (role != null) {
+            Variable edge = new Variable();
+            traversal.as(edge.symbol());
+            Fragments.outSubs(Fragments.traverseSchemaConceptFromEdge(traversal, edgeProperty));
+            assignVar(traversal, role, vars).select(edge.symbol());
+        }
+    }
+
     abstract Variable edge();
 
     abstract @Nullable
     Variable role();
 
-    abstract @Nullable ImmutableSet<Label> roleLabels();
+    abstract @Nullable
+    ImmutableSet<Label> roleLabels();
 
-    abstract @Nullable ImmutableSet<Label> relationTypeLabels();
+    abstract @Nullable
+    ImmutableSet<Label> relationTypeLabels();
 
     final String innerName() {
         Variable role = role();
@@ -79,7 +110,6 @@ abstract class AbstractRolePlayerFragment extends EdgeFragment {
         return builder.build();
     }
 
-
     @Override
     protected Node startNode() {
         return new InstanceNode(NodeId.of(NodeId.Type.VAR, start()));
@@ -93,35 +123,5 @@ abstract class AbstractRolePlayerFragment extends EdgeFragment {
     @Override
     protected NodeId getMiddleNodeId() {
         return NodeId.of(NodeId.Type.VAR, edge());
-    }
-
-
-    static void applyLabelsToTraversal(
-            GraphTraversal<?, Edge> traversal, Schema.EdgeProperty property,
-            @Nullable Set<Label> typeLabels, ConceptManager conceptManager) {
-
-        if (typeLabels != null) {
-            Set<Integer> typeIds =
-                    typeLabels.stream().map(label -> conceptManager.convertToId(label).getValue()).collect(toSet());
-            traversal.has(property.name(), P.within(typeIds));
-        }
-    }
-
-    /**
-     * Optionally traverse from a Schema.EdgeLabel#ROLE_PLAYER edge to the Role it mentions, plus any super-types.
-     *
-     * @param traversal the traversal, starting from the Schema.EdgeLabel#ROLE_PLAYER  edge
-     * @param role the variable to assign to the role. If not present, do nothing
-     * @param edgeProperty the edge property to look up the role label ID
-     */
-    static void traverseToRole(
-            GraphTraversal<?, Edge> traversal, @Nullable Variable role, Schema.EdgeProperty edgeProperty,
-            Collection<Variable> vars) {
-        if (role != null) {
-            Variable edge = new Variable();
-            traversal.as(edge.symbol());
-            Fragments.outSubs(Fragments.traverseSchemaConceptFromEdge(traversal, edgeProperty));
-            assignVar(traversal, role, vars).select(edge.symbol());
-        }
     }
 }

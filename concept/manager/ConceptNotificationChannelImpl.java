@@ -20,7 +20,7 @@ package grakn.core.concept.manager;
 
 import grakn.core.kb.concept.api.Attribute;
 import grakn.core.kb.concept.api.AttributeType;
-import grakn.core.kb.concept.api.Concept;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.Entity;
 import grakn.core.kb.concept.api.EntityType;
 import grakn.core.kb.concept.api.Relation;
@@ -32,10 +32,8 @@ import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
 import grakn.core.kb.concept.manager.ConceptListener;
 import grakn.core.kb.concept.manager.ConceptNotificationChannel;
-import grakn.core.kb.concept.api.Casting;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public class ConceptNotificationChannelImpl implements ConceptNotificationChannel {
 

@@ -25,14 +25,13 @@ package grakn.core.graph.diskstorage;
  * If this exception is thrown it indicates that retrying the same operation might potentially
  * lead to success (but not necessarily)
  * <p>
-
  */
 
 public class TemporaryBackendException extends BackendException {
 
     private static final long serialVersionUID = 9286719478969781L;
 
-    public TemporaryBackendException(String msg, boolean enableStacktrace){
+    public TemporaryBackendException(String msg, boolean enableStacktrace) {
         super(msg, null, false, enableStacktrace);
     }
 

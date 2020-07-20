@@ -29,7 +29,6 @@ import grakn.core.core.Schema;
 import grakn.core.graql.reasoner.CacheCasting;
 import grakn.core.graql.reasoner.atom.Atom;
 import grakn.core.graql.reasoner.atom.AtomicEquivalence;
-import grakn.core.graql.reasoner.atom.binary.RelationAtom;
 import grakn.core.graql.reasoner.cache.IndexedAnswerSet;
 import grakn.core.graql.reasoner.cache.MultilevelSemanticCache;
 import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
@@ -54,38 +53,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 /**
- *
  * <p>
  * Convenience class providing methods for operating with the rule graph.
  * </p>
- *
- *
  */
 public class RuleUtils {
-
-    /**
-     * @param rules defining the subgraph by their when and then parts
-     * @return type subgraph created by the input rules
-     */
-    private static HashMultimap<Type, Type> persistedTypeSubGraph(Set<InferenceRule> rules){
-        HashMultimap<Type, Type> graph = HashMultimap.create();
-        rules.stream()
-                .flatMap(persistedRuleToTypePair)
-                .forEach(p -> graph.put(p.first(), p.second()));
-        return graph;
-    }
-
-    /**
-     * @return a type graph (when->then) from possibly uncommited/invalid rules (no mapping to InferenceRule may exist).
-     */
-    private static HashMultimap<Type, Type> typeGraph(ConceptManager conceptManager){
-        HashMultimap<Type, Type> graph = HashMultimap.create();
-        conceptManager.getMetaRule().subs()
-                .filter(rule -> !Schema.MetaSchema.isMetaLabel(rule.label()))
-                .flatMap(ruleToTypePair)
-                .forEach(p -> graph.put(p.first(), p.second()));
-        return graph;
-    }
 
     final private static Function<InferenceRule, Stream<Pair<Type, Type>>> persistedRuleToTypePair = rule ->
             rule.getBody()
@@ -97,33 +69,56 @@ public class RuleUtils {
                     )
                     .filter(t -> !t.isAbstract())
                     .flatMap(whenType ->
-                            rule.getHead()
-                                    .getAtom()
-                                    .getPossibleTypes().stream()
-                                    .flatMap(Type::sups)
-                                    .filter(t -> !t.isAbstract())
-                                    .map(thenType -> new Pair<>(whenType, thenType))
+                                     rule.getHead()
+                                             .getAtom()
+                                             .getPossibleTypes().stream()
+                                             .flatMap(Type::sups)
+                                             .filter(t -> !t.isAbstract())
+                                             .map(thenType -> new Pair<>(whenType, thenType))
                     );
-
     final private static Function<Rule, Stream<Pair<Type, Type>>> ruleToTypePair = rule ->
             rule.whenTypes()
                     .flatMap(Type::subs)
                     .filter(t -> !t.isAbstract())
                     .flatMap(whenType ->
-                            rule.thenTypes()
-                                    .flatMap(Type::sups)
-                                    .filter(t -> !t.isAbstract())
-                                    .map(thenType -> new Pair<>(whenType, thenType))
+                                     rule.thenTypes()
+                                             .flatMap(Type::sups)
+                                             .filter(t -> !t.isAbstract())
+                                             .map(thenType -> new Pair<>(whenType, thenType))
                     );
+
+    /**
+     * @param rules defining the subgraph by their when and then parts
+     * @return type subgraph created by the input rules
+     */
+    private static HashMultimap<Type, Type> persistedTypeSubGraph(Set<InferenceRule> rules) {
+        HashMultimap<Type, Type> graph = HashMultimap.create();
+        rules.stream()
+                .flatMap(persistedRuleToTypePair)
+                .forEach(p -> graph.put(p.first(), p.second()));
+        return graph;
+    }
+
+    /**
+     * @return a type graph (when->then) from possibly uncommited/invalid rules (no mapping to InferenceRule may exist).
+     */
+    private static HashMultimap<Type, Type> typeGraph(ConceptManager conceptManager) {
+        HashMultimap<Type, Type> graph = HashMultimap.create();
+        conceptManager.getMetaRule().subs()
+                .filter(rule -> !Schema.MetaSchema.isMetaLabel(rule.label()))
+                .flatMap(ruleToTypePair)
+                .forEach(p -> graph.put(p.first(), p.second()));
+        return graph;
+    }
 
     /**
      * @param rules to be stratified (ordered)
      * @return stream of rules ordered in terms of priority (high priority first)
      */
-    public static Stream<InferenceRule> stratifyRules(Set<InferenceRule> rules){
+    public static Stream<InferenceRule> stratifyRules(Set<InferenceRule> rules) {
         //NB: .sorted is a stateful intermediate op - it requires all elements to be processed.
         //That's why we collect and stream again to ensure that returned stream is fully lazy
-        if(rules.stream().allMatch(r -> r.getBody().isPositive())){
+        if (rules.stream().allMatch(r -> r.getBody().isPositive())) {
             List<InferenceRule> sortedRules = rules.stream()
                     .sorted(Comparator.comparing(r -> -r.resolutionPriority()))
                     .collect(toList());
@@ -135,19 +130,19 @@ public class RuleUtils {
         List<Set<Type>> scc = new TarjanSCC<>(typeGraph).getSCC();
         return Lists.reverse(scc).stream()
                 .flatMap(strata -> {
-                            List<InferenceRule> sortedRules = strata.stream()
-                                    .flatMap(t -> typeMap.get(t).stream())
-                                    .sorted(Comparator.comparing(r -> -r.resolutionPriority()))
-                                    .collect(toList());
-                            return sortedRules.stream();
-                        });
+                    List<InferenceRule> sortedRules = strata.stream()
+                            .flatMap(t -> typeMap.get(t).stream())
+                            .sorted(Comparator.comparing(r -> -r.resolutionPriority()))
+                            .collect(toList());
+                    return sortedRules.stream();
+                });
     }
 
     /**
      * @param rules set of rules of interest forming a rule subgraph
      * @return true if the rule subgraph formed from provided rules contains loops AND corresponding relation instances also contain loops
      */
-    public static boolean subGraphIsCyclical(Set<InferenceRule> rules, QueryCache queryCache){
+    public static boolean subGraphIsCyclical(Set<InferenceRule> rules, QueryCache queryCache) {
         HashMultimap<Type, Type> typeSubGraph = persistedTypeSubGraph(rules);
         TarjanSCC<Type> typeSCC = new TarjanSCC<>(typeSubGraph);
         List<Set<Type>> typeCycles = typeSCC.getCycles();
@@ -186,18 +181,17 @@ public class RuleUtils {
     }
 
     /**
-     *
      * @return true if the rule subgraph is stratifiable (doesn't contain cycles with negation)
      */
-    public static List<Set<Type>> negativeCycles(ConceptManager conceptManager){
+    public static List<Set<Type>> negativeCycles(ConceptManager conceptManager) {
         HashMultimap<Type, Type> typeGraph = typeGraph(conceptManager);
         return new TarjanSCC<>(typeGraph).getCycles().stream()
                 .filter(cycle ->
-                        cycle.stream().anyMatch(type ->
-                                type.whenRules()
-                                        .filter(rule -> rule.whenNegativeTypes().anyMatch(ntype -> ntype.equals(type)))
-                                        .anyMatch(rule -> !Sets.intersection(cycle, rule.thenTypes().collect(toSet())).isEmpty())
-                        )
+                                cycle.stream().anyMatch(type ->
+                                                                type.whenRules()
+                                                                        .filter(rule -> rule.whenNegativeTypes().anyMatch(ntype -> ntype.equals(type)))
+                                                                        .anyMatch(rule -> !Sets.intersection(cycle, rule.thenTypes().collect(toSet())).isEmpty())
+                                )
                 ).collect(toList());
     }
 
@@ -205,7 +199,7 @@ public class RuleUtils {
      * @param rules set of rules of interest forming a rule subgraph
      * @return true if the rule subgraph formed from provided rules contains any rule with head satisfying the body pattern
      */
-    public static boolean subGraphHasRulesWithHeadSatisfyingBody(Set<InferenceRule> rules){
+    public static boolean subGraphHasRulesWithHeadSatisfyingBody(Set<InferenceRule> rules) {
         return rules.stream()
                 .anyMatch(InferenceRule::headSatisfiesBody);
     }
@@ -214,17 +208,17 @@ public class RuleUtils {
      * @param query top query
      * @return all rules that are reachable from the entry types
      */
-    public static Set<InferenceRule> getDependentRules(ReasonerQueryImpl query){
+    public static Set<InferenceRule> getDependentRules(ReasonerQueryImpl query) {
         final AtomicEquivalence equivalence = AtomicEquivalence.AlphaEquivalence;
 
         Set<InferenceRule> rules = new HashSet<>();
         Set<Equivalence.Wrapper<Atom>> visitedAtoms = new HashSet<>();
         Stack<Equivalence.Wrapper<Atom>> atoms = new Stack<>();
         query.selectAtoms().map(equivalence::wrap).forEach(atoms::push);
-        while(!atoms.isEmpty()) {
+        while (!atoms.isEmpty()) {
             Equivalence.Wrapper<Atom> wrappedAtom = atoms.pop();
-             Atom atom = wrappedAtom.get();
-            if (!visitedAtoms.contains(wrappedAtom) && atom != null){
+            Atom atom = wrappedAtom.get();
+            if (!visitedAtoms.contains(wrappedAtom) && atom != null) {
                 atom.getApplicableRules()
                         .peek(rules::add)
                         .flatMap(rule -> rule.getBody().selectAtoms())
@@ -242,15 +236,15 @@ public class RuleUtils {
      * @param entryType type of interest
      * @return all types that are dependent on the entryType - deletion of which triggers possible retraction of inferences
      */
-    public static Set<Type> getDependentTypes(Type entryType){
+    public static Set<Type> getDependentTypes(Type entryType) {
         Set<Type> types = new HashSet<>();
         types.add(entryType);
         Set<Type> visitedTypes = new HashSet<>();
         Stack<Type> typeStack = new Stack<>();
         typeStack.add(entryType);
-        while(!typeStack.isEmpty()) {
+        while (!typeStack.isEmpty()) {
             Type type = typeStack.pop();
-            if (!visitedTypes.contains(type) && type != null){
+            if (!visitedTypes.contains(type) && type != null) {
                 type.whenRules()
                         .flatMap(Rule::thenTypes)
                         .peek(types::add)

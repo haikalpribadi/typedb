@@ -24,10 +24,9 @@ import java.util.Comparator;
 /**
  * A query that returns JanusGraphElements. This query can consist of multiple sub-queries that together
  * form the desired result set.
- *
  */
 
-public interface ElementQuery<R extends JanusGraphElement,B extends BackendQuery<B>> extends Query {
+public interface ElementQuery<R extends JanusGraphElement, B extends BackendQuery<B>> extends Query {
 
     /**
      * Whether the combination of the individual sub-queries can result in duplicate
@@ -53,6 +52,7 @@ public interface ElementQuery<R extends JanusGraphElement,B extends BackendQuery
 
     /**
      * Returns the backend query at the given position that comprises this ElementQuery
+     *
      * @param position
      * @return
      */
@@ -77,6 +77,7 @@ public interface ElementQuery<R extends JanusGraphElement,B extends BackendQuery
 
     /**
      * Returns the expected sort order of this query if any was specified. Check #isSorted() first.
+     *
      * @return
      */
     Comparator<R> getSortOrder();

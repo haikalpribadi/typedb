@@ -30,9 +30,44 @@ import java.util.Map;
 
 public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, MetaAnnotatable {
 
+    public static final EntryMetaData[] EMPTY_SCHEMA = new EntryMetaData[0];
+    public static final GetColVal<Entry, StaticBuffer> ENTRY_GETTER = new GetColVal<Entry, StaticBuffer>() {
+        @Override
+        public StaticBuffer getColumn(Entry entry) {
+            return entry.getColumn();
+        }
+
+        @Override
+        public StaticBuffer getValue(Entry entry) {
+            return entry.getValue();
+        }
+
+        @Override
+        public EntryMetaData[] getMetaSchema(Entry element) {
+            if (!element.hasMetaData()) return EMPTY_SCHEMA;
+            Map<EntryMetaData, Object> metas = element.getMetaData();
+            return metas.keySet().toArray(new EntryMetaData[metas.size()]);
+        }
+
+        @Override
+        public Object getMetaData(Entry element, EntryMetaData meta) {
+            return element.getMetaData().get(meta);
+        }
+
+
+    };
+    private Map<EntryMetaData, Object> metadata = EntryMetaData.EMPTY_METADATA;
+    /**
+     * ############# IDENTICAL CODE ###############
+     */
+
+    private volatile transient RelationCache cache;
+
     public StaticArrayEntry(byte[] array, int offset, int limit, int valuePosition) {
         super(array, offset, limit, valuePosition);
     }
+
+    //########## META DATA ############
 
     public StaticArrayEntry(byte[] array, int limit, int valuePosition) {
         super(array, limit, valuePosition);
@@ -50,45 +85,6 @@ public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, Met
         super(entry, entry.getValuePosition());
     }
 
-    //########## META DATA ############
-
-    private Map<EntryMetaData, Object> metadata = EntryMetaData.EMPTY_METADATA;
-
-    @Override
-    public synchronized Object setMetaData(EntryMetaData key, Object value) {
-        if (metadata == EntryMetaData.EMPTY_METADATA) metadata = new EntryMetaData.Map();
-        return metadata.put(key, value);
-    }
-
-    @Override
-    public boolean hasMetaData() {
-        return !metadata.isEmpty();
-    }
-
-    @Override
-    public Map<EntryMetaData, Object> getMetaData() {
-        return metadata;
-    }
-
-    /**
-     * ############# IDENTICAL CODE ###############
-     */
-
-    private volatile transient RelationCache cache;
-
-    @Override
-    public RelationCache getCache() {
-        return cache;
-    }
-
-    @Override
-    public void setCache(RelationCache cache) {
-        Preconditions.checkNotNull(cache);
-        this.cache = cache;
-    }
-
-    //########### CONSTRUCTORS AND UTILITIES ###########
-
     public static Entry of(StaticBuffer buffer) {
         return new StaticArrayEntry(buffer, buffer.length());
     }
@@ -100,6 +96,8 @@ public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, Met
     public static <E> Entry ofByteBuffer(E element, StaticArrayEntry.GetColVal<E, ByteBuffer> getter) {
         return of(element, getter, ByteBufferHandler.INSTANCE);
     }
+
+    //########### CONSTRUCTORS AND UTILITIES ###########
 
     public static <E> Entry ofStaticBuffer(E element, StaticArrayEntry.GetColVal<E, StaticBuffer> getter) {
         return of(element, getter, StaticBufferHandler.INSTANCE);
@@ -128,54 +126,32 @@ public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, Met
         return new StaticArrayEntry(data, valuePos);
     }
 
-    public interface GetColVal<E, D> {
-
-        D getColumn(E element);
-
-        D getValue(E element);
-
-        EntryMetaData[] getMetaSchema(E element);
-
-        Object getMetaData(E element, EntryMetaData meta);
-
+    @Override
+    public synchronized Object setMetaData(EntryMetaData key, Object value) {
+        if (metadata == EntryMetaData.EMPTY_METADATA) metadata = new EntryMetaData.Map();
+        return metadata.put(key, value);
     }
 
-    public static final EntryMetaData[] EMPTY_SCHEMA = new EntryMetaData[0];
-
-    public static final GetColVal<Entry, StaticBuffer> ENTRY_GETTER = new GetColVal<Entry, StaticBuffer>() {
-        @Override
-        public StaticBuffer getColumn(Entry entry) {
-            return entry.getColumn();
-        }
-
-        @Override
-        public StaticBuffer getValue(Entry entry) {
-            return entry.getValue();
-        }
-
-        @Override
-        public EntryMetaData[] getMetaSchema(Entry element) {
-            if (!element.hasMetaData()) return EMPTY_SCHEMA;
-            Map<EntryMetaData, Object> metas = element.getMetaData();
-            return metas.keySet().toArray(new EntryMetaData[metas.size()]);
-        }
-
-        @Override
-        public Object getMetaData(Entry element, EntryMetaData meta) {
-            return element.getMetaData().get(meta);
-        }
-
-
-    };
-
-    public interface DataHandler<D> {
-
-        int getSize(D data);
-
-        void copy(D data, byte[] dest, int destOffset);
-
+    @Override
+    public boolean hasMetaData() {
+        return !metadata.isEmpty();
     }
 
+    @Override
+    public Map<EntryMetaData, Object> getMetaData() {
+        return metadata;
+    }
+
+    @Override
+    public RelationCache getCache() {
+        return cache;
+    }
+
+    @Override
+    public void setCache(RelationCache cache) {
+        Preconditions.checkNotNull(cache);
+        this.cache = cache;
+    }
 
     enum ByteArrayHandler implements DataHandler<byte[]> {
 
@@ -213,6 +189,7 @@ public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, Met
         }
     }
 
+
     enum StaticBufferHandler implements DataHandler<StaticBuffer> {
 
         INSTANCE;
@@ -229,6 +206,26 @@ public class StaticArrayEntry extends BaseStaticArrayEntry implements Entry, Met
                 buffer.copyTo(dest, destOffset);
             } else throw new IllegalArgumentException("Expected StaticArrayBuffer but got: " + data.getClass());
         }
+    }
+
+    public interface GetColVal<E, D> {
+
+        D getColumn(E element);
+
+        D getValue(E element);
+
+        EntryMetaData[] getMetaSchema(E element);
+
+        Object getMetaData(E element, EntryMetaData meta);
+
+    }
+
+    public interface DataHandler<D> {
+
+        int getSize(D data);
+
+        void copy(D data, byte[] dest, int destOffset);
+
     }
 
 }

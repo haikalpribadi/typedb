@@ -44,13 +44,13 @@ public class QueryInfo {
         return lowLimit;
     }
 
-    public Integer getHighLimit() {
-        return highLimit;
-    }
-
     public QueryInfo setLowLimit(Integer lowLimit) {
         this.lowLimit = lowLimit;
         return this;
+    }
+
+    public Integer getHighLimit() {
+        return highLimit;
     }
 
     public QueryInfo setHighLimit(Integer highLimit) {

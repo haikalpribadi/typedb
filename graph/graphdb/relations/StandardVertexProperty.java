@@ -32,18 +32,16 @@ import java.util.Map;
 
 public class StandardVertexProperty extends AbstractVertexProperty implements StandardRelation, ReassignableRelation {
 
+    private static final Map<PropertyKey, Object> EMPTY_PROPERTIES = ImmutableMap.of();
+
+    //############## SAME CODE AS StandardEdge #############################
+    private byte lifecycle;
+    private long previousID = 0;
+    private volatile Map<PropertyKey, Object> properties = EMPTY_PROPERTIES;
     public StandardVertexProperty(long id, PropertyKey type, InternalVertex vertex, Object value, byte lifecycle) {
         super(id, type, vertex, value);
         this.lifecycle = lifecycle;
     }
-
-    //############## SAME CODE AS StandardEdge #############################
-
-    private static final Map<PropertyKey, Object> EMPTY_PROPERTIES = ImmutableMap.of();
-
-    private byte lifecycle;
-    private long previousID = 0;
-    private volatile Map<PropertyKey, Object> properties = EMPTY_PROPERTIES;
 
     @Override
     public long getPreviousID() {

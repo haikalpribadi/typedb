@@ -34,8 +34,6 @@ import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Type;
 import graql.lang.Graql;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import javax.annotation.CheckReturnValue;
@@ -74,6 +72,17 @@ public final class Schema {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @param label The AttributeType label
+     * @param value The value of the Attribute
+     * @return A unique id for the Attribute
+     */
+    @CheckReturnValue
+    public static String generateAttributeIndex(Label label, String value) {
+        //TODO trim it down in the future
+        return Schema.BaseType.ATTRIBUTE.name() + "-" + label + "-" + value;
     }
 
     /**
@@ -125,16 +134,6 @@ public final class Schema {
         }
 
         @CheckReturnValue
-        public Label getLabel() {
-            return label;
-        }
-
-        @CheckReturnValue
-        public LabelId getId() {
-            return id;
-        }
-
-        @CheckReturnValue
         public static boolean isMetaLabel(Label label) {
             return valueOf(label) != null;
         }
@@ -146,6 +145,16 @@ public final class Schema {
                 if (metaSchema.getLabel().equals(label)) return metaSchema;
             }
             return null;
+        }
+
+        @CheckReturnValue
+        public Label getLabel() {
+            return label;
+        }
+
+        @CheckReturnValue
+        public LabelId getId() {
+            return id;
         }
     }
 
@@ -208,8 +217,6 @@ public final class Schema {
         VALUE_INTEGER(Integer.class), VALUE_FLOAT(Float.class),
         VALUE_DATE(Long.class);
 
-        private final Class valueType;
-
         private static Map<AttributeType.ValueType, VertexProperty> valueTypeVertexProperty = map(
                 pair(AttributeType.ValueType.BOOLEAN, VertexProperty.VALUE_BOOLEAN),
                 pair(AttributeType.ValueType.DATETIME, VertexProperty.VALUE_DATE),
@@ -219,19 +226,20 @@ public final class Schema {
                 pair(AttributeType.ValueType.LONG, VertexProperty.VALUE_LONG),
                 pair(AttributeType.ValueType.STRING, VertexProperty.VALUE_STRING)
         );
+        private final Class valueType;
 
         VertexProperty(Class valueType) {
             this.valueType = valueType;
         }
 
-        @CheckReturnValue
-        public Class getPropertyClass() {
-            return valueType;
-        }
-
         // TODO: This method feels out of place
         public static VertexProperty ofValueType(AttributeType.ValueType valueType) {
             return valueTypeVertexProperty.get(valueType);
+        }
+
+        @CheckReturnValue
+        public Class getPropertyClass() {
+            return valueType;
         }
     }
 
@@ -259,16 +267,5 @@ public final class Schema {
         public Class getPropertyClass() {
             return valueType;
         }
-    }
-
-    /**
-     * @param label The AttributeType label
-     * @param value The value of the Attribute
-     * @return A unique id for the Attribute
-     */
-    @CheckReturnValue
-    public static String generateAttributeIndex(Label label, String value) {
-        //TODO trim it down in the future
-        return Schema.BaseType.ATTRIBUTE.name() + "-" + label + "-" + value;
     }
 }

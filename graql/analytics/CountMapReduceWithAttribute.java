@@ -24,7 +24,6 @@ import java.io.Serializable;
 
 /**
  * The MapReduce program for counting the number of instances
- *
  */
 
 public class CountMapReduceWithAttribute extends CountMapReduce {
@@ -37,7 +36,7 @@ public class CountMapReduceWithAttribute extends CountMapReduce {
     public void safeMap(final Vertex vertex, final MapEmitter<Serializable, Long> emitter) {
         if (vertex.property(CountVertexProgram.EDGE_COUNT).isPresent()) {
             emitter.emit(RESERVED_TYPE_LABEL_KEY,
-                    vertex.value(CountVertexProgram.EDGE_COUNT));
+                         vertex.value(CountVertexProgram.EDGE_COUNT));
         }
         emitter.emit(vertex.value(Schema.VertexProperty.THING_TYPE_LABEL_ID.name()), 1L);
     }

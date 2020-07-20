@@ -68,7 +68,7 @@ public class AggregateExecutor {
         Number number = answers.map(answer -> getValue(answer, var)).max(comparator).orElse(null);
 
         if (number == null) return Collections.emptyList();
-        else return Collections.singletonList( new Numeric(number));
+        else return Collections.singletonList(new Numeric(number));
     }
 
     static List<Numeric> mean(Stream<ConceptMap> answers, Variable var) {
@@ -123,7 +123,7 @@ public class AggregateExecutor {
             double delta = x - mean;
             mean += delta / (double) n;
             double delta2 = x - mean;
-            M2 += delta*delta2;
+            M2 += delta * delta2;
         }
 
         if (n < 2) {

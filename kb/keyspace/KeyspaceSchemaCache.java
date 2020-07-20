@@ -82,7 +82,7 @@ public class KeyspaceSchemaCache {
     }
 
 
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         return cachedLabels.isEmpty();
     }
 

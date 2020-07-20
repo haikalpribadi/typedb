@@ -52,26 +52,6 @@ import java.util.stream.Collectors;
 
 public interface HasStepFolder<S, E> extends Step<S, E> {
 
-    void addAll(Iterable<HasContainer> hasContainers);
-
-    List<HasContainer> addLocalAll(Iterable<HasContainer> hasContainers);
-
-    void orderBy(String key, Order order);
-
-    void localOrderBy(List<HasContainer> hasContainers, String key, Order order);
-
-    void setLimit(int low, int high);
-
-    void setLocalLimit(List<HasContainer> hasContainers, int low, int high);
-
-    int getLowLimit();
-
-    int getLocalLowLimit(List<HasContainer> hasContainers);
-
-    int getHighLimit();
-
-    int getLocalHighLimit(List<HasContainer> hasContainers);
-
     static boolean validJanusGraphHas(HasContainer has) {
         if (has.getPredicate() instanceof ConnectiveP) {
             List<? extends P<?>> predicates = ((ConnectiveP<?>) has.getPredicate()).getPredicates();
@@ -265,43 +245,6 @@ public interface HasStepFolder<S, E> extends Step<S, E> {
         return hasContainers;
     }
 
-    class OrderEntry {
-
-        public final String key;
-        public final Order order;
-
-        public OrderEntry(String key, Order order) {
-            this.key = key;
-            this.order = order;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            final OrderEntry that = (OrderEntry) o;
-
-            if (key != null ? !key.equals(that.key) : that.key != null) return false;
-            return order == that.order;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = key != null ? key.hashCode() : 0;
-            result = 31 * result + (order != null ? order.hashCode() : 0);
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "OrderEntry{" +
-                    "key='" + key + '\'' +
-                    ", order=" + order +
-                    '}';
-        }
-    }
-
     static void foldInRange(HasStepFolder janusgraphStep, Step<?, ?> tinkerpopStep, Traversal.Admin<?, ?> traversal, List<HasContainer> hasContainers) {
         Step<?, ?> nextStep = tinkerpopStep instanceof IdentityStep ? JanusGraphTraversalUtil.getNextNonIdentityStep(tinkerpopStep) : tinkerpopStep;
         if (nextStep instanceof RangeGlobalStep) {
@@ -353,5 +296,62 @@ public interface HasStepFolder<S, E> extends Step<S, E> {
         }
 
         return foldableHasContainerNoLimit;
+    }
+
+    void addAll(Iterable<HasContainer> hasContainers);
+
+    List<HasContainer> addLocalAll(Iterable<HasContainer> hasContainers);
+
+    void orderBy(String key, Order order);
+
+    void localOrderBy(List<HasContainer> hasContainers, String key, Order order);
+
+    void setLimit(int low, int high);
+
+    void setLocalLimit(List<HasContainer> hasContainers, int low, int high);
+
+    int getLowLimit();
+
+    int getLocalLowLimit(List<HasContainer> hasContainers);
+
+    int getHighLimit();
+
+    int getLocalHighLimit(List<HasContainer> hasContainers);
+
+    class OrderEntry {
+
+        public final String key;
+        public final Order order;
+
+        public OrderEntry(String key, Order order) {
+            this.key = key;
+            this.order = order;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            final OrderEntry that = (OrderEntry) o;
+
+            if (key != null ? !key.equals(that.key) : that.key != null) return false;
+            return order == that.order;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key != null ? key.hashCode() : 0;
+            result = 31 * result + (order != null ? order.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "OrderEntry{" +
+                    "key='" + key + '\'' +
+                    ", order=" + order +
+                    '}';
+        }
     }
 }

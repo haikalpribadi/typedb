@@ -57,72 +57,6 @@ public class PartitionIDRange {
         this.idUpperBound = idUpperBound;
     }
 
-    public int getLowerID() {
-        return lowerID;
-    }
-
-    public int getUpperID() {
-        return upperID;
-    }
-
-    public int getIdUpperBound() {
-        return idUpperBound;
-    }
-
-    public int[] getAllContainedIDs() {
-        int[] result;
-        if (lowerID < upperID) { //"Proper" id range
-            result = new int[upperID - lowerID];
-            int pos = 0;
-            for (int id = lowerID; id < upperID; id++) {
-                result[pos++] = id;
-            }
-        } else { //Id range "wraps around"
-            result = new int[(idUpperBound - lowerID) + (upperID)];
-            int pos = 0;
-            for (int id = 0; id < upperID; id++) {
-                result[pos++] = id;
-            }
-            for (int id = lowerID; id < idUpperBound; id++) {
-                result[pos++] = id;
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Returns true of the given partitionId lies within this partition id range, else false.
-     */
-    public boolean contains(int partitionId) {
-        if (lowerID < upperID) { //"Proper" id range
-            return lowerID <= partitionId && upperID > partitionId;
-        } else { //Id range "wraps around"
-            return (lowerID <= partitionId && partitionId < idUpperBound) ||
-                    (upperID > partitionId && partitionId >= 0);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "[" + lowerID + "," + upperID + ")%" + idUpperBound;
-    }
-
-    /**
-     * Returns a RANDOM partition id that lies within this partition id range.
-     */
-    public int getRandomID() {
-        //Compute the width of the partition...
-        int partitionWidth;
-        if (lowerID < upperID) partitionWidth = upperID - lowerID; //... for "proper" ranges
-        else partitionWidth = (idUpperBound - lowerID) + upperID; //... and those that "wrap around"
-        Preconditions.checkArgument(partitionWidth > 0, partitionWidth);
-        return (RANDOM.nextInt(partitionWidth) + lowerID) % idUpperBound;
-    }
-
-    /*
-    =========== Helper methods to generate PartitionIDRanges ============
-     */
-
     public static List<PartitionIDRange> getGlobalRange(int partitionBits) {
         Preconditions.checkArgument(partitionBits >= 0 && partitionBits < (Integer.SIZE - 1), "Invalid partition bits: %s", partitionBits);
         final int partitionIdBound = (1 << (partitionBits));
@@ -168,9 +102,74 @@ public class PartitionIDRange {
         return partitionRanges;
     }
 
-
     private static void discardRange(KeyRange local) {
         LOG.warn("Individual key range is too small for partition block - result would be empty; hence ignored: {}", local);
+    }
+
+    public int getLowerID() {
+        return lowerID;
+    }
+
+    public int getUpperID() {
+        return upperID;
+    }
+
+    public int getIdUpperBound() {
+        return idUpperBound;
+    }
+
+    public int[] getAllContainedIDs() {
+        int[] result;
+        if (lowerID < upperID) { //"Proper" id range
+            result = new int[upperID - lowerID];
+            int pos = 0;
+            for (int id = lowerID; id < upperID; id++) {
+                result[pos++] = id;
+            }
+        } else { //Id range "wraps around"
+            result = new int[(idUpperBound - lowerID) + (upperID)];
+            int pos = 0;
+            for (int id = 0; id < upperID; id++) {
+                result[pos++] = id;
+            }
+            for (int id = lowerID; id < idUpperBound; id++) {
+                result[pos++] = id;
+            }
+        }
+        return result;
+    }
+
+    /*
+    =========== Helper methods to generate PartitionIDRanges ============
+     */
+
+    /**
+     * Returns true of the given partitionId lies within this partition id range, else false.
+     */
+    public boolean contains(int partitionId) {
+        if (lowerID < upperID) { //"Proper" id range
+            return lowerID <= partitionId && upperID > partitionId;
+        } else { //Id range "wraps around"
+            return (lowerID <= partitionId && partitionId < idUpperBound) ||
+                    (upperID > partitionId && partitionId >= 0);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "[" + lowerID + "," + upperID + ")%" + idUpperBound;
+    }
+
+    /**
+     * Returns a RANDOM partition id that lies within this partition id range.
+     */
+    public int getRandomID() {
+        //Compute the width of the partition...
+        int partitionWidth;
+        if (lowerID < upperID) partitionWidth = upperID - lowerID; //... for "proper" ranges
+        else partitionWidth = (idUpperBound - lowerID) + upperID; //... and those that "wrap around"
+        Preconditions.checkArgument(partitionWidth > 0, partitionWidth);
+        return (RANDOM.nextInt(partitionWidth) + lowerID) % idUpperBound;
     }
 
 }

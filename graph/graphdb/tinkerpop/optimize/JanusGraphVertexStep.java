@@ -59,6 +59,8 @@ import java.util.Set;
 
 public class JanusGraphVertexStep<E extends Element> extends VertexStep<E> implements HasStepFolder<Vertex, E>, Profiling, MultiQueriable<Vertex, E> {
 
+    private final List<HasContainer> hasContainers;
+    private final List<OrderEntry> orders = new ArrayList<>();
     private boolean initialized = false;
     private boolean useMultiQuery = false;
     private boolean batchPropertyPrefetching = false;
@@ -66,6 +68,7 @@ public class JanusGraphVertexStep<E extends Element> extends VertexStep<E> imple
     private QueryProfiler queryProfiler = QueryProfiler.NO_OP;
     private int txVertexCacheSize = 20000;
     private JanusGraphMultiQueryStep parentMultiQueryStep;
+    private int limit;
 
     public JanusGraphVertexStep(VertexStep<E> originalStep) {
         super(originalStep.getTraversal(), originalStep.getReturnClass(), originalStep.getDirection(), originalStep.getEdgeLabels());
@@ -178,6 +181,10 @@ public class JanusGraphVertexStep<E extends Element> extends VertexStep<E> imple
         return super.processNextStart();
     }
 
+    /*
+    ===== HOLDER =====
+     */
+
     @Override
     protected Iterator<E> flatMap(Traverser.Admin<Vertex> traverser) {
 
@@ -225,14 +232,6 @@ public class JanusGraphVertexStep<E extends Element> extends VertexStep<E> imple
         clone.initialized = false;
         return clone;
     }
-
-    /*
-    ===== HOLDER =====
-     */
-
-    private final List<HasContainer> hasContainers;
-    private int limit;
-    private final List<OrderEntry> orders = new ArrayList<>();
 
     @Override
     public void addAll(Iterable<HasContainer> has) {

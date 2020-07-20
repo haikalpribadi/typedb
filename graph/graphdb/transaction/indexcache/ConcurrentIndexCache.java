@@ -35,12 +35,12 @@ public class ConcurrentIndexCache implements IndexCache {
 
     @Override
     public synchronized void add(JanusGraphVertexProperty property) {
-        map.put(property.value(),property);
+        map.put(property.value(), property);
     }
 
     @Override
     public synchronized void remove(JanusGraphVertexProperty property) {
-        map.remove(property.value(),property);
+        map.remove(property.value(), property);
     }
 
     @Override

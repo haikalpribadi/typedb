@@ -63,7 +63,7 @@ public class JanusGraphIndexWrapper implements JanusGraphIndex {
         IndexField[] fields = index.getFieldKeys();
         PropertyKey[] keys = new PropertyKey[fields.length];
         for (int i = 0; i < fields.length; i++) {
-            keys[i]=fields[i].getFieldKey();
+            keys[i] = fields[i].getFieldKey();
         }
         return keys;
     }
@@ -71,7 +71,7 @@ public class JanusGraphIndexWrapper implements JanusGraphIndex {
     @Override
     public Parameter[] getParametersFor(PropertyKey key) {
         if (index.isCompositeIndex()) return new Parameter[0];
-        return ((MixedIndexType)index).getField(key).getParameters();
+        return ((MixedIndexType) index).getField(key).getParameters();
     }
 
     @Override
@@ -81,9 +81,9 @@ public class JanusGraphIndexWrapper implements JanusGraphIndex {
 
     @Override
     public SchemaStatus getIndexStatus(PropertyKey key) {
-        Preconditions.checkArgument(Sets.newHashSet(getFieldKeys()).contains(key),"Provided key is not part of this index: %s",key);
-        if (index.isCompositeIndex()) return ((CompositeIndexType)index).getStatus();
-        else return ((MixedIndexType)index).getField(key).getStatus();
+        Preconditions.checkArgument(Sets.newHashSet(getFieldKeys()).contains(key), "Provided key is not part of this index: %s", key);
+        if (index.isCompositeIndex()) return ((CompositeIndexType) index).getStatus();
+        else return ((MixedIndexType) index).getField(key).getStatus();
     }
 
     @Override

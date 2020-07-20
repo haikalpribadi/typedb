@@ -18,9 +18,7 @@
 package grakn.core.graql.reasoner.atom.binary;
 
 import com.google.common.base.Equivalence;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
 import grakn.common.util.Pair;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.core.AttributeValueConverter;
@@ -43,7 +41,6 @@ import grakn.core.graql.reasoner.unifier.MultiUnifierImpl;
 import grakn.core.graql.reasoner.unifier.UnifierType;
 import grakn.core.kb.concept.api.AttributeType;
 import grakn.core.kb.concept.api.Label;
-import grakn.core.kb.concept.api.Role;
 import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.graql.exception.GraqlSemanticException;
@@ -60,11 +57,8 @@ import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,7 +67,6 @@ import java.util.stream.Stream;
 import static grakn.core.graql.reasoner.utils.ReasonerUtils.isEquivalentCollection;
 
 /**
- *
  * <p>
  * Atom implementation defining a resource atom corresponding to a HasAttributeProperty.
  * The resource structure is the following:
@@ -86,10 +79,8 @@ import static grakn.core.graql.reasoner.utils.ReasonerUtils.isEquivalentCollecti
  * $attributeVariable isa $predicateVariable; [$predicateVariable/<type id>]
  *
  * </p>
- *
- *
  */
-public class AttributeAtom extends Atom{
+public class AttributeAtom extends Atom {
 
     private final IsaAtom attributeIsa;
     private final IsaAtom ownerIsa;
@@ -117,28 +108,29 @@ public class AttributeAtom extends Atom{
         this.multiPredicate = multiPredicate;
     }
 
-    public Variable getAttributeVariable() {
-        return attributeVariable;
-    }
-    public ImmutableSet<ValuePredicate> getMultiPredicate() {
-        return multiPredicate;
-    }
-
     public static AttributeAtom create(Statement pattern, Variable attributeVariable,
                                        Variable predicateVariable, @Nullable Label label,
                                        Set<ValuePredicate> ps, ReasonerQuery parent, ReasoningContext ctx) {
         return new AttributeAtom(pattern.var(), pattern, parent, label, predicateVariable,
-                attributeVariable, ImmutableSet.copyOf(ps), ctx);
+                                 attributeVariable, ImmutableSet.copyOf(ps), ctx);
     }
 
     private static AttributeAtom create(AttributeAtom a, ReasonerQuery parent) {
         return create(a.getPattern(), a.getAttributeVariable(), a.getPredicateVariable(),
-                a.getTypeLabel(), a.getMultiPredicate(), parent, a.context());
+                      a.getTypeLabel(), a.getMultiPredicate(), parent, a.context());
     }
 
-    private AttributeAtom convertValues(){
+    public Variable getAttributeVariable() {
+        return attributeVariable;
+    }
+
+    public ImmutableSet<ValuePredicate> getMultiPredicate() {
+        return multiPredicate;
+    }
+
+    private AttributeAtom convertValues() {
         SchemaConcept type = getSchemaConcept();
-        AttributeType<Object> attributeType = type.isAttributeType()? type.asAttributeType() : null;
+        AttributeType<Object> attributeType = type.isAttributeType() ? type.asAttributeType() : null;
         if (attributeType == null || Schema.MetaSchema.isMetaLabel(attributeType.label())) return this;
 
         AttributeType.ValueType<Object> valueType = attributeType.valueType();
@@ -148,26 +140,26 @@ public class AttributeAtom extends Atom{
             Object convertedValue;
             try {
                 convertedValue = AttributeValueConverter.of(valueType).convert(value);
-            } catch (ClassCastException e){
+            } catch (ClassCastException e) {
                 throw GraqlSemanticException.incompatibleAttributeValue(valueType, value);
             }
             ValueProperty.Operation operation = ValueProperty.Operation.Comparison.of(vp.getPredicate().comparator(), convertedValue);
             return ValuePredicate.create(vp.getVarName(), operation, getParentQuery());
         }).collect(Collectors.toSet());
         return create(getPattern(), getAttributeVariable(), getPredicateVariable(),
-                getTypeLabel(), newMultiPredicate, getParentQuery(), context());
+                      getTypeLabel(), newMultiPredicate, getParentQuery(), context());
     }
 
-    public IsaAtom ownerIsa(){
+    public IsaAtom ownerIsa() {
         return ownerIsa;
     }
 
-    public IsaAtom attributeIsa(){
+    public IsaAtom attributeIsa() {
         return attributeIsa;
     }
 
     @Override
-    public Atomic copy(ReasonerQuery parent){ return create(this, parent);}
+    public Atomic copy(ReasonerQuery parent) { return create(this, parent);}
 
     @Override
     public Class<? extends VarProperty> getVarPropertyClass() { return HasAttributeProperty.class;}
@@ -183,8 +175,8 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public String toString(){
-        String multiPredicateString = getMultiPredicate().isEmpty()?
+    public String toString() {
+        String multiPredicateString = getMultiPredicate().isEmpty() ?
                 "" :
                 getMultiPredicate().stream().map(Predicate::getPredicate).collect(Collectors.toSet()).toString();
         return getVarName() + " has " + getTypeLabel() + " " +
@@ -229,7 +221,7 @@ public class AttributeAtom extends Atom{
         return !this.getMultiUnifier(that, UnifierType.STRUCTURAL).equals(MultiUnifierImpl.nonExistent());
     }
 
-    private boolean isBaseEquivalent(Object obj, Equivalence<Atomic> equivalence){
+    private boolean isBaseEquivalent(Object obj, Equivalence<Atomic> equivalence) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         AttributeAtom that = (AttributeAtom) obj;
@@ -237,7 +229,7 @@ public class AttributeAtom extends Atom{
                 && equivalence.equivalent(this.ownerIsa(), that.ownerIsa());
     }
 
-    private boolean multiPredicateEqual(AttributeAtom that){
+    private boolean multiPredicateEqual(AttributeAtom that) {
         return isEquivalentCollection(this.getMultiPredicate(), that.getMultiPredicate(), AtomicEquivalence.Equality);
     }
 
@@ -252,13 +244,14 @@ public class AttributeAtom extends Atom{
     @Override
     public int alphaEquivalenceHashCode() {
         int hashCode = 1;
-        hashCode = hashCode * 37 + (this.getTypeLabel() != null? this.getTypeLabel().hashCode() : 0);
+        hashCode = hashCode * 37 + (this.getTypeLabel() != null ? this.getTypeLabel().hashCode() : 0);
         hashCode = hashCode * 37 + AtomicEquivalence.equivalenceHash(this.getMultiPredicate(), AtomicEquivalence.AlphaEquivalence);
         return hashCode;
     }
 
     /**
      * Determines the directionality in the form of variable pairs.
+     *
      * @return use owner -> attribute variable ordering
      */
     public Set<Pair<Variable, Variable>> varDirectionality() {
@@ -271,7 +264,7 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    protected Pattern createCombinedPattern(){
+    protected Pattern createCombinedPattern() {
         Set<Statement> vars = getMultiPredicate().stream()
                 .map(Atomic::getPattern)
                 .collect(Collectors.toSet());
@@ -288,15 +281,15 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public boolean isAttributeAtom(){ return true;}
+    public boolean isAttributeAtom() { return true;}
 
     @Override
     public AttributeAtom asAttributeAtom() { return this; }
 
     @Override
-    public boolean isSelectable(){ return true;}
+    public boolean isSelectable() { return true;}
 
-    public boolean isValueEquality(){ return getMultiPredicate().stream().anyMatch(p -> p.getPredicate().isValueEquality());}
+    public boolean isValueEquality() { return getMultiPredicate().stream().anyMatch(p -> p.getPredicate().isValueEquality());}
 
     @Override
     public Set<Variable> getVarNames() {
@@ -307,7 +300,7 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public boolean hasUniqueAnswer(){
+    public boolean hasUniqueAnswer() {
         ConceptMap sub = getParentQuery().getSubstitution();
         if (sub.vars().containsAll(getVarNames())) return true;
 
@@ -320,13 +313,13 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public boolean requiresMaterialisation(){ return true;}
+    public boolean requiresMaterialisation() { return true;}
 
     @Override
-    public void checkValid(){ validator.checkValid(this, context()); }
+    public void checkValid() { validator.checkValid(this, context()); }
 
     @Override
-    public Set<String> validateAsRuleHead(Rule rule){
+    public Set<String> validateAsRuleHead(Rule rule) {
         return validator.validateAsRuleHead(this, rule, context());
     }
 
@@ -356,7 +349,7 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public Stream<Predicate> getInnerPredicates(){
+    public Stream<Predicate> getInnerPredicates() {
         return Stream.concat(attributeIsa.getInnerPredicates(), getMultiPredicate().stream());
     }
 
@@ -366,7 +359,7 @@ public class AttributeAtom extends Atom{
     }
 
     @Override
-    public Atom rewriteToUserDefined(Atom parentAtom){
+    public Atom rewriteToUserDefined(Atom parentAtom) {
         return rewriteWithTypeVariable(parentAtom);
     }
 }

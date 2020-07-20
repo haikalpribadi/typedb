@@ -35,10 +35,10 @@ import java.util.Set;
 
 public class ValueTypeExecutor implements PropertyExecutor.Definable {
 
+    private static final ImmutableMap<Graql.Token.ValueType, AttributeType.ValueType<?>> VALUE_TYPES = valueTypes();
     private final Variable var;
     private final ValueTypeProperty property;
     private final AttributeType.ValueType valueType;
-    private static final ImmutableMap<Graql.Token.ValueType, AttributeType.ValueType<?>> VALUE_TYPES = valueTypes();
 
     ValueTypeExecutor(Variable var, ValueTypeProperty property) {
         if (var == null) {

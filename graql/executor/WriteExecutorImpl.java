@@ -68,26 +68,19 @@ import static java.util.stream.Collectors.toList;
 public class WriteExecutorImpl implements WriteExecutor {
 
     protected final Logger LOG = LoggerFactory.getLogger(WriteExecutor.class);
-
-    private ConceptManager conceptManager;
-
     // A mutable map associating each `Var` to the `Concept` in the graph it refers to.
     private final Map<Variable, Concept> concepts = new HashMap<>();
-
     // A set of concepts to be deleted at the end of a write execution
     private final Set<Concept> conceptsToDelete = new HashSet<>();
-
     // A mutable map of concepts "under construction" that require more information before they can be built
     private final Map<Variable, ConceptBuilder> conceptBuilders = new HashMap<>();
-
     // An immutable set of all properties
     private final ImmutableSet<Writer> writers;
-
     // A partition (disjoint set) indicating which `Var`s should refer to the same concept
     private final Partition<Variable> equivalentVars;
-
     // A map, where `dependencies.containsEntry(x, y)` implies that `y` must be inserted before `x` is inserted.
     private final ImmutableMultimap<Writer, Writer> dependencies;
+    private ConceptManager conceptManager;
 
     private WriteExecutorImpl(ConceptManager conceptManager,
                               Set<Writer> writers,

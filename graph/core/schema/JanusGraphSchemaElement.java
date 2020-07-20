@@ -25,7 +25,6 @@ import grakn.core.graph.core.Namifiable;
  * <p>
  * A JanusGraph Schema element is either a JanusGraphSchemaType or an index definition, i.e.
  * JanusGraphIndex or RelationTypeIndex.
- *
  */
 public interface JanusGraphSchemaElement extends Namifiable {
 

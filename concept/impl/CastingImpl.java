@@ -20,13 +20,13 @@ package grakn.core.concept.impl;
 
 import grakn.core.concept.cache.ConceptCache;
 import grakn.core.core.Schema;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.LabelId;
 import grakn.core.kb.concept.api.Relation;
 import grakn.core.kb.concept.api.RelationType;
 import grakn.core.kb.concept.api.Role;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.manager.ConceptManager;
-import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.structure.EdgeElement;
 
 import javax.annotation.Nullable;

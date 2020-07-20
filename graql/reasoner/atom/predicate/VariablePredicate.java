@@ -25,6 +25,7 @@ import grakn.core.kb.graql.reasoner.atom.Atomic;
 import grakn.core.kb.graql.reasoner.query.ReasonerQuery;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
 import java.util.Set;
 
 public abstract class VariablePredicate extends Predicate<Variable> {
@@ -33,33 +34,33 @@ public abstract class VariablePredicate extends Predicate<Variable> {
         super(varName, pattern, predicateVar, parentQuery);
     }
 
-    private boolean predicateBindingsEquivalent(VariablePredicate that, Equivalence<Atomic> equiv){
+    private boolean predicateBindingsEquivalent(VariablePredicate that, Equivalence<Atomic> equiv) {
         IdPredicate thisPredicate = this.getIdPredicate(this.getVarName());
         IdPredicate thatPredicate = that.getIdPredicate(that.getVarName());
         IdPredicate thisRefPredicate = this.getIdPredicate(this.getPredicate());
         IdPredicate thatRefPredicate = that.getIdPredicate(that.getPredicate());
         return (
                 (thisPredicate == null) ?
-                thisPredicate == thatPredicate :
-                equiv.equivalent(thisPredicate, thatPredicate)
+                        thisPredicate == thatPredicate :
+                        equiv.equivalent(thisPredicate, thatPredicate)
         ) && (
                 (thisRefPredicate == null) ?
-                (thisRefPredicate == thatRefPredicate) :
-                equiv.equivalent(thisRefPredicate, thatRefPredicate)
+                        (thisRefPredicate == thatRefPredicate) :
+                        equiv.equivalent(thisRefPredicate, thatRefPredicate)
         );
     }
 
-    private int bindingHash(AtomicEquivalence equiv){
+    private int bindingHash(AtomicEquivalence equiv) {
         int hashCode = 1;
         IdPredicate idPredicate = getIdPredicate(getVarName());
         IdPredicate refIdPredicate = getIdPredicate(getPredicate());
-        hashCode = hashCode * 37 + (idPredicate != null? equiv.hash(idPredicate) : 0);
-        hashCode = hashCode * 37 + (refIdPredicate != null? equiv.hash(refIdPredicate) : 0);
+        hashCode = hashCode * 37 + (idPredicate != null ? equiv.hash(idPredicate) : 0);
+        hashCode = hashCode * 37 + (refIdPredicate != null ? equiv.hash(refIdPredicate) : 0);
         return hashCode;
     }
 
     @Override
-    public boolean isAlphaEquivalent(Object obj){
+    public boolean isAlphaEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         VariablePredicate that = (VariablePredicate) obj;
@@ -72,7 +73,7 @@ public abstract class VariablePredicate extends Predicate<Variable> {
     }
 
     @Override
-    public boolean isStructurallyEquivalent(Object obj){
+    public boolean isStructurallyEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         VariablePredicate that = (VariablePredicate) obj;
@@ -85,12 +86,12 @@ public abstract class VariablePredicate extends Predicate<Variable> {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         IdPredicate idPredicate = this.getIdPredicate(this.getVarName());
         IdPredicate refIdPredicate = this.getIdPredicate(this.getPredicate());
         return "[" + getVarName() + "!=" + getPredicate() + "]" +
-                (idPredicate != null? idPredicate : "" ) +
-                (refIdPredicate != null? refIdPredicate : "");
+                (idPredicate != null ? idPredicate : "") +
+                (refIdPredicate != null ? refIdPredicate : "");
     }
 
     @Override
@@ -99,7 +100,7 @@ public abstract class VariablePredicate extends Predicate<Variable> {
     }
 
     @Override
-    public Set<Variable> getVarNames(){
+    public Set<Variable> getVarNames() {
         Set<Variable> vars = super.getVarNames();
         vars.add(getPredicate());
         return vars;

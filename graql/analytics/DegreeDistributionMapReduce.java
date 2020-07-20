@@ -38,7 +38,6 @@ import static grakn.core.graql.analytics.Utility.vertexHasSelectedTypeId;
  * It returns a map, the key being the degree, the value being a vertex id set containing all the vertices
  * with the given degree.
  * <p>
- *
  */
 
 public class DegreeDistributionMapReduce extends GraknMapReduce<Set<ConceptId>> {

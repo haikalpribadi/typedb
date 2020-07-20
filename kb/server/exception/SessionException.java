@@ -27,13 +27,13 @@ public class SessionException extends GraknException {
         super(message);
     }
 
+    public static SessionException sessionNotFound(String sessionId) {
+        return new SessionException(ErrorMessage.SESSION_NOT_FOUND.getMessage(sessionId));
+    }
+
     @Override
     public String getName() {
         return this.getClass().getName();
-    }
-
-    public static SessionException sessionNotFound(String sessionId) {
-        return new SessionException(ErrorMessage.SESSION_NOT_FOUND.getMessage(sessionId));
     }
 
 }

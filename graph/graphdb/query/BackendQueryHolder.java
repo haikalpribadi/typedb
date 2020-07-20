@@ -32,7 +32,6 @@ import grakn.core.graph.graphdb.query.profile.QueryProfiler;
  *     <li>Additional execution info required by the query executor. This would be compiled by the query optimizer
  *     and is passed through verbatim. Can be null.</li>
  * </ul>
- *
  */
 public class BackendQueryHolder<E extends BackendQuery<E>> implements ProfileObservable {
 
@@ -43,7 +42,7 @@ public class BackendQueryHolder<E extends BackendQuery<E>> implements ProfileObs
     private QueryProfiler profiler = QueryProfiler.NO_OP;
 
     public BackendQueryHolder(E backendQuery, boolean fitted, boolean sorted, Object executionInfo) {
-        Preconditions.checkArgument(backendQuery!=null);
+        Preconditions.checkArgument(backendQuery != null);
         this.backendQuery = backendQuery;
         isFitted = fitted;
         isSorted = sorted;
@@ -76,11 +75,11 @@ public class BackendQueryHolder<E extends BackendQuery<E>> implements ProfileObs
 
     @Override
     public void observeWith(QueryProfiler parentProfiler) {
-        Preconditions.checkArgument(parentProfiler!=null);
+        Preconditions.checkArgument(parentProfiler != null);
         this.profiler = parentProfiler.addNested(QueryProfiler.OR_QUERY);
-        profiler.setAnnotation(QueryProfiler.FITTED_ANNOTATION,isFitted);
-        profiler.setAnnotation(QueryProfiler.ORDERED_ANNOTATION,isSorted);
-        profiler.setAnnotation(QueryProfiler.QUERY_ANNOTATION,backendQuery);
-        if (backendQuery instanceof ProfileObservable) ((ProfileObservable)backendQuery).observeWith(profiler);
+        profiler.setAnnotation(QueryProfiler.FITTED_ANNOTATION, isFitted);
+        profiler.setAnnotation(QueryProfiler.ORDERED_ANNOTATION, isSorted);
+        profiler.setAnnotation(QueryProfiler.QUERY_ANNOTATION, backendQuery);
+        if (backendQuery instanceof ProfileObservable) ((ProfileObservable) backendQuery).observeWith(profiler);
     }
 }

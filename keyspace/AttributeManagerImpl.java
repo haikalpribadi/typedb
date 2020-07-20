@@ -37,7 +37,7 @@ public class AttributeManagerImpl implements AttributeManager {
     private final ConcurrentHashMap<String, Set<String>> attributesEphemeral;
     private final Set<String> lockCandidates;
 
-    public AttributeManagerImpl(){
+    public AttributeManagerImpl() {
         this.attributesCommitted = CacheBuilder.newBuilder()
                 .expireAfterAccess(TIMEOUT_MINUTES_ATTRIBUTES_CACHE, TimeUnit.MINUTES)
                 .maximumSize(ATTRIBUTES_CACHE_MAX_SIZE)
@@ -86,7 +86,7 @@ public class AttributeManagerImpl implements AttributeManager {
             return existingValue;
         });
     }
-    
+
     private void ackAttributeCommit(String index, String txId) {
         ackAttributeDelete(index, txId);
     }

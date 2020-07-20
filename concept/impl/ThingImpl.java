@@ -59,8 +59,6 @@ import static java.util.stream.Collectors.toSet;
  */
 public abstract class ThingImpl<T extends Thing, V extends Type> extends ConceptImpl implements Thing {
 
-    private Boolean isInferred = null;
-
     private final ConceptCache<V> cachedType = new ConceptCache<>(() -> {
         Optional<V> type = vertex().getEdgesOfType(Direction.OUT, Schema.EdgeLabel.ISA)
                 .map(EdgeElement::target)
@@ -71,6 +69,7 @@ public abstract class ThingImpl<T extends Thing, V extends Type> extends Concept
 
         return type.orElseThrow(() -> GraknConceptException.noType(this));
     });
+    private Boolean isInferred = null;
 
     ThingImpl(VertexElement vertexElement, ConceptManager conceptManager, ConceptNotificationChannel conceptNotificationChannel) {
         super(vertexElement, conceptManager, conceptNotificationChannel);

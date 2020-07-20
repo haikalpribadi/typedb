@@ -29,13 +29,14 @@ import grakn.core.kb.graql.reasoner.query.ReasonerQuery;
 import graql.lang.pattern.Pattern;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 /**
  * Base Atomic implementation providing basic functionalities.
@@ -69,7 +70,8 @@ public abstract class AtomicBase implements Atomic {
         return parentQuery;
     }
 
-    @Override public void checkValid(){}
+    @Override
+    public void checkValid() {}
 
     @Override
     public Set<String> validateAsRuleHead(Rule rule) {
@@ -82,11 +84,11 @@ public abstract class AtomicBase implements Atomic {
     }
 
     @Override
-    public String toString(){ return getPattern().toString(); }
+    public String toString() { return getPattern().toString(); }
 
-    boolean containsVar(Variable name){ return getVarNames().contains(name);}
+    boolean containsVar(Variable name) { return getVarNames().contains(name);}
 
-    public boolean isUserDefined(){ return getVarName().isReturned();}
+    public boolean isUserDefined() { return getVarName().isReturned();}
 
     /**
      * @return set of predicates relevant to this atomic
@@ -97,7 +99,7 @@ public abstract class AtomicBase implements Atomic {
 
     /**
      * @param type the class of Predicate to return
-     * @param <T> the type of Predicate to return
+     * @param <T>  the type of Predicate to return
      * @return stream of predicates relevant to this atomic
      */
     public <T extends Predicate> Stream<T> getPredicates(Class<T> type) {
@@ -105,12 +107,12 @@ public abstract class AtomicBase implements Atomic {
     }
 
     /**
-     * @param var variable the predicate refers to
+     * @param var  variable the predicate refers to
      * @param type predicate type
-     * @param <T> predicate type generic
+     * @param <T>  predicate type generic
      * @return specific predicates referring to provided variable
      */
-    public <T extends Predicate> Stream<T> getPredicates(Variable var, Class<T> type){
+    public <T extends Predicate> Stream<T> getPredicates(Variable var, Class<T> type) {
         return getPredicates(type).filter(p -> p.getVarName().equals(var));
     }
 
@@ -119,20 +121,20 @@ public abstract class AtomicBase implements Atomic {
      * @return id predicate referring to prescribed variable
      */
     @Nullable
-    public IdPredicate getIdPredicate(Variable var){
+    public IdPredicate getIdPredicate(Variable var) {
         return getPredicates(var, IdPredicate.class).findFirst().orElse(null);
     }
 
     @Override
-    public Set<Variable> getVarNames(){
+    public Set<Variable> getVarNames() {
         Variable varName = getVarName();
-        return varName.isReturned()? Sets.newHashSet(varName) : Collections.emptySet();
+        return varName.isReturned() ? Sets.newHashSet(varName) : Collections.emptySet();
     }
 
-    protected Pattern createCombinedPattern(){ return getPattern();}
+    protected Pattern createCombinedPattern() { return getPattern();}
 
     @Override
-    public Pattern getCombinedPattern(){
+    public Pattern getCombinedPattern() {
         return createCombinedPattern();
     }
 

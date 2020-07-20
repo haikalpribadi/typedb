@@ -76,19 +76,15 @@ public class StandardIDPool implements IDPool {
 
     private final Duration renewTimeout;
     private final double renewBufferPercentage;
-
+    private final ThreadPoolExecutor exec;
+    private final Queue<Future<?>> closeBlockers;
     private IDBlock currentBlock;
     private long currentIndex;
     private long renewBlockIndex;
-
     private volatile IDBlock nextBlock;
     private Future<IDBlock> idBlockFuture;
     private IDBlockGetter idBlockGetter;
-    private final ThreadPoolExecutor exec;
-
     private volatile boolean closed;
-
-    private final Queue<Future<?>> closeBlockers;
 
     public StandardIDPool(IDAuthority idAuthority, int partition, int idNamespace, long idUpperBound, Duration renewTimeout, double renewBufferPercentage) {
         Preconditions.checkArgument(idUpperBound > 0);
@@ -110,10 +106,10 @@ public class StandardIDPool implements IDPool {
 
         // daemon=true would probably be fine too
         exec = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
-                .setDaemon(false)
-                .setNameFormat("JanusGraphID(" + partition + ")(" + idNamespace + ")[%d]")
-                .build());
+                                      new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                                              .setDaemon(false)
+                                              .setNameFormat("JanusGraphID(" + partition + ")(" + idNamespace + ")[%d]")
+                                              .build());
         idBlockFuture = null;
         closeBlockers = new ArrayDeque<>(4);
         closed = false;
@@ -256,13 +252,13 @@ public class StandardIDPool implements IDPool {
             try {
                 if (stopRequested) {
                     LOG.debug("Aborting ID block retrieval on partition({})-namespace({}) after graceful shutdown was requested, exec time {}, exec+q time {}",
-                            partition, idNamespace, running.stop(), alive.stop());
+                              partition, idNamespace, running.stop(), alive.stop());
                     throw new JanusGraphException("ID block retrieval aborted by caller");
                 }
                 IDBlock idBlock = idAuthority.getIDBlock(partition, idNamespace, renewTimeout);
                 LOG.debug("Retrieved ID block from authority on partition({})-namespace({}), " +
-                                "exec time {}, exec+q time {}",
-                        partition, idNamespace, running.stop(), alive.stop());
+                                  "exec time {}, exec+q time {}",
+                          partition, idNamespace, running.stop(), alive.stop());
                 Preconditions.checkArgument(idBlock != null && idBlock.numIds() > 0);
                 return idBlock;
             } catch (BackendException e) {

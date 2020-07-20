@@ -31,7 +31,6 @@ import java.util.Set;
 /**
  * The MapReduce program for computing the mean value of given resource.
  * <p>
- *
  */
 
 public class MeanMapReduce extends StatisticsMapReduce<Map<String, Double>> {
@@ -69,10 +68,10 @@ public class MeanMapReduce extends StatisticsMapReduce<Map<String, Double>> {
         emptyTuple.put(SUM, 0D);
         emptyTuple.put(COUNT, 0D);
         return IteratorUtils.reduce(values, emptyTuple,
-                (a, b) -> {
-                    a.put(COUNT, a.get(COUNT) + b.get(COUNT));
-                    a.put(SUM, a.get(SUM) + b.get(SUM));
-                    return a;
-                });
+                                    (a, b) -> {
+                                        a.put(COUNT, a.get(COUNT) + b.get(COUNT));
+                                        a.put(SUM, a.get(SUM) + b.get(SUM));
+                                        return a;
+                                    });
     }
 }

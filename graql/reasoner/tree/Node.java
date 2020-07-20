@@ -18,6 +18,7 @@
 package grakn.core.graql.reasoner.tree;
 
 import grakn.core.concept.answer.ConceptMap;
+
 import java.util.List;
 import java.util.Set;
 
@@ -38,19 +39,16 @@ public interface Node {
 
 
     /**
-     *
      * @return total time spent on processing the state corresponding to this node
      */
     long totalTime();
 
     /**
-     *
      * @return children nodes of this node
      */
     List<Node> children();
 
     /**
-     *
      * @return answer associated with this node (corresponding state)
      */
     Set<ConceptMap> answers();

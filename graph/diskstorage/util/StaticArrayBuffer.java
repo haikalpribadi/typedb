@@ -32,9 +32,18 @@ import java.nio.ByteBuffer;
 
 public class StaticArrayBuffer implements StaticBuffer {
 
+    static final int BYTE_LEN = 1;
+    static final int SHORT_LEN = 2;
+    static final int INT_LEN = 4;
+    static final int LONG_LEN = 8;
+    static final int CHAR_LEN = 2;
+    static final int FLOAT_LEN = 4;
+    static final int DOUBLE_LEN = 8;
     private final byte[] array;
     private int offset;
     private int limit;
+
+    //-------------------
 
     public StaticArrayBuffer(byte[] array, int offset, int limit) {
         this.array = array;
@@ -49,6 +58,10 @@ public class StaticArrayBuffer implements StaticBuffer {
     public StaticArrayBuffer(byte[] array, int limit) {
         this(array, 0, limit);
     }
+
+    /*
+    ############## BULK READING ################
+     */
 
     public StaticArrayBuffer(StaticBuffer buffer) {
         this((StaticArrayBuffer) buffer);
@@ -74,7 +87,78 @@ public class StaticArrayBuffer implements StaticBuffer {
         }
     }
 
-    //-------------------
+    public static int getInt(byte[] array, int offset) {
+        return (array[offset++] & 0xFF) << 24
+                | (array[offset++] & 0xFF) << 16
+                | (array[offset++] & 0xFF) << 8
+                | array[offset] & 0xFF;
+    }
+
+    public static void putInt(byte[] array, int offset, int value) {
+        array[offset++] = (byte) ((value >> 24) & 0xFF);
+        array[offset++] = (byte) ((value >> 16) & 0xFF);
+        array[offset++] = (byte) ((value >> 8) & 0xFF);
+        array[offset] = (byte) (value & 0xFF);
+    }
+
+    public static long getLong(byte[] array, int offset) {
+        return (long) array[offset++] << 56 //
+                | (long) (array[offset++] & 0xFF) << 48 //
+                | (long) (array[offset++] & 0xFF) << 40 //
+                | (long) (array[offset++] & 0xFF) << 32 //
+                | (long) (array[offset++] & 0xFF) << 24 //
+                | (array[offset++] & 0xFF) << 16 //
+                | (array[offset++] & 0xFF) << 8 //
+                | array[offset] & 0xFF;
+    }
+
+
+    /*
+    ############## READING PRIMITIVES ################
+     */
+
+    public static void putLong(byte[] array, int offset, long value) {
+        array[offset++] = (byte) (value >> 56);
+        array[offset++] = (byte) ((value >> 48) & 0xFF);
+        array[offset++] = (byte) ((value >> 40) & 0xFF);
+        array[offset++] = (byte) ((value >> 32) & 0xFF);
+        array[offset++] = (byte) ((value >> 24) & 0xFF);
+        array[offset++] = (byte) ((value >> 16) & 0xFF);
+        array[offset++] = (byte) ((value >> 8) & 0xFF);
+        array[offset] = (byte) (value & 0xFF);
+    }
+
+    private static String toString(byte b) {
+        return String.valueOf((b >= 0) ? b : 256 + b);
+    }
+
+    private static String toFixedWidthString(byte b) {
+        String s = toString(b);
+        if (s.length() == 1) {
+            s = "  " + s;
+        } else if (s.length() == 2) {
+            s = " " + s;
+        }
+        return s;
+    }
+
+    private static int compareTo(byte[] buffer1, int offset1, int end1,
+                                 byte[] buffer2, int offset2, int end2) {
+        // Short circuit equal case
+        int length1 = end1 - offset1;
+        int length2 = end2 - offset2;
+        if (buffer1 == buffer2 && offset1 == offset2 && length1 == length2) {
+            return 0;
+        }
+        for (int i = offset1, j = offset2; i < end1 && j < end2; i++, j++) {
+            int a = (buffer1[i] & 0xff);
+            int b = (buffer2[j] & 0xff);
+            if (a != b) {
+                return a - b;
+            }
+        }
+        return length1 - length2;
+    }
 
     void reset(int newOffset, int newLimit) {
         this.offset = newOffset;
@@ -96,10 +180,6 @@ public class StaticArrayBuffer implements StaticBuffer {
     public int length() {
         return limit - offset;
     }
-
-    /*
-    ############## BULK READING ################
-     */
 
     void copyTo(byte[] dest, int destOffset) {
         System.arraycopy(array, offset, dest, destOffset, length());
@@ -149,19 +229,6 @@ public class StaticArrayBuffer implements StaticBuffer {
         return factory.get(array, offset + position, offset + position + length);
     }
 
-
-    /*
-    ############## READING PRIMITIVES ################
-     */
-
-    static final int BYTE_LEN = 1;
-    static final int SHORT_LEN = 2;
-    static final int INT_LEN = 4;
-    static final int LONG_LEN = 8;
-    static final int CHAR_LEN = 2;
-    static final int FLOAT_LEN = 4;
-    static final int DOUBLE_LEN = 8;
-
     @Override
     public byte getByte(int position) {
         return array[require(position, BYTE_LEN)];
@@ -184,47 +251,13 @@ public class StaticArrayBuffer implements StaticBuffer {
         return getInt(array, base);
     }
 
-    public static int getInt(byte[] array, int offset) {
-        return (array[offset++] & 0xFF) << 24
-                | (array[offset++] & 0xFF) << 16
-                | (array[offset++] & 0xFF) << 8
-                | array[offset] & 0xFF;
-    }
-
-    public static void putInt(byte[] array, int offset, int value) {
-        array[offset++] = (byte) ((value >> 24) & 0xFF);
-        array[offset++] = (byte) ((value >> 16) & 0xFF);
-        array[offset++] = (byte) ((value >> 8) & 0xFF);
-        array[offset] = (byte) (value & 0xFF);
-    }
-
     @Override
     public long getLong(int position) {
         int offset = require(position, LONG_LEN);
         return getLong(array, offset);
     }
 
-    public static long getLong(byte[] array, int offset) {
-        return (long) array[offset++] << 56 //
-                | (long) (array[offset++] & 0xFF) << 48 //
-                | (long) (array[offset++] & 0xFF) << 40 //
-                | (long) (array[offset++] & 0xFF) << 32 //
-                | (long) (array[offset++] & 0xFF) << 24 //
-                | (array[offset++] & 0xFF) << 16 //
-                | (array[offset++] & 0xFF) << 8 //
-                | array[offset] & 0xFF;
-    }
-
-    public static void putLong(byte[] array, int offset, long value) {
-        array[offset++] = (byte) (value >> 56);
-        array[offset++] = (byte) ((value >> 48) & 0xFF);
-        array[offset++] = (byte) ((value >> 40) & 0xFF);
-        array[offset++] = (byte) ((value >> 32) & 0xFF);
-        array[offset++] = (byte) ((value >> 24) & 0xFF);
-        array[offset++] = (byte) ((value >> 16) & 0xFF);
-        array[offset++] = (byte) ((value >> 8) & 0xFF);
-        array[offset] = (byte) (value & 0xFF);
-    }
+    //-------- ARRAY METHODS
 
     @Override
     public char getChar(int position) {
@@ -240,8 +273,6 @@ public class StaticArrayBuffer implements StaticBuffer {
     public double getDouble(int position) {
         return Double.longBitsToDouble(getLong(position));
     }
-
-    //-------- ARRAY METHODS
 
     @Override
     public byte[] getBytes(int position, int length) {
@@ -280,6 +311,10 @@ public class StaticArrayBuffer implements StaticBuffer {
         return result;
     }
 
+    /*
+    ############## EQUALS, HASHCODE & COMPARE ################
+     */
+
     public char[] getChars(int position, int length) {
         char[] result = new char[length];
         for (int i = 0; i < length; i++) {
@@ -306,10 +341,6 @@ public class StaticArrayBuffer implements StaticBuffer {
         }
         return result;
     }
-
-    /*
-    ############## EQUALS, HASHCODE & COMPARE ################
-     */
 
     @Override
     public boolean equals(Object o) {
@@ -340,7 +371,6 @@ public class StaticArrayBuffer implements StaticBuffer {
         return result;
     }
 
-
     @Override
     public String toString() {
         return toString("-");
@@ -353,20 +383,6 @@ public class StaticArrayBuffer implements StaticBuffer {
             s.append(toFixedWidthString(array[i]));
         }
         return s.toString();
-    }
-
-    private static String toString(byte b) {
-        return String.valueOf((b >= 0) ? b : 256 + b);
-    }
-
-    private static String toFixedWidthString(byte b) {
-        String s = toString(b);
-        if (s.length() == 1) {
-            s = "  " + s;
-        } else if (s.length() == 2) {
-            s = " " + s;
-        }
-        return s;
     }
 
     @Override
@@ -385,23 +401,5 @@ public class StaticArrayBuffer implements StaticBuffer {
     protected int compareTo(int length, StaticArrayBuffer buffer, int bufferLen) {
         Preconditions.checkArgument(length <= length() && bufferLen <= buffer.length());
         return compareTo(array, offset, offset + length, buffer.array, buffer.offset, buffer.offset + bufferLen);
-    }
-
-    private static int compareTo(byte[] buffer1, int offset1, int end1,
-                                 byte[] buffer2, int offset2, int end2) {
-        // Short circuit equal case
-        int length1 = end1 - offset1;
-        int length2 = end2 - offset2;
-        if (buffer1 == buffer2 && offset1 == offset2 && length1 == length2) {
-            return 0;
-        }
-        for (int i = offset1, j = offset2; i < end1 && j < end2; i++, j++) {
-            int a = (buffer1[i] & 0xff);
-            int b = (buffer2[j] & 0xff);
-            if (a != b) {
-                return a - b;
-            }
-        }
-        return length1 - length2;
     }
 }

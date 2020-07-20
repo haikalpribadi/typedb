@@ -25,18 +25,6 @@ import java.util.Set;
 
 public interface Configuration {
 
-    boolean has(ConfigOption option, String... umbrellaElements);
-
-    <O> O get(ConfigOption<O> option, String... umbrellaElements);
-
-    Set<String> getContainedNamespaces(ConfigNamespace umbrella, String... umbrellaElements);
-
-    Map<String, Object> getSubset(ConfigNamespace umbrella, String... umbrellaElements);
-
-    Configuration restrictTo(String... umbrellaElements);
-
-    //--------------------
-
     Configuration EMPTY = new Configuration() {
         @Override
         public boolean has(ConfigOption option, String... umbrellaElements) {
@@ -63,6 +51,18 @@ public interface Configuration {
             return EMPTY;
         }
     };
+
+    boolean has(ConfigOption option, String... umbrellaElements);
+
+    <O> O get(ConfigOption<O> option, String... umbrellaElements);
+
+    Set<String> getContainedNamespaces(ConfigNamespace umbrella, String... umbrellaElements);
+
+    Map<String, Object> getSubset(ConfigNamespace umbrella, String... umbrellaElements);
+
+    //--------------------
+
+    Configuration restrictTo(String... umbrellaElements);
 
 
 }

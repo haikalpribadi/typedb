@@ -94,7 +94,7 @@ public class ReadConfigurationBuilder {
             if (f.hasTimestamps() && null != (backendPreference = f.getPreferredTimestamps())) {
                 globalWrite.set(TIMESTAMP_PROVIDER, backendPreference);
                 LOG.debug("Set timestamps to {} according to storage backend preference",
-                        LoggerUtil.sanitizeAndLaunder(globalWrite.get(TIMESTAMP_PROVIDER)));
+                          LoggerUtil.sanitizeAndLaunder(globalWrite.get(TIMESTAMP_PROVIDER)));
             } else {
                 globalWrite.set(TIMESTAMP_PROVIDER, TIMESTAMP_PROVIDER.getDefaultValue());
                 LOG.debug("Set default timestamp provider {}", LoggerUtil.sanitizeAndLaunder(globalWrite.get(TIMESTAMP_PROVIDER)));

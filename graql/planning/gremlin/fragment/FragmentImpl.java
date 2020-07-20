@@ -64,48 +64,51 @@ import java.util.Set;
  */
 public abstract class FragmentImpl implements Fragment {
 
-    // Default values used for estimate internal fragment cost
-    private static final double NUM_INSTANCES_PER_TYPE = 100D;
-    private static final double NUM_SUBTYPES_PER_TYPE = 1.5D;
-    private static final double NUM_RELATIONS_PER_INSTANCE = 30D;
-    private static final double NUM_TYPES_PER_ROLE = 3D;
-    private static final double NUM_ROLES_PER_TYPE = 3D;
-    private static final double NUM_ROLE_PLAYERS_PER_RELATION = 2D;
-    private static final double NUM_ROLE_PLAYERS_PER_ROLE = 1D;
-    private static final double NUM_RESOURCES_PER_VALUE = 2D;
-
-    static final double COST_INSTANCES_PER_TYPE = Math.log1p(NUM_INSTANCES_PER_TYPE);
-    static final double COST_SUBTYPES_PER_TYPE = Math.log1p(NUM_SUBTYPES_PER_TYPE);
-    static final double COST_RELATIONS_PER_INSTANCE = Math.log1p(NUM_RELATIONS_PER_INSTANCE);
-    static final double COST_TYPES_PER_ROLE = Math.log1p(NUM_TYPES_PER_ROLE);
-    static final double COST_ROLES_PER_TYPE = Math.log1p(NUM_ROLES_PER_TYPE);
-    static final double COST_ROLE_PLAYERS_PER_RELATION = Math.log1p(NUM_ROLE_PLAYERS_PER_RELATION);
-    static final double COST_ROLE_PLAYERS_PER_ROLE = Math.log1p(NUM_ROLE_PLAYERS_PER_ROLE);
-
     static final double COST_SAME_AS_PREVIOUS = Math.log1p(1);
-
-    static final double COST_NODE_INDEX = -Math.log(NUM_INSTANCES_PER_TYPE);
-    static final double COST_NODE_INDEX_VALUE = -Math.log(NUM_INSTANCES_PER_TYPE / NUM_RESOURCES_PER_VALUE);
-
     static final double COST_NODE_NEQ = -Math.log(2D);
     static final double COST_NODE_VALUE_TYPE = -Math.log(AttributeType.ValueType.values().size() / 2D);
     static final double COST_NODE_UNSPECIFIC_PREDICATE = -Math.log(2D);
     static final double COST_NODE_REGEX = -Math.log(2D);
     static final double COST_NODE_NOT_INTERNAL = -Math.log(1.1D);
     static final double COST_NODE_IS_ABSTRACT = -Math.log(1.1D);
-
-    private Double accurateFragmentCost = null;
-
-
-    @Nullable private ImmutableSet<Variable> vars = null;
+    // Default values used for estimate internal fragment cost
+    private static final double NUM_INSTANCES_PER_TYPE = 100D;
+    static final double COST_INSTANCES_PER_TYPE = Math.log1p(NUM_INSTANCES_PER_TYPE);
+    static final double COST_NODE_INDEX = -Math.log(NUM_INSTANCES_PER_TYPE);
+    private static final double NUM_SUBTYPES_PER_TYPE = 1.5D;
+    static final double COST_SUBTYPES_PER_TYPE = Math.log1p(NUM_SUBTYPES_PER_TYPE);
+    private static final double NUM_RELATIONS_PER_INSTANCE = 30D;
+    static final double COST_RELATIONS_PER_INSTANCE = Math.log1p(NUM_RELATIONS_PER_INSTANCE);
+    private static final double NUM_TYPES_PER_ROLE = 3D;
+    static final double COST_TYPES_PER_ROLE = Math.log1p(NUM_TYPES_PER_ROLE);
+    private static final double NUM_ROLES_PER_TYPE = 3D;
+    static final double COST_ROLES_PER_TYPE = Math.log1p(NUM_ROLES_PER_TYPE);
+    private static final double NUM_ROLE_PLAYERS_PER_RELATION = 2D;
+    static final double COST_ROLE_PLAYERS_PER_RELATION = Math.log1p(NUM_ROLE_PLAYERS_PER_RELATION);
+    private static final double NUM_ROLE_PLAYERS_PER_ROLE = 1D;
+    static final double COST_ROLE_PLAYERS_PER_ROLE = Math.log1p(NUM_ROLE_PLAYERS_PER_ROLE);
+    private static final double NUM_RESOURCES_PER_VALUE = 2D;
+    static final double COST_NODE_INDEX_VALUE = -Math.log(NUM_INSTANCES_PER_TYPE / NUM_RESOURCES_PER_VALUE);
     protected final VarProperty varProperty;
     protected final Variable start;
+    private Double accurateFragmentCost = null;
+    @Nullable
+    private ImmutableSet<Variable> vars = null;
 
     FragmentImpl(@Nullable VarProperty varProperty, Variable start) {
         this.varProperty = varProperty;
         this.start = start;
     }
 
+    static <T, U> GraphTraversal<T, U> assignVar(GraphTraversal<T, U> traversal, Variable var, Collection<Variable> vars) {
+        if (!vars.contains(var)) {
+            // This variable name has not been encountered before, remember it and use the 'as' step
+            return traversal.as(var.symbol());
+        } else {
+            // This variable name has been encountered before, confirm it is the same
+            return traversal.where(P.eq(var.symbol()));
+        }
+    }
 
     /**
      * @param transform map defining id transform var -> new id
@@ -194,7 +197,6 @@ public abstract class FragmentImpl implements Fragment {
         return Collections.emptySet();
     }
 
-
     /**
      * @param traversal the traversal to extend with this Fragment
      */
@@ -240,18 +242,8 @@ public abstract class FragmentImpl implements Fragment {
         return traversal;
     }
 
-    static <T, U> GraphTraversal<T, U> assignVar(GraphTraversal<T, U> traversal, Variable var, Collection<Variable> vars) {
-        if (!vars.contains(var)) {
-            // This variable name has not been encountered before, remember it and use the 'as' step
-            return traversal.as(var.symbol());
-        } else {
-            // This variable name has been encountered before, confirm it is the same
-            return traversal.where(P.eq(var.symbol()));
-        }
-    }
-
     /**
-     * @param traversal the traversal to extend with this Fragment
+     * @param traversal      the traversal to extend with this Fragment
      * @param conceptManager
      * @param vars
      */
@@ -287,9 +279,9 @@ public abstract class FragmentImpl implements Fragment {
      * Estimate the "cost" of a starting point for each type of fixed cost fragment
      * These are cost heuristic proxies using statistics
      *
-     * @return
      * @param conceptManager
      * @param keyspaceStatistics
+     * @return
      */
     @Override
     public double estimatedCostAsStartingPoint(ConceptManager conceptManager, KeyspaceStatistics keyspaceStatistics) {

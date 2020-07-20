@@ -29,7 +29,7 @@ public class SchemaViolationException extends IllegalArgumentException {
     }
 
     public SchemaViolationException(String msg, Object... args) {
-        super(String.format(msg,args));
+        super(String.format(msg, args));
     }
 
 }

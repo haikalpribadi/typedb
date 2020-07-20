@@ -29,10 +29,6 @@ import javax.annotation.Nullable;
  */
 public class KVMutation extends Mutation<KeyValueEntry, StaticBuffer> {
 
-    public KVMutation() {
-        super();
-    }
-
     private static final Function<KeyValueEntry, StaticBuffer> ENTRY2KEY_FCT = new Function<KeyValueEntry, StaticBuffer>() {
         @Nullable
         @Override
@@ -40,6 +36,10 @@ public class KVMutation extends Mutation<KeyValueEntry, StaticBuffer> {
             return keyValueEntry.getKey();
         }
     };
+
+    public KVMutation() {
+        super();
+    }
 
     @Override
     public void consolidate() {

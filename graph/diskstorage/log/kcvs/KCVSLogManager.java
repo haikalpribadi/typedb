@@ -61,11 +61,6 @@ public class KCVSLogManager implements LogManager {
      * the number by this constant.
      */
     private static final int CLUSTER_SIZE_DIVIDER = 8;
-
-    /**
-     * Configuration of this LOG manager
-     */
-    private final Configuration configuration;
     /**
      * Store Manager against which to open the KeyColumnValueStores to wrap the KCVSLog around.
      */
@@ -74,7 +69,6 @@ public class KCVSLogManager implements LogManager {
      * Id which uniquely identifies this instance. Also see GraphDatabaseConfiguration#UNIQUE_INSTANCE_ID.
      */
     final String senderId;
-
     /**
      * The number of first bits of the key that identifies a partition. If this number is X then there are 2^X different
      * partition blocks each of which is identified by a partition id.
@@ -92,7 +86,10 @@ public class KCVSLogManager implements LogManager {
      * Serializer used to (de)-serialize the LOG messages
      */
     final StandardSerializer serializer;
-
+    /**
+     * Configuration of this LOG manager
+     */
+    private final Configuration configuration;
     /**
      * Keeps track of all open logs
      */
@@ -125,7 +122,7 @@ public class KCVSLogManager implements LogManager {
                 storeManager = new TTLKCVSManager(storeManager);
             } else if (!storeFeatures.hasStoreTTL()) {
                 LOG.warn("Log is configured with TTL but underlying storage backend does not support TTL, hence this" +
-                        "configuration option is ignored and entries must be manually removed from the backend.");
+                                 "configuration option is ignored and entries must be manually removed from the backend.");
             }
         } else {
             indexStoreTTL = -1;
@@ -142,7 +139,7 @@ public class KCVSLogManager implements LogManager {
         if (config.has(LOG_MAX_PARTITIONS)) maxPartitions = config.get(LOG_MAX_PARTITIONS);
         else maxPartitions = Math.max(1, config.get(CLUSTER_MAX_PARTITIONS) / CLUSTER_SIZE_DIVIDER);
         Preconditions.checkArgument(maxPartitions <= config.get(CLUSTER_MAX_PARTITIONS),
-                "Number of LOG partitions cannot be larger than number of cluster partitions");
+                                    "Number of LOG partitions cannot be larger than number of cluster partitions");
         this.partitionBitWidth = NumberUtil.getPowerOf2(maxPartitions);
 
         Preconditions.checkArgument(partitionBitWidth >= 0 && partitionBitWidth < 32);
@@ -158,7 +155,7 @@ public class KCVSLogManager implements LogManager {
                 List<Integer> localPartitions = new ArrayList<>();
                 try {
                     List<PartitionIDRange> partitionRanges = PartitionIDRange.getIDRanges(partitionBitWidth,
-                            storeManager.getLocalKeyPartition());
+                                                                                          storeManager.getLocalKeyPartition());
                     for (PartitionIDRange idRange : partitionRanges) {
                         for (int p : idRange.getAllContainedIDs()) localPartitions.add(p);
                     }
@@ -184,7 +181,7 @@ public class KCVSLogManager implements LogManager {
         } else {
             this.defaultWritePartitionIds = new int[]{0};
             Preconditions.checkArgument(readPartitionIds == null || (readPartitionIds.length == 0 && readPartitionIds[0] == 0),
-                    "Cannot configure read partition ids on unpartitioned backend or with fixed partitions enabled");
+                                        "Cannot configure read partition ids on unpartitioned backend or with fixed partitions enabled");
             this.readPartitionIds = new int[]{0};
         }
 

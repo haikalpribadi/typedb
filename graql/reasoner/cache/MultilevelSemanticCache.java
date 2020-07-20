@@ -24,7 +24,6 @@ import grakn.common.util.Pair;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
 import grakn.core.graql.reasoner.unifier.UnifierType;
-import grakn.core.kb.graql.executor.ExecutorFactory;
 import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.kb.graql.planning.gremlin.TraversalPlanFactory;
 import grakn.core.kb.graql.reasoner.cache.CacheEntry;
@@ -39,10 +38,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- *
  * Implementation of SemanticCache using ReasonerQueryEquivalence#StructuralEquivalence
  * for query equivalence checks and IndexedAnswerSets for storing query answer sets.
- *
  */
 public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<ReasonerAtomicQuery>, IndexedAnswerSet> {
 
@@ -52,7 +49,8 @@ public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<R
         super(traversalPlanFactory, traversalExecutor);
     }
 
-    @Override public UnifierType unifierType() { return UnifierType.STRUCTURAL;}
+    @Override
+    public UnifierType unifierType() { return UnifierType.STRUCTURAL;}
 
     @Override
     CacheEntry<ReasonerAtomicQuery, IndexedAnswerSet> createEntry(ReasonerAtomicQuery query, Set<ConceptMap> answers) {
@@ -74,8 +72,8 @@ public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<R
 
     @Override
     boolean propagateAnswers(CacheEntry<ReasonerAtomicQuery, IndexedAnswerSet> parentEntry,
-                                    CacheEntry<ReasonerAtomicQuery, IndexedAnswerSet> childEntry,
-                                    boolean propagateInferred) {
+                             CacheEntry<ReasonerAtomicQuery, IndexedAnswerSet> childEntry,
+                             boolean propagateInferred) {
         ReasonerAtomicQuery parent = parentEntry.query();
         ReasonerAtomicQuery child = childEntry.query();
         IndexedAnswerSet parentAnswers = parentEntry.cachedElement();
@@ -90,7 +88,7 @@ public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<R
         Set<Variable> childVars = child.getVarNames();
         ConceptMap childPartialSub = child.getRoleSubstitution();
         Set<ConceptMap> newAnswers = new HashSet<>();
-        
+
         parentAnswers.getAll().stream()
                 .filter(parentAns -> propagateInferred || parentAns.explanation().isLookupExplanation())
                 .flatMap(parentAns -> parentToChildUnifierDelta.stream()
@@ -119,7 +117,7 @@ public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<R
                         .apply(answerIndex)
                         .flatMap(index -> answers.get(index).stream())
                         .flatMap(multiUnifier::apply)
-                .map(ans -> ans.withPattern(query.withSubstitution(ans).getPattern())),
+                        .map(ans -> ans.withPattern(query.withSubstitution(ans).getPattern())),
                 multiUnifier
         );
     }
@@ -135,8 +133,8 @@ public class MultilevelSemanticCache extends SemanticCache<Equivalence.Wrapper<R
 
         return queryToCacheUnifier.apply(query.getAnswerIndex())
                 .anyMatch(sub ->
-                        answerSet.get(sub.project(cacheIndex)).stream()
-                                .anyMatch(ans -> ans.containsAll(sub)));
+                                  answerSet.get(sub.project(cacheIndex)).stream()
+                                          .anyMatch(ans -> ans.containsAll(sub)));
     }
 }
 

@@ -21,16 +21,14 @@ package grakn.core.graql.reasoner.state;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.rule.InferenceRule;
 import grakn.core.kb.graql.reasoner.unifier.Unifier;
-import java.util.Objects;
+
 import javax.annotation.CheckReturnValue;
+import java.util.Objects;
 
 /**
- *
  * <p>
  * Resolution state holding an answer (ConceptMap) to the parent state.
  * </p>
- *
- *
  */
 public class AnswerState extends ResolutionState {
 
@@ -62,14 +60,14 @@ public class AnswerState extends ResolutionState {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return super.toString() + ": " + getSubstitution() +
-                (getParentState() != null? " to @" + Integer.toHexString(getParentState().hashCode()) : "") +
+                (getParentState() != null ? " to @" + Integer.toHexString(getParentState().hashCode()) : "") +
                 (" with u: " + getUnifier());
     }
 
     @Override
-    public boolean isAnswerState(){ return true;}
+    public boolean isAnswerState() { return true;}
 
     @Override
     public ResolutionState generateChildState() {
@@ -77,8 +75,8 @@ public class AnswerState extends ResolutionState {
     }
 
     @CheckReturnValue
-    public InferenceRule getRule(){ return rule;}
+    public InferenceRule getRule() { return rule;}
 
     @CheckReturnValue
-    public Unifier getUnifier(){ return unifier;}
+    public Unifier getUnifier() { return unifier;}
 }

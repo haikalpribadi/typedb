@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface EntryList extends List<Entry> {
 
+    EmptyList EMPTY_LIST = new EmptyList();
+
     /**
      * Returns the same iterator as #iterator() with the only difference
      * that it reuses Entry objects when calling Iterator#next().
@@ -31,14 +33,10 @@ public interface EntryList extends List<Entry> {
      */
     Iterator<Entry> reuseIterator();
 
-
     /**
      * Returns the total amount of bytes this entry consumes on the heap - including all object headers.
      */
     int getByteSize();
-
-
-    EmptyList EMPTY_LIST = new EmptyList();
 
     class EmptyList extends AbstractList<Entry> implements EntryList {
 

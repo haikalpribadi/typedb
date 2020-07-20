@@ -61,6 +61,17 @@ public class OrderedKeyValueStoreManagerAdapter implements KeyColumnValueStoreMa
         this.stores = new HashMap<>();
     }
 
+    private static OrderedKeyValueStoreAdapter wrapKeyValueStore(OrderedKeyValueStore store, Map<String, Integer> keyLengths) {
+        String name = store.getName();
+        if (keyLengths.containsKey(name)) {
+            int keyLength = keyLengths.get(name);
+            Preconditions.checkArgument(keyLength > 0);
+            return new OrderedKeyValueStoreAdapter(store, keyLength);
+        } else {
+            return new OrderedKeyValueStoreAdapter(store);
+        }
+    }
+
     @Override
     public StoreFeatures getFeatures() {
         return manager.getFeatures();
@@ -126,17 +137,6 @@ public class OrderedKeyValueStoreManagerAdapter implements KeyColumnValueStoreMa
             converted.put(storeEntry.getKey(), mut);
         }
         manager.mutateMany(converted, txh);
-    }
-
-    private static OrderedKeyValueStoreAdapter wrapKeyValueStore(OrderedKeyValueStore store, Map<String, Integer> keyLengths) {
-        String name = store.getName();
-        if (keyLengths.containsKey(name)) {
-            int keyLength = keyLengths.get(name);
-            Preconditions.checkArgument(keyLength > 0);
-            return new OrderedKeyValueStoreAdapter(store, keyLength);
-        } else {
-            return new OrderedKeyValueStoreAdapter(store);
-        }
     }
 
     @Override

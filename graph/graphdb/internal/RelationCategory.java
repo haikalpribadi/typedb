@@ -28,22 +28,27 @@ public enum RelationCategory implements Condition<JanusGraphRelation> {
     EDGE, PROPERTY, RELATION;
 
     public boolean isProper() {
-        switch(this) {
+        switch (this) {
             case EDGE:
             case PROPERTY:
                 return true;
             case RELATION:
                 return false;
-            default: throw new AssertionError("Unrecognized type: " + this);
+            default:
+                throw new AssertionError("Unrecognized type: " + this);
         }
     }
 
     public Iterable<JanusGraphRelation> executeQuery(JanusGraphVertexQuery query) {
         switch (this) {
-            case EDGE: return (Iterable)query.edges();
-            case PROPERTY: return (Iterable)query.properties();
-            case RELATION: return query.relations();
-            default: throw new AssertionError();
+            case EDGE:
+                return (Iterable) query.edges();
+            case PROPERTY:
+                return (Iterable) query.properties();
+            case RELATION:
+                return query.relations();
+            default:
+                throw new AssertionError();
         }
     }
 
@@ -73,14 +78,15 @@ public enum RelationCategory implements Condition<JanusGraphRelation> {
 
     @Override
     public boolean evaluate(JanusGraphRelation relation) {
-        switch(this) {
+        switch (this) {
             case EDGE:
                 return relation.isEdge();
             case PROPERTY:
                 return relation.isProperty();
             case RELATION:
                 return true;
-            default: throw new AssertionError("Unrecognized type: " + this);
+            default:
+                throw new AssertionError("Unrecognized type: " + this);
         }
     }
 }

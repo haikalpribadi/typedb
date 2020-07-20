@@ -20,14 +20,11 @@ package grakn.core.concept.structure;
 
 import grakn.core.core.Schema;
 import grakn.core.kb.concept.structure.EdgeElement;
-import grakn.core.kb.concept.structure.GraknElementException;
 import grakn.core.kb.concept.structure.VertexElement;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Property;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Represent an Edge in a TransactionOLTP

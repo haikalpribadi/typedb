@@ -40,5 +40,5 @@ public interface ConceptVertex {
     /**
      * @return the id of the Janus vertex
      */
-    default Object elementId(){ return vertex().id();}
+    default Object elementId() { return vertex().id();}
 }

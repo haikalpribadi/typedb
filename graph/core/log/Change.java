@@ -24,14 +24,13 @@ package grakn.core.graph.core.log;
  * #ANY is used to retrieve all elements that have undergone change.
  * <p>
  * #ADDED and #REMOVED are considered proper change states.
- *
  */
 public enum Change {
 
     ADDED, REMOVED, ANY;
 
     public boolean isProper() {
-        switch(this) {
+        switch (this) {
             case ADDED:
             case REMOVED:
                 return true;

@@ -27,13 +27,14 @@ import graql.lang.Graql;
 import graql.lang.property.ValueProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 /**
  * Predicate implementation specialising it to be an value predicate. Corresponds to ValueProperty.
@@ -53,8 +54,8 @@ public class ValuePredicate extends Predicate<ValueProperty.Operation> {
         return create(new Statement(varName).operation(operation), parent);
     }
 
-    public static ValuePredicate neq(Variable varName, @Nullable Variable var, @Nullable Object value, ReasonerQuery parent){
-        Variable predicateVar = var != null? var : Graql.var().var().asReturnedVar();
+    public static ValuePredicate neq(Variable varName, @Nullable Variable var, @Nullable Object value, ReasonerQuery parent) {
+        Variable predicateVar = var != null ? var : Graql.var().var().asReturnedVar();
         ValueProperty.Operation.Comparison<?> op = ValueProperty.Operation.Comparison.of(Graql.Token.Comparator.NEQV, value != null ? value : Graql.var(predicateVar));
         return create(varName, op, parent);
     }
@@ -74,17 +75,17 @@ public class ValuePredicate extends Predicate<ValueProperty.Operation> {
     }
 
     @Override
-    public String toString(){ return "[" + getVarName() + " " + getPredicate() + "]"; }
+    public String toString() { return "[" + getVarName() + " " + getPredicate() + "]"; }
 
-    public Set<ValuePredicate> unify(Unifier u){
+    public Set<ValuePredicate> unify(Unifier u) {
         Collection<Variable> vars = u.get(getVarName());
-        return vars.isEmpty()?
+        return vars.isEmpty() ?
                 Collections.singleton(this) :
                 vars.stream().map(v -> create(v, getPredicate(), this.getParentQuery())).collect(Collectors.toSet());
     }
 
     @Override
-    public boolean isAlphaEquivalent(Object obj){
+    public boolean isAlphaEquivalent(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         ValuePredicate that = (ValuePredicate) obj;
@@ -108,7 +109,7 @@ public class ValuePredicate extends Predicate<ValueProperty.Operation> {
     }
 
     @Override
-    public boolean isSubsumedBy(Atomic atomic){
+    public boolean isSubsumedBy(Atomic atomic) {
         if (this.isAlphaEquivalent(atomic)) return true;
         if (atomic == null || this.getClass() != atomic.getClass()) return false;
         if (atomic == this) return true;

@@ -29,7 +29,6 @@ import java.util.stream.Stream;
 
 
 /**
- *
  * <p>
  * Static class defining different equivalence comparisons for Atomics :
  *
@@ -42,37 +41,17 @@ import java.util.stream.Stream;
  * Hence:
  * - any two IdPredicates are structurally equivalent
  * - structural equivalence check on queries is done by looking at Atoms. As a result:
- *   * connected predicates are assessed together with atoms they are connected to
- *   * dangling predicates are ignored
+ * * connected predicates are assessed together with atoms they are connected to
+ * * dangling predicates are ignored
  *
  * </p>
- *
- *
  */
 public abstract class AtomicEquivalence extends Equivalence<Atomic> {
 
-    abstract public String name();
-
-    public static <B extends Atomic, S extends B> boolean equivalence(Collection<S> a1, Collection<S> a2, Equivalence<B> equiv){
-        return ReasonerUtils.isEquivalentCollection(a1, a2, equiv);
-    }
-
-    public static <B extends Atomic, S extends B> int equivalenceHash(Stream<S> atoms, Equivalence<B> equiv){
-        int hashCode = 1;
-        SortedSet<Integer> hashes = new TreeSet<>();
-        atoms.forEach(atom -> hashes.add(equiv.hash(atom)));
-        for (Integer hash : hashes) hashCode = hashCode * 37 + hash;
-        return hashCode;
-    }
-
-    public static <B extends Atomic, S extends B> int equivalenceHash(Collection<S> atoms, Equivalence<B> equiv){
-        return equivalenceHash(atoms.stream(), equiv);
-    }
-
-    public final static AtomicEquivalence Equality = new AtomicEquivalence(){
+    public final static AtomicEquivalence Equality = new AtomicEquivalence() {
 
         @Override
-        public String name(){ return "Equality";}
+        public String name() { return "Equality";}
 
         @Override
         protected boolean doEquivalent(Atomic a, Atomic b) {
@@ -84,11 +63,10 @@ public abstract class AtomicEquivalence extends Equivalence<Atomic> {
             return a.hashCode();
         }
     };
-
-    public final static AtomicEquivalence AlphaEquivalence = new AtomicEquivalence(){
+    public final static AtomicEquivalence AlphaEquivalence = new AtomicEquivalence() {
 
         @Override
-        public String name(){ return "AlphaEquivalence";}
+        public String name() { return "AlphaEquivalence";}
 
         @Override
         protected boolean doEquivalent(Atomic a, Atomic b) {
@@ -100,11 +78,10 @@ public abstract class AtomicEquivalence extends Equivalence<Atomic> {
             return a.alphaEquivalenceHashCode();
         }
     };
-
-    public final static AtomicEquivalence StructuralEquivalence = new AtomicEquivalence(){
+    public final static AtomicEquivalence StructuralEquivalence = new AtomicEquivalence() {
 
         @Override
-        public String name(){ return "StructuralEquivalence";}
+        public String name() { return "StructuralEquivalence";}
 
         @Override
         protected boolean doEquivalent(Atomic a, Atomic b) {
@@ -116,4 +93,22 @@ public abstract class AtomicEquivalence extends Equivalence<Atomic> {
             return a.structuralEquivalenceHashCode();
         }
     };
+
+    public static <B extends Atomic, S extends B> boolean equivalence(Collection<S> a1, Collection<S> a2, Equivalence<B> equiv) {
+        return ReasonerUtils.isEquivalentCollection(a1, a2, equiv);
+    }
+
+    public static <B extends Atomic, S extends B> int equivalenceHash(Stream<S> atoms, Equivalence<B> equiv) {
+        int hashCode = 1;
+        SortedSet<Integer> hashes = new TreeSet<>();
+        atoms.forEach(atom -> hashes.add(equiv.hash(atom)));
+        for (Integer hash : hashes) hashCode = hashCode * 37 + hash;
+        return hashCode;
+    }
+
+    public static <B extends Atomic, S extends B> int equivalenceHash(Collection<S> atoms, Equivalence<B> equiv) {
+        return equivalenceHash(atoms.stream(), equiv);
+    }
+
+    abstract public String name();
 }

@@ -32,6 +32,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class Durations {
 
+    private static final Map<String, TemporalUnit> unitNames = new HashMap<String, TemporalUnit>() {{
+        for (ChronoUnit unit : Arrays.asList(ChronoUnit.NANOS, ChronoUnit.MICROS, ChronoUnit.MILLIS, ChronoUnit.SECONDS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS)) {
+            put(abbreviate(unit), unit); //abbreviated name
+            String name = unit.toString().toLowerCase();
+            put(name, unit); //abbreviated name in singular
+            put(name.substring(0, name.length() - 1), unit);
+        }
+        put("us", ChronoUnit.MICROS);
+    }};
+
     public static Duration min(Duration x, Duration y) {
         return x.compareTo(y) <= 0 ? x : y;
     }
@@ -61,16 +71,6 @@ public class Durations {
         }
 
     }
-
-    private static final Map<String, TemporalUnit> unitNames = new HashMap<String, TemporalUnit>() {{
-        for (ChronoUnit unit : Arrays.asList(ChronoUnit.NANOS, ChronoUnit.MICROS, ChronoUnit.MILLIS, ChronoUnit.SECONDS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS)) {
-            put(abbreviate(unit), unit); //abbreviated name
-            String name = unit.toString().toLowerCase();
-            put(name, unit); //abbreviated name in singular
-            put(name.substring(0, name.length() - 1), unit);
-        }
-        put("us", ChronoUnit.MICROS);
-    }};
 
     public static TemporalUnit parse(String unitName) {
         TemporalUnit unit = unitNames.get(unitName.toLowerCase());

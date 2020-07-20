@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import grakn.common.util.Pair;
 import grakn.core.common.util.Streams;
 import grakn.core.concept.answer.ConceptMap;
@@ -68,6 +67,7 @@ import graql.lang.statement.StatementInstance;
 import graql.lang.statement.StatementThing;
 import graql.lang.statement.Variable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -81,7 +81,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
  * Atom implementation defining a relation atom corresponding to a combined RelationProperty
@@ -159,6 +158,22 @@ public class RelationAtom extends Atom {
         return atom;
     }
 
+    /**
+     * construct a $varName (rolemap) isa $typeVariable relation
+     *
+     * @param varName         variable name
+     * @param relationPlayers collection of rolePlayer-roleType mappings
+     * @return corresponding Statement
+     */
+    public static Statement relationPattern(Variable varName, Collection<RelationProperty.RolePlayer> relationPlayers) {
+        Statement var = new Statement(varName);
+        for (RelationProperty.RolePlayer rp : relationPlayers) {
+            Statement rolePattern = rp.getRole().orElse(null);
+            var = rolePattern != null ? var.rel(rolePattern, rp.getPlayer()) : var.rel(rp.getPlayer());
+        }
+        return var;
+    }
+
     @Override
     public Atomic copy(ReasonerQuery parent) {
         return create(this, parent);
@@ -201,9 +216,9 @@ public class RelationAtom extends Atom {
         // we also keep this
         return players.values().stream()
                 .map(rolePlayers ->
-                        create(relationPattern(getVarName().asReturnedVar(), rolePlayers),
-                                getPredicateVariable(), getTypeLabel(), null, getParentQuery(), context())
-        );
+                             create(relationPattern(getVarName().asReturnedVar(), rolePlayers),
+                                    getPredicateVariable(), getTypeLabel(), null, getParentQuery(), context())
+                );
     }
 
     @Override
@@ -328,17 +343,17 @@ public class RelationAtom extends Atom {
 
         Set<Pair<Variable, Variable>> varPairs = new HashSet<>();
         roleVarMap.values().forEach(var -> {
-                    Collection<Role> rolePlayed = varRoleMap.get(var);
-                    rolePlayed.stream()
-                            .sorted(Comparator.comparing(Object::hashCode))
-                            .forEach(role -> {
-                                int index = roleOrdering.indexOf(role);
-                                List<Role> roles = roleOrdering.subList(index, roleOrdering.size());
-                                roles.forEach(role2 -> roleVarMap.get(role2).stream()
-                                        .filter(var2 -> !role.equals(role2) || !var.equals(var2))
-                                        .forEach(var2 -> varPairs.add(new Pair<>(var, var2))));
-                            });
-                }
+                                        Collection<Role> rolePlayed = varRoleMap.get(var);
+                                        rolePlayed.stream()
+                                                .sorted(Comparator.comparing(Object::hashCode))
+                                                .forEach(role -> {
+                                                    int index = roleOrdering.indexOf(role);
+                                                    List<Role> roles = roleOrdering.subList(index, roleOrdering.size());
+                                                    roles.forEach(role2 -> roleVarMap.get(role2).stream()
+                                                            .filter(var2 -> !role.equals(role2) || !var.equals(var2))
+                                                            .forEach(var2 -> varPairs.add(new Pair<>(var, var2))));
+                                                });
+                                    }
         );
         return varPairs;
     }
@@ -375,22 +390,6 @@ public class RelationAtom extends Atom {
 
     private Statement relationPattern() {
         return relationPattern(getVarName(), getRelationPlayers());
-    }
-
-    /**
-     * construct a $varName (rolemap) isa $typeVariable relation
-     *
-     * @param varName         variable name
-     * @param relationPlayers collection of rolePlayer-roleType mappings
-     * @return corresponding Statement
-     */
-    public static Statement relationPattern(Variable varName, Collection<RelationProperty.RolePlayer> relationPlayers) {
-        Statement var = new Statement(varName);
-        for (RelationProperty.RolePlayer rp : relationPlayers) {
-            Statement rolePattern = rp.getRole().orElse(null);
-            var = rolePattern != null ? var.rel(rolePattern, rp.getPlayer()) : var.rel(rp.getPlayer());
-        }
-        return var;
     }
 
     @Override

@@ -31,13 +31,13 @@ import java.util.Iterator;
 
 public abstract class AbstractVertexProperty<V> extends AbstractTypedRelation implements JanusGraphVertexProperty<V> {
 
-    private InternalVertex vertex;
     private final Object value;
+    private InternalVertex vertex;
 
     public AbstractVertexProperty(long id, PropertyKey type, InternalVertex vertex, Object value) {
         super(id, type);
         this.vertex = Preconditions.checkNotNull(vertex, "null vertex");
-        this.value = Preconditions.checkNotNull(value, "null value for property key %s",type);
+        this.value = Preconditions.checkNotNull(value, "null value for property key %s", type);
     }
 
     @Override
@@ -46,13 +46,13 @@ public abstract class AbstractVertexProperty<V> extends AbstractTypedRelation im
     }
 
     public void setVertexAt(int pos, InternalVertex vertex) {
-        Preconditions.checkArgument(pos==0 && vertex!=null && this.vertex.equals(vertex));
-        this.vertex=vertex;
+        Preconditions.checkArgument(pos == 0 && vertex != null && this.vertex.equals(vertex));
+        this.vertex = vertex;
     }
 
     @Override
     public InternalVertex getVertex(int pos) {
-        if (pos==0) return vertex;
+        if (pos == 0) return vertex;
         else throw new IllegalArgumentException("Invalid position: " + pos);
     }
 
@@ -83,7 +83,7 @@ public abstract class AbstractVertexProperty<V> extends AbstractTypedRelation im
 
     @Override
     public V value() {
-        return (V)value;
+        return (V) value;
     }
 
     @Override

@@ -23,7 +23,6 @@ import grakn.core.graph.core.VertexList;
 /**
  * Extends on the VertexList interface by provided methods to add elements to the list
  * which is needed during query execution when the result list is created.
- *
  */
 public interface VertexListInternal extends VertexList {
 

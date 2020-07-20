@@ -63,7 +63,7 @@ public class InHasFragment extends EdgeFragment {
     GraphTraversal<Vertex, Vertex> applyTraversalInner(GraphTraversal<Vertex, ? extends Element> traversal, ConceptManager conceptManager, Collection<Variable> vars) {
         // anyone that can own this directly or any of their subs is a valid owner
         return Fragments.inSubs(traversal.in(Schema.EdgeLabel.HAS.getLabel(), Schema.EdgeLabel.KEY.getLabel()));
-   }
+    }
 
     @Override
     public String name() {

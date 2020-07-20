@@ -28,9 +28,9 @@ import grakn.core.graql.reasoner.atom.predicate.IdPredicate;
 import grakn.core.graql.reasoner.atom.predicate.NeqIdPredicate;
 import grakn.core.graql.reasoner.atom.predicate.ValuePredicate;
 import grakn.core.graql.reasoner.atom.predicate.VariableValuePredicate;
-import grakn.core.graql.reasoner.atom.property.ValueTypeAtom;
 import grakn.core.graql.reasoner.atom.property.IsAbstractAtom;
 import grakn.core.graql.reasoner.atom.property.RegexAtom;
+import grakn.core.graql.reasoner.atom.property.ValueTypeAtom;
 import grakn.core.graql.reasoner.query.ReasonerQueryFactory;
 import grakn.core.graql.reasoner.utils.ReasonerUtils;
 import grakn.core.kb.concept.api.AttributeType;
@@ -46,7 +46,6 @@ import grakn.core.kb.keyspace.KeyspaceStatistics;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
 import graql.lang.property.AbstractProperty;
-import graql.lang.property.ValueTypeProperty;
 import graql.lang.property.HasAttributeProperty;
 import graql.lang.property.HasAttributeTypeProperty;
 import graql.lang.property.IdProperty;
@@ -60,10 +59,12 @@ import graql.lang.property.SubProperty;
 import graql.lang.property.ThenProperty;
 import graql.lang.property.TypeProperty;
 import graql.lang.property.ValueProperty;
+import graql.lang.property.ValueTypeProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.property.WhenProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public class PropertyAtomicFactory {
 
     public PropertyAtomicFactory(ConceptManager conceptManager,
                                  RuleCache ruleCache, QueryCache queryCache, KeyspaceStatistics keyspaceStatistics) {
-        this.ctx = new ReasoningContext(null, conceptManager,queryCache, ruleCache,keyspaceStatistics);
+        this.ctx = new ReasoningContext(null, conceptManager, queryCache, ruleCache, keyspaceStatistics);
     }
 
     public void setReasonerQueryFactory(ReasonerQueryFactory reasonerQueryFactory) {
@@ -257,7 +258,7 @@ public class PropertyAtomicFactory {
         Variable attributeVariable = property.attribute().var().asReturnedVar();
         Variable predicateVariable = new Variable();
         Set<ValuePredicate> predicates = getValuePredicates(attributeVariable, property.attribute(), otherStatements,
-                parent,this);
+                                                            parent, this);
 
         IsaProperty isaProp = property.attribute().getProperties(IsaProperty.class).findFirst().orElse(null);
         Statement typeVar = isaProp != null ? isaProp.type() : null;
@@ -285,7 +286,6 @@ public class PropertyAtomicFactory {
     }
 
     /**
-     *
      * @param property
      * @param parent
      * @param statement
@@ -296,7 +296,7 @@ public class PropertyAtomicFactory {
         ValuePredicate vp = createValuePredicate(property, statement, otherStatements, parent);
         if (vp == null) return vp;
         boolean isVariable = vp.getPredicate().innerStatement() != null;
-        return isVariable? VariableValuePredicate.fromValuePredicate(vp) : vp;
+        return isVariable ? VariableValuePredicate.fromValuePredicate(vp) : vp;
     }
 
     public Atomic isa(Variable var, IsaProperty property, ReasonerQuery parent, Statement statement, Set<Statement> otherStatements) {
@@ -310,7 +310,7 @@ public class PropertyAtomicFactory {
 
     /**
      * @param pattern conjunction of patterns to be converted to atoms
-     * @param parent query the created atoms should belong to
+     * @param parent  query the created atoms should belong to
      * @return set of atoms
      */
     public Stream<Atomic> createAtoms(Conjunction<Statement> pattern, ReasonerQuery parent) {
@@ -346,19 +346,18 @@ public class PropertyAtomicFactory {
     }
 
     /**
-     *
-     * @param property value property we are interested in
-     * @param statement the value property belongs to
+     * @param property        value property we are interested in
+     * @param statement       the value property belongs to
      * @param otherStatements other statements providing necessary context
-     * @param parent query the VP should be part of
+     * @param parent          query the VP should be part of
      * @return value predicate corresponding to the provided property
      */
     private ValuePredicate createValuePredicate(ValueProperty property, Statement statement, Set<Statement> otherStatements,
                                                 ReasonerQuery parent) {
         HasAttributeProperty has = statement.getProperties(HasAttributeProperty.class).findFirst().orElse(null);
-        Variable var = has != null? has.attribute().var() : statement.var();
+        Variable var = has != null ? has.attribute().var() : statement.var();
         ValueProperty.Operation directOperation = property.operation();
-        Variable predicateVar = directOperation.innerStatement() != null? directOperation.innerStatement().var() : null;
+        Variable predicateVar = directOperation.innerStatement() != null ? directOperation.innerStatement().var() : null;
 
         boolean partOfAttribute = otherStatements.stream()
                 .flatMap(s -> s.getProperties(HasAttributeProperty.class))
@@ -383,7 +382,7 @@ public class PropertyAtomicFactory {
                 .flatMap(VarProperty::statements)
                 .map(Statement::var)
                 .anyMatch(v -> v.equals(predicateVar));
-        ValueProperty.Operation indirectOperation = !predicateVarBound?
+        ValueProperty.Operation indirectOperation = !predicateVarBound ?
                 ReasonerUtils.findValuePropertyOp(predicateVar, otherStatements) : null;
 
         Object value = indirectOperation == null ? directOperation.value() : indirectOperation.value();

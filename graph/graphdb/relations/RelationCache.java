@@ -26,7 +26,7 @@ import java.util.Map;
  * Immutable map from long key ids to objects.
  * Implemented for memory and time efficiency.
  */
-public class RelationCache{
+public class RelationCache {
     public final Direction direction;
     public final long typeId;
     public final long relationId;
@@ -42,7 +42,7 @@ public class RelationCache{
     }
 
     public RelationCache(Direction direction, long typeId, long relationId, Object other) {
-        this(direction,typeId,relationId,other,null);
+        this(direction, typeId, relationId, other, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -54,7 +54,7 @@ public class RelationCache{
         return properties != null && !properties.isEmpty();
     }
 
-    public Map<Long, Object> properties(){ return properties;}
+    public Map<Long, Object> properties() { return properties;}
 
     public Object getValue() {
         return other;
@@ -66,7 +66,7 @@ public class RelationCache{
 
     @Override
     public String toString() {
-         return typeId + "-" + direction + "->" + other + ":" + relationId;
+        return typeId + "-" + direction + "->" + other + ":" + relationId;
     }
 
 }

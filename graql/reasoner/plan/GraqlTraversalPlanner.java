@@ -53,14 +53,15 @@ import java.util.stream.Stream;
  */
 public class GraqlTraversalPlanner {
 
+    final private static String PLACEHOLDER_ID = "placeholderId";
+
     /**
-     *
      * Refined plan procedure:
      * - establish a list of starting atom candidates based on their substitutions
      * - create a plan using TraversalPlanner
      * - if the graql plan picks an atom that is not a candidate
-     *   - pick an optimal candidate
-     *   - call the procedure on atoms with removed candidate
+     * - pick an optimal candidate
+     * - call the procedure on atoms with removed candidate
      * - otherwise return
      *
      * @param query for which the plan should be constructed
@@ -70,7 +71,7 @@ public class GraqlTraversalPlanner {
         return ImmutableList.copyOf(refinedPlan(query, traversalPlanFactory));
     }
 
-    private static long atomPredicates(Atom at, Set<IdPredicate> subs){
+    private static long atomPredicates(Atom at, Set<IdPredicate> subs) {
         return Stream.concat(
                 subs.stream().filter(sub -> !Sets.intersection(sub.getVarNames(), at.getVarNames()).isEmpty()),
                 Stream.concat(
@@ -82,7 +83,7 @@ public class GraqlTraversalPlanner {
                 .count();
     }
 
-    private static List<Atom> optimiseCandidates(List<Atom> candidates, Set<IdPredicate> subs, Set<Variable> vars){
+    private static List<Atom> optimiseCandidates(List<Atom> candidates, Set<IdPredicate> subs, Set<Variable> vars) {
         return candidates.stream()
                 .filter(at -> vars.isEmpty() || !Sets.intersection(at.getVarNames(), vars).isEmpty())
                 .sorted(Comparator.comparing(at -> !at.isGround()))
@@ -90,7 +91,7 @@ public class GraqlTraversalPlanner {
                 .collect(Collectors.toList());
     }
 
-    private static List<Atom> getCandidates(List<Atom> atoms, Set<IdPredicate> subs, Set<Variable> vars){
+    private static List<Atom> getCandidates(List<Atom> atoms, Set<IdPredicate> subs, Set<Variable> vars) {
         List<Atom> preCandidates = optimiseCandidates(atoms, subs, vars);
         long MAX_CANDIDATES = preCandidates.size();
         if (MAX_CANDIDATES > 1) {
@@ -100,19 +101,17 @@ public class GraqlTraversalPlanner {
         return preCandidates.stream().limit(MAX_CANDIDATES).collect(Collectors.toList());
     }
 
-    final private static String PLACEHOLDER_ID = "placeholderId";
-
     /**
      * @param query top level query for which the plan is constructed
      * @return an optimally ordered list of provided atoms
      */
-    private static List<Atom> refinedPlan(ReasonerQuery query, TraversalPlanFactory traversalPlanFactory){
+    private static List<Atom> refinedPlan(ReasonerQuery query, TraversalPlanFactory traversalPlanFactory) {
         List<Atom> atomsToProcess = query.getAtoms(Atom.class).filter(Atomic::isSelectable).collect(Collectors.toList());
         Set<IdPredicate> subs = query.getAtoms(IdPredicate.class).collect(Collectors.toSet());
-        Set<Variable> vars = atomsToProcess.stream().anyMatch(Atom::isDisconnected)? query.getVarNames() : new HashSet<>();
+        Set<Variable> vars = atomsToProcess.stream().anyMatch(Atom::isDisconnected) ? query.getVarNames() : new HashSet<>();
         List<Atom> orderedAtoms = new ArrayList<>();
 
-        while(!atomsToProcess.isEmpty()){
+        while (!atomsToProcess.isEmpty()) {
             List<Atom> candidates = getCandidates(atomsToProcess, subs, vars);
             ImmutableList<Atom> initialPlan = planFromTraversal(atomsToProcess, atomsToPattern(atomsToProcess, subs), traversalPlanFactory);
 
@@ -137,10 +136,10 @@ public class GraqlTraversalPlanner {
 
     /**
      * @param atoms of interest
-     * @param subs extra substitutions in the form of id predicates
+     * @param subs  extra substitutions in the form of id predicates
      * @return conjunctive pattern composed of atoms + their constraints + subs
      */
-    public static Conjunction<Pattern> atomsToPattern(List<Atom> atoms, Set<IdPredicate> subs){
+    public static Conjunction<Pattern> atomsToPattern(List<Atom> atoms, Set<IdPredicate> subs) {
         return Graql.and(
                 Stream.concat(
                         atoms.stream().flatMap(at -> Stream.concat(Stream.of(at), at.getNonSelectableConstraints())),
@@ -153,12 +152,11 @@ public class GraqlTraversalPlanner {
     }
 
     /**
-     *
-     * @param atoms list of current atoms of interest
+     * @param atoms        list of current atoms of interest
      * @param queryPattern corresponding (possible augmented with subs) pattern
      * @return an optimally ordered list of provided atoms
      */
-    private static ImmutableList<Atom> planFromTraversal(List<Atom> atoms, Conjunction<?> queryPattern, TraversalPlanFactory planFactory){
+    private static ImmutableList<Atom> planFromTraversal(List<Atom> atoms, Conjunction<?> queryPattern, TraversalPlanFactory planFactory) {
         Multimap<VarProperty, Atom> propertyMap = HashMultimap.create();
         atoms.stream()
                 .filter(atom -> !(atom instanceof OntologicalAtom))

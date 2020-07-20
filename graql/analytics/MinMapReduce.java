@@ -29,7 +29,6 @@ import java.util.Set;
 /**
  * The MapReduce program for computing the min value of the given resource.
  * <p>
- *
  */
 
 public class MinMapReduce extends StatisticsMapReduce<Number> {

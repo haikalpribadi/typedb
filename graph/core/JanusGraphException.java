@@ -20,7 +20,6 @@ package grakn.core.graph.core;
 
 /**
  * Most general type of exception thrown by the JanusGraph graph database.
- *
  */
 public class JanusGraphException extends RuntimeException {
 

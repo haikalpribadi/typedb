@@ -28,6 +28,13 @@ import java.util.Arrays;
  */
 public interface StaticBuffer extends Comparable<StaticBuffer> {
 
+    Factory<byte[]> ARRAY_FACTORY = (array, offset, limit) -> {
+        if (offset == 0 && limit == array.length) return array;
+        else return Arrays.copyOfRange(array, offset, limit);
+    };
+    Factory<ByteBuffer> BB_FACTORY = (array, offset, limit) -> ByteBuffer.wrap(array, offset, limit - offset);
+    Factory<StaticBuffer> STATIC_FACTORY = StaticArrayBuffer::new;
+
     int length();
 
     byte getByte(int position);
@@ -76,14 +83,5 @@ public interface StaticBuffer extends Comparable<StaticBuffer> {
         T get(byte[] array, int offset, int limit);
 
     }
-
-    Factory<byte[]> ARRAY_FACTORY = (array, offset, limit) -> {
-        if (offset == 0 && limit == array.length) return array;
-        else return Arrays.copyOfRange(array, offset, limit);
-    };
-
-    Factory<ByteBuffer> BB_FACTORY = (array, offset, limit) -> ByteBuffer.wrap(array, offset, limit - offset);
-
-    Factory<StaticBuffer> STATIC_FACTORY = StaticArrayBuffer::new;
 
 }

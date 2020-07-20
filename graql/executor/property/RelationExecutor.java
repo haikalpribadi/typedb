@@ -81,13 +81,13 @@ public class RelationExecutor implements PropertyExecutor.Insertable, PropertyEx
         if (roleType.isPresent()) {
             // Patterns for variable of a relation with a role player of a given type
             return Stream.of(rolePlayer(property, var, castingName,
-                    relationPlayer.getPlayer().var(),
-                    roleType.get().var()));
+                                        relationPlayer.getPlayer().var(),
+                                        roleType.get().var()));
         } else {
             // Patterns for variable of a relation with a role player of a any type
             return Stream.of(rolePlayer(property, var, castingName,
-                    relationPlayer.getPlayer().var(),
-                    null));
+                                        relationPlayer.getPlayer().var(),
+                                        null));
         }
     }
 
@@ -226,7 +226,7 @@ public class RelationExecutor implements PropertyExecutor.Insertable, PropertyEx
 
                 if (!concreteRolePlayed.isPresent()) {
                     throw GraqlSemanticException.cannotDeleteRPNoCompatiblePlayer(rolePlayerVar, rolePlayer, var, relation, requiredRole.label());
-               }
+                }
 
                 relation.unassign(concreteRolePlayed.get(), rolePlayer);
             });

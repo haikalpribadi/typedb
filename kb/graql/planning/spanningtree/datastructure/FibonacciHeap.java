@@ -39,30 +39,9 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
     private final static int MAX_CAPACITY = Integer.MAX_VALUE;
     // the largest degree of any root list entry is guaranteed to be <= log_phi(MAX_CAPACITY) = 45
     private final static int MAX_DEGREE = 45;
-
+    private final Comparator<? super P> comparator;
     private Entry oMinEntry = null;
     private int size = 0;
-    private final Comparator<? super P> comparator;
-
-    @VisibleForTesting
-    public class Entry {
-        public final V value;
-        private P priority;
-        private Entry oParent = null;
-        private Entry oFirstChild = null;
-        private Entry previous;
-        private Entry next;
-        private int degree = 0;
-        // Whether this entry has had a child cut since it was added to its parent.
-        // An entry can only have one child cut before it has to be cut itself.
-        private boolean isMarked = false;
-
-        private Entry(V value, P priority) {
-            this.value = value;
-            this.priority = priority;
-            previous = next = this;
-        }
-    }
 
     private FibonacciHeap(Comparator<? super P> comparator) {
         // we'll use nulls to force a node to the top when we delete it
@@ -78,6 +57,29 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
      */
     public static <T, C extends Comparable> FibonacciHeap<T, C> create() {
         return FibonacciHeap.create(Ordering.<C>natural());
+    }
+
+    /**
+     * Joins two Fibonacci heaps into a new one. No heap consolidation is
+     * performed; the two root lists are just spliced together.
+     * Runtime: O(1)
+     */
+    public static <U, P> FibonacciHeap<U, P> merge(FibonacciHeap<U, P> a, FibonacciHeap<U, P> b) {
+        Preconditions.checkArgument(a.comparator().equals(b.comparator()),
+                                    "Heaps that use different comparators can't be merged.");
+
+        final FibonacciHeap<U, P> result = FibonacciHeap.create(a.comparator);
+        result.oMinEntry = a.mergeLists(a.oMinEntry, b.oMinEntry);
+        result.size = a.size + b.size;
+
+        return result;
+    }
+
+    private static void unlinkFromNeighbors(FibonacciHeap.Entry entry) {
+        entry.previous.next = entry.next;
+        entry.next.previous = entry.previous;
+        entry.previous = entry;
+        entry.next = entry;
     }
 
     /**
@@ -188,8 +190,7 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
         // remove minEntry from root list
         if (size == 1) {
             oMinEntry = null;
-        }
-        else {
+        } else {
             final Entry next = minEntry.next;
             unlinkFromNeighbors(minEntry);
             oMinEntry = consolidate(next);
@@ -205,22 +206,6 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
      */
     public int size() {
         return size;
-    }
-
-    /**
-     * Joins two Fibonacci heaps into a new one. No heap consolidation is
-     * performed; the two root lists are just spliced together.
-     * Runtime: O(1)
-     */
-    public static <U, P> FibonacciHeap<U, P> merge(FibonacciHeap<U, P> a, FibonacciHeap<U, P> b) {
-        Preconditions.checkArgument(a.comparator().equals(b.comparator()),
-                "Heaps that use different comparators can't be merged.");
-
-        final FibonacciHeap<U, P> result = FibonacciHeap.create(a.comparator);
-        result.oMinEntry = a.mergeLists(a.oMinEntry, b.oMinEntry);
-        result.size = a.size + b.size;
-
-        return result;
     }
 
     /**
@@ -297,8 +282,7 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
         if (oFirstChild.equals(entry)) {
             if (oParent.degree == 0) {
                 oParent.oFirstChild = null;
-            }
-            else {
+            } else {
                 oParent.oFirstChild = entry.next;
             }
         }
@@ -311,8 +295,7 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
         if (oParent.oParent != null) {
             if (oParent.isMarked) {
                 cutAndMakeRoot(oParent);
-            }
-            else {
+            } else {
                 oParent.isMarked = true;
             }
         }
@@ -329,13 +312,6 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
         entry.isMarked = false;
 
         return parent;
-    }
-
-    private static void unlinkFromNeighbors(FibonacciHeap.Entry entry) {
-        entry.previous.next = entry.next;
-        entry.next.previous = entry.previous;
-        entry.previous = entry;
-        entry.next = entry;
     }
 
     /**
@@ -362,8 +338,7 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
                 // move the worse root beneath the better root
                 if (comparator.compare(mergedRoot.priority, oldRoot.priority) < 0) {
                     mergedRoot = setParent(oldRoot, mergedRoot);
-                }
-                else {
+                } else {
                     mergedRoot = setParent(mergedRoot, oldRoot);
                 }
 
@@ -377,5 +352,25 @@ public class FibonacciHeap<V, P> implements Iterable<FibonacciHeap<V, P>.Entry> 
         }
 
         return minRoot;
+    }
+
+    @VisibleForTesting
+    public class Entry {
+        public final V value;
+        private P priority;
+        private Entry oParent = null;
+        private Entry oFirstChild = null;
+        private Entry previous;
+        private Entry next;
+        private int degree = 0;
+        // Whether this entry has had a child cut since it was added to its parent.
+        // An entry can only have one child cut before it has to be cut itself.
+        private boolean isMarked = false;
+
+        private Entry(V value, P priority) {
+            this.value = value;
+            this.priority = priority;
+            previous = next = this;
+        }
     }
 }

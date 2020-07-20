@@ -21,7 +21,6 @@ import grakn.core.graph.diskstorage.BackendException;
 
 /**
  * Manager interface for opening Logs against a particular Log implementation.
- *
  */
 public interface LogManager {
 

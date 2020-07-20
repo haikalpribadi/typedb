@@ -27,14 +27,22 @@ import java.time.Instant;
 
 public class StandardBaseTransactionConfig implements BaseTransactionConfig {
 
-    private volatile Instant commitTime;
     private final TimestampProvider times;
     private final Configuration customOptions;
+    private volatile Instant commitTime;
 
     private StandardBaseTransactionConfig(TimestampProvider times, Instant commitTime, Configuration customOptions) {
         this.times = times;
         this.commitTime = commitTime;
         this.customOptions = customOptions;
+    }
+
+    public static StandardBaseTransactionConfig of(TimestampProvider times) {
+        return new Builder().timestampProvider(times).build();
+    }
+
+    public static StandardBaseTransactionConfig of(TimestampProvider times, Configuration customOptions) {
+        return new Builder().timestampProvider(times).customOptions(customOptions).build();
     }
 
     @Override
@@ -112,14 +120,6 @@ public class StandardBaseTransactionConfig implements BaseTransactionConfig {
         public StandardBaseTransactionConfig build() {
             return new StandardBaseTransactionConfig(times, commitTime, customOptions);
         }
-    }
-
-    public static StandardBaseTransactionConfig of(TimestampProvider times) {
-        return new Builder().timestampProvider(times).build();
-    }
-
-    public static StandardBaseTransactionConfig of(TimestampProvider times, Configuration customOptions) {
-        return new Builder().timestampProvider(times).customOptions(customOptions).build();
     }
 
 }

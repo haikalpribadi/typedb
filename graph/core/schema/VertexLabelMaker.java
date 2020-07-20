@@ -28,12 +28,12 @@ import grakn.core.graph.core.VertexLabel;
  *     in a graph such that each partition contains on "sub-vertex". This allows JanusGraph to effectively manage
  *     vertices with very large degrees but is inefficient for vertices with small degree</li>
  * </ul>
- *
  */
 public interface VertexLabelMaker {
 
     /**
      * Returns the name of the to-be-build vertex label
+     *
      * @return the label name
      */
     String getName();

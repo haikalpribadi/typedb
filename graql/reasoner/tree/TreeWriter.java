@@ -36,7 +36,7 @@ public class TreeWriter {
 
     private Path filePath;
 
-    TreeWriter(Path filePath){
+    TreeWriter(Path filePath) {
         this.filePath = filePath;
     }
 
@@ -57,7 +57,7 @@ public class TreeWriter {
     }
 
     void write(Node root, Map<Node, Integer> ids) throws IOException {
-        try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.toFile())))){
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath.toFile())))) {
             writer.write("digraph {");
             writer.newLine();
 

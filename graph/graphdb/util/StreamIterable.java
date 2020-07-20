@@ -20,7 +20,7 @@ package grakn.core.graph.graphdb.util;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-public class StreamIterable<E> implements Iterable<E>{
+public class StreamIterable<E> implements Iterable<E> {
 
     private final Stream<E> stream;
 

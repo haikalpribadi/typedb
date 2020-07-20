@@ -42,8 +42,8 @@ import grakn.protocol.session.SessionServiceGrpc;
 import graql.lang.Graql;
 import graql.lang.pattern.Pattern;
 import graql.lang.query.GraqlQuery;
+import graql.lang.statement.Variable;
 import io.grpc.Status;
-import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +105,7 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
     public void shutdown() {
         transactionListeners.values()
                 .forEach(transactionListenerSet ->
-                        transactionListenerSet.forEach(transactionListener -> transactionListener.close(null)));
+                                 transactionListenerSet.forEach(transactionListener -> transactionListener.close(null)));
         transactionListeners.clear();
         openSessions.values().forEach(Session::close);
     }
@@ -148,6 +148,105 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
         }
     }
 
+    /**
+     * Contains a mutable map of iterators of Transaction.Res for gRPC. These iterators are used for returning
+     * lazy, streaming responses such as for Graql query results.
+     *
+     * The iterators operate by batching results to reduce total round-trips.
+     */
+    static class Iterators {
+        private final Consumer<Transaction.Res> responseSender;
+        private final AtomicInteger iteratorIdCounter = new AtomicInteger(0);
+        private final Map<Integer, BatchingIterator> iterators = new ConcurrentHashMap<>();
+
+        public Iterators(Consumer<Transaction.Res> responseSender) {
+            this.responseSender = responseSender;
+        }
+
+        private static int getSizeFrom(@Nullable Transaction.Iter.Req.Options options) {
+            switch (options.getBatchSizeCase()) {
+                case ALL:
+                    return Integer.MAX_VALUE;
+                case NUMBER:
+                    return options.getNumber();
+                case BATCHSIZE_NOT_SET:
+                default:
+                    return DEFAULT_BATCH_SIZE;
+            }
+        }
+
+        /**
+         * Hand off an iterator and begin batch iterating.
+         */
+        public void startBatchIterating(Iterator<Transaction.Res> iterator, @Nullable Transaction.Iter.Req.Options options) {
+            new BatchingIterator(iterator).iterateBatch(options);
+        }
+
+        /**
+         * Iterate the next batch of an existing iterator.
+         */
+        public void resumeBatchIterating(int iteratorId, Transaction.Iter.Req.Options options) {
+            BatchingIterator iterator = iterators.get(iteratorId);
+            if (iterator == null) {
+                throw ResponseBuilder.exception(Status.FAILED_PRECONDITION);
+            }
+            iterator.iterateBatch(options);
+        }
+
+        public void stop(int iteratorId) {
+            iterators.remove(iteratorId);
+        }
+
+        private int saveIterator(BatchingIterator iterator) {
+            int id = iteratorIdCounter.incrementAndGet();
+            iterators.put(id, iterator);
+            return id;
+        }
+
+        public class BatchingIterator {
+            private final Iterator<Transaction.Res> iterator;
+            private int id = 0;
+
+            public BatchingIterator(Iterator<Transaction.Res> iterator) {
+                this.iterator = iterator;
+            }
+
+            private boolean isSaved() {
+                return id != 0;
+            }
+
+            private void save() {
+                if (!isSaved()) {
+                    id = saveIterator(this);
+                }
+            }
+
+            private void end() {
+                if (isSaved()) {
+                    stop(id);
+                }
+            }
+
+            public void iterateBatch(@Nullable Transaction.Iter.Req.Options options) {
+                int batchSize = getSizeFrom(options);
+                for (int i = 0; i < batchSize && iterator.hasNext(); i++) {
+                    responseSender.accept(iterator.next());
+                }
+
+                if (iterator.hasNext()) {
+                    save();
+                    responseSender.accept(SessionProto.Transaction.Res.newBuilder()
+                                                  .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
+                                                                      .setIteratorId(id)).build());
+                } else {
+                    end();
+                    responseSender.accept(SessionProto.Transaction.Res.newBuilder()
+                                                  .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
+                                                                      .setDone(true)).build());
+                }
+            }
+        }
+    }
 
     /**
      * A StreamObserver that implements the transaction-handling behaviour for io.grpc.Server.
@@ -159,7 +258,7 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
         private final AtomicBoolean terminated = new AtomicBoolean(false);
         private final ExecutorService threadExecutor;
         private final Map<String, Session> openSessions;
-        private final Iterators iterators = new Iterators(this::onNextResponse);
+        private final Iterators iterators;
 
         @Nullable
         private grakn.core.kb.server.Transaction tx = null;
@@ -167,6 +266,7 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
 
         TransactionListener(StreamObserver<Transaction.Res> responseSender, Map<String, Session> openSessions) {
             this.responseSender = responseSender;
+            this.iterators = new Iterators(responseSender::onNext);
             ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("transaction-listener").build();
             this.threadExecutor = Executors.newSingleThreadExecutor(threadFactory);
             this.openSessions = openSessions;
@@ -351,11 +451,10 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
 
         private void commit() {
             tx().commit();
-            onNextResponse(ResponseBuilder.Transaction.commit());
+            responseSender.onNext(ResponseBuilder.Transaction.commit());
         }
 
         private void query(SessionProto.Transaction.Query.Iter.Req request, SessionProto.Transaction.Iter.Req.Options options) {
-            Transaction.Res response;
             try (ThreadTrace trace = traceOnThread("query")) {
                 GraqlQuery query;
                 try (ThreadTrace parse = traceOnThread("parse")) {
@@ -396,13 +495,13 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
         private void getSchemaConcept(Transaction.GetSchemaConcept.Req request) {
             Concept concept = tx().getSchemaConcept(Label.of(request.getLabel()));
             Transaction.Res response = ResponseBuilder.Transaction.getSchemaConcept(concept);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void getConcept(Transaction.GetConcept.Req request) {
             Concept concept = tx().getConcept(ConceptId.of(request.getId()));
             Transaction.Res response = ResponseBuilder.Transaction.getConcept(concept);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void getAttributes(Transaction.GetAttributes.Iter.Req request, Transaction.Iter.Req.Options options) {
@@ -416,7 +515,7 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
         private void putEntityType(Transaction.PutEntityType.Req request) {
             EntityType entityType = tx().putEntityType(Label.of(request.getLabel()));
             Transaction.Res response = ResponseBuilder.Transaction.putEntityType(entityType);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void putAttributeType(Transaction.PutAttributeType.Req request) {
@@ -425,19 +524,19 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
 
             AttributeType<?> attributeType = tx().putAttributeType(label, valueType);
             Transaction.Res response = ResponseBuilder.Transaction.putAttributeType(attributeType);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void putRelationType(Transaction.PutRelationType.Req request) {
             RelationType relationType = tx().putRelationType(Label.of(request.getLabel()));
             Transaction.Res response = ResponseBuilder.Transaction.putRelationType(relationType);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void putRole(Transaction.PutRole.Req request) {
             Role role = tx().putRole(Label.of(request.getLabel()));
             Transaction.Res response = ResponseBuilder.Transaction.putRole(role);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private void putRule(Transaction.PutRule.Req request) {
@@ -447,7 +546,7 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
 
             Rule rule = tx().putRule(label, when, then);
             Transaction.Res response = ResponseBuilder.Transaction.putRule(rule);
-            onNextResponse(response);
+            responseSender.onNext(response);
         }
 
         private grakn.core.kb.server.Transaction tx() {
@@ -456,12 +555,12 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
 
         private void conceptMethod(Transaction.ConceptMethod.Req request) {
             Concept concept = nonNull(tx().getConcept(ConceptId.of(request.getId())));
-            ConceptMethod.run(concept, request.getMethod(), iterators, tx(), this::onNextResponse);
+            ConceptMethod.run(concept, request.getMethod(), iterators, tx(), response -> responseSender.onNext(response));
         }
 
         private void conceptIterMethod(Transaction.ConceptMethod.Iter.Req request, Transaction.Iter.Req.Options options) {
             Concept concept = nonNull(tx().getConcept(ConceptId.of(request.getId())));
-            ConceptMethod.iter(concept, request.getMethod(), iterators, tx(), this::onNextResponse, options);
+            ConceptMethod.iter(concept, request.getMethod(), iterators, tx(), response -> responseSender.onNext(response), options);
         }
 
         /**
@@ -469,114 +568,19 @@ public class SessionService extends SessionServiceGrpc.SessionServiceImplBase {
          */
         private void explanation(AnswerProto.Explanation.Req explanationReq) {
             AnswerProto.ConceptMap explainable = explanationReq.getExplainable();
-            ConceptMap localAnswer = RequestReader.conceptMap(explainable, tx);
+            Map<Variable, Concept> localMap = new HashMap<>();
+
+            explainable.getMapMap().entrySet().forEach(entry -> {
+                Variable var = new Variable(entry.getKey());
+                Concept concept = tx.getConcept(ConceptId.of(entry.getValue().getId()));
+                localMap.put(var, concept);
+            });
+
+            Pattern queryPattern = Graql.parsePattern(explainable.getPattern());
+            ConceptMap localAnswer = new ConceptMap(localMap, null, queryPattern);
             Explanation explanation = tx.explanation(localAnswer);
             Transaction.Res response = ResponseBuilder.Transaction.explanation(explanation);
-            onNextResponse(response);
-        }
-
-        private void onNextResponse(Transaction.Res response) {
             responseSender.onNext(response);
-        }
-    }
-
-    /**
-     * Contains a mutable map of iterators of Transaction.Res for gRPC. These iterators are used for returning
-     * lazy, streaming responses such as for Graql query results.
-     *
-     * The iterators operate by batching results to reduce total round-trips.
-     */
-    static class Iterators {
-        private final Consumer<Transaction.Res> responseSender;
-        private final AtomicInteger iteratorIdCounter = new AtomicInteger(0);
-        private final Map<Integer, BatchingIterator> iterators = new ConcurrentHashMap<>();
-
-        public Iterators(Consumer<Transaction.Res> responseSender) {
-            this.responseSender = responseSender;
-        }
-
-        /**
-         * Hand off an iterator and begin batch iterating.
-         */
-        public void startBatchIterating(Iterator<Transaction.Res> iterator, @Nullable Transaction.Iter.Req.Options options) {
-            new BatchingIterator(iterator).iterateBatch(options);
-        }
-
-        /**
-         * Iterate the next batch of an existing iterator.
-         */
-        public void resumeBatchIterating(int iteratorId, Transaction.Iter.Req.Options options) {
-            BatchingIterator iterator = iterators.get(iteratorId);
-            if (iterator == null) {
-                throw ResponseBuilder.exception(Status.FAILED_PRECONDITION);
-            }
-            iterator.iterateBatch(options);
-        }
-
-        public void stop(int iteratorId) {
-            iterators.remove(iteratorId);
-        }
-
-        private int saveIterator(BatchingIterator iterator) {
-            int id = iteratorIdCounter.incrementAndGet();
-            iterators.put(id, iterator);
-            return id;
-        }
-
-        public class BatchingIterator {
-            private int id = 0;
-            private final Iterator<Transaction.Res> iterator;
-
-            public BatchingIterator(Iterator<Transaction.Res> iterator) {
-                this.iterator = iterator;
-            }
-
-            private boolean isSaved() {
-                return id != 0;
-            }
-
-            private void save() {
-                if (!isSaved()) {
-                    id = saveIterator(this);
-                }
-            }
-
-            private void end() {
-                if (isSaved()) {
-                    stop(id);
-                }
-            }
-
-            public void iterateBatch(@Nullable Transaction.Iter.Req.Options options) {
-                int batchSize = getSizeFrom(options);
-                for (int i = 0; i < batchSize && iterator.hasNext(); i++) {
-                    responseSender.accept(iterator.next());
-                }
-
-                if (iterator.hasNext()) {
-                    save();
-                    responseSender.accept(SessionProto.Transaction.Res.newBuilder()
-                            .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
-                                    .setIteratorId(id)).build());
-                } else {
-                    end();
-                    responseSender.accept(SessionProto.Transaction.Res.newBuilder()
-                            .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
-                                    .setDone(true)).build());
-                }
-            }
-        }
-
-        private static int getSizeFrom(@Nullable Transaction.Iter.Req.Options options) {
-            switch (options.getBatchSizeCase()) {
-                case ALL:
-                    return Integer.MAX_VALUE;
-                case NUMBER:
-                    return options.getNumber();
-                case BATCHSIZE_NOT_SET:
-                default:
-                    return DEFAULT_BATCH_SIZE;
-            }
         }
     }
 }

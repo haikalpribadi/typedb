@@ -33,14 +33,12 @@ import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.SelectStep;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,13 +51,12 @@ import static java.util.stream.Collectors.joining;
  */
 public class GraqlTraversalImpl implements GraqlTraversal {
 
-    private final ImmutableSet<ImmutableList<? extends Fragment>> fragments;
-    private JanusTraversalSourceProvider janusTraversalSourceProvider;
-    private ConceptManager conceptManager;
-
     // Just a pretend big number
     private static final long NUM_VERTICES_ESTIMATE = 10_000;
     private static final double COST_NEW_TRAVERSAL = Math.log1p(NUM_VERTICES_ESTIMATE);
+    private final ImmutableSet<ImmutableList<? extends Fragment>> fragments;
+    private JanusTraversalSourceProvider janusTraversalSourceProvider;
+    private ConceptManager conceptManager;
 
 
     GraqlTraversalImpl(JanusTraversalSourceProvider janusTraversalSourceProvider, ConceptManager conceptManager,
@@ -68,6 +65,41 @@ public class GraqlTraversalImpl implements GraqlTraversal {
         this.conceptManager = conceptManager;
         // copy the fragments
         this.fragments = fragments.stream().map(ImmutableList::copyOf).collect(ImmutableSet.toImmutableSet());
+    }
+
+    private static double fragmentListCost(List<? extends Fragment> fragments) {
+        Set<Variable> names = new HashSet<>();
+
+        double listCost = 0;
+
+        for (Fragment fragment : fragments) {
+            listCost += fragmentCost(fragment, names);
+            names.addAll(fragment.vars());
+        }
+
+        return listCost;
+    }
+
+    private static double fragmentCost(Fragment fragment, Collection<Variable> names) {
+        if (names.contains(fragment.start()) || fragment.hasFixedFragmentCost()) {
+            return fragment.fragmentCost();
+        } else {
+            // Restart traversal, meaning we are navigating from all vertices
+            return COST_NEW_TRAVERSAL;
+        }
+    }
+
+    private static <S> GraphTraversal<S, Map<String, Vertex>> selectVars(GraphTraversal<S, Vertex> traversal, Set<Variable> vars) {
+        if (vars.isEmpty()) {
+            // Produce an empty result
+            return traversal.constant(ImmutableMap.of());
+        } else if (vars.size() == 1) {
+            String label = vars.iterator().next().symbol();
+            return traversal.select(label, label);
+        } else {
+            String[] labelArray = vars.stream().map(Variable::symbol).toArray(String[]::new);
+            return traversal.asAdmin().addStep(new SelectStep<>(traversal.asAdmin(), null, labelArray));
+        }
     }
 
     @Override
@@ -154,41 +186,6 @@ public class GraqlTraversalImpl implements GraqlTraversal {
         return totalCost;
     }
 
-    private static double fragmentListCost(List<? extends Fragment> fragments) {
-        Set<Variable> names = new HashSet<>();
-
-        double listCost = 0;
-
-        for (Fragment fragment : fragments) {
-            listCost += fragmentCost(fragment, names);
-            names.addAll(fragment.vars());
-        }
-
-        return listCost;
-    }
-
-    private static double fragmentCost(Fragment fragment, Collection<Variable> names) {
-        if (names.contains(fragment.start()) || fragment.hasFixedFragmentCost()) {
-            return fragment.fragmentCost();
-        } else {
-            // Restart traversal, meaning we are navigating from all vertices
-            return COST_NEW_TRAVERSAL;
-        }
-    }
-
-    private static <S> GraphTraversal<S, Map<String, Vertex>> selectVars(GraphTraversal<S, Vertex> traversal, Set<Variable> vars) {
-        if (vars.isEmpty()) {
-            // Produce an empty result
-            return traversal.constant(ImmutableMap.of());
-        } else if (vars.size() == 1) {
-            String label = vars.iterator().next().symbol();
-            return traversal.select(label, label);
-        } else {
-            String[] labelArray = vars.stream().map(Variable::symbol).toArray(String[]::new);
-            return traversal.asAdmin().addStep(new SelectStep<>(traversal.asAdmin(), null, labelArray));
-        }
-    }
-
     @Override
     public String toString() {
         return "{" + fragments().stream().map(list -> {
@@ -225,6 +222,6 @@ public class GraqlTraversalImpl implements GraqlTraversal {
     public boolean equals(Object object) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
-        return fragments.equals(((GraqlTraversalImpl)object).fragments);
+        return fragments.equals(((GraqlTraversalImpl) object).fragments);
     }
 }

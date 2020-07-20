@@ -45,28 +45,8 @@ import static grakn.core.graql.planning.gremlin.sets.EquivalentFragmentSets.frag
  * When all these criteria are met, the fragments representing the IsaFragmentSet and the
  * ValueFragmentSet can be replaced with a AttributeIndexFragmentSet that will use the attribute index
  * to perform a unique lookup in constant time.
- *
  */
 public class AttributeIndexFragmentSet extends EquivalentFragmentSetImpl {
-
-    private final Variable var;
-    private final Label label;
-    private final Object value;
-
-    private AttributeIndexFragmentSet(
-            Variable var,
-            Label label,
-            Object value) {
-        super(null);
-        this.var = var;
-        this.label = label;
-        this.value = value;
-    }
-
-    @Override
-    public final Set<Fragment> fragments() {
-        return ImmutableSet.of(Fragments.attributeIndex(varProperty(), var, label, value));
-    }
 
     static final FragmentSetOptimisation ATTRIBUTE_INDEX_OPTIMISATION = (fragmentSets, conceptManager) -> {
         Iterable<ValueFragmentSet> valueSets = equalsValueFragments(fragmentSets)::iterator;
@@ -93,6 +73,19 @@ public class AttributeIndexFragmentSet extends EquivalentFragmentSetImpl {
 
         return false;
     };
+    private final Variable var;
+    private final Label label;
+    private final Object value;
+
+    private AttributeIndexFragmentSet(
+            Variable var,
+            Label label,
+            Object value) {
+        super(null);
+        this.var = var;
+        this.label = label;
+        this.value = value;
+    }
 
     private static void optimise(
             ConceptManager conceptManager, Collection<EquivalentFragmentSet> fragmentSets, ValueFragmentSet valueSet, IsaFragmentSet isaSet,
@@ -126,6 +119,11 @@ public class AttributeIndexFragmentSet extends EquivalentFragmentSetImpl {
     private static Stream<ValueFragmentSet> equalsValueFragments(Collection<EquivalentFragmentSet> fragmentSets) {
         return fragmentSetOfType(ValueFragmentSet.class, fragmentSets)
                 .filter(valueFragmentSet -> valueFragmentSet.operation().isValueEquality());
+    }
+
+    @Override
+    public final Set<Fragment> fragments() {
+        return ImmutableSet.of(Fragments.attributeIndex(varProperty(), var, label, value));
     }
 
     @Override

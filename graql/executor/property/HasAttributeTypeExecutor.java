@@ -33,9 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static graql.lang.Graql.var;
-
-public class HasAttributeTypeExecutor  implements PropertyExecutor.Definable {
+public class HasAttributeTypeExecutor implements PropertyExecutor.Definable {
 
     private final Variable var;
     private final HasAttributeTypeProperty property;

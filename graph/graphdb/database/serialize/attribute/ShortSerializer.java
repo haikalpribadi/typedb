@@ -33,7 +33,7 @@ public class ShortSerializer implements OrderPreservingSerializer<Short> {
 
     @Override
     public void write(WriteBuffer out, Short object) {
-        out.putShort((short)(object - Short.MIN_VALUE));
+        out.putShort((short) (object - Short.MIN_VALUE));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ShortSerializer implements OrderPreservingSerializer<Short> {
             Preconditions.checkArgument(!Double.isNaN(d) && Math.round(d) == d, "Not a valid short: " + value);
             final long l = ((Number) value).longValue();
             Preconditions.checkArgument(l >= Short.MIN_VALUE && l <= Short.MAX_VALUE,
-                    "Value too large for short: " + value);
+                                        "Value too large for short: " + value);
             return (short) l;
         } else if (value instanceof String) {
             return Short.parseShort((String) value);

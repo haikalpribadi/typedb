@@ -36,13 +36,17 @@ public class And<E extends JanusGraphElement> extends MultiCondition<E> {
         super(clone);
     }
 
+    public And(int capacity) {
+        super(capacity);
+    }
+
+    public static <E extends JanusGraphElement> And<E> of(Condition<E>... elements) {
+        return new And<>(elements);
+    }
+
     @Override
     public And<E> clone() {
         return new And<>(this);
-    }
-
-    public And(int capacity) {
-        super(capacity);
     }
 
     @Override
@@ -59,10 +63,6 @@ public class And<E extends JanusGraphElement> extends MultiCondition<E> {
         }
 
         return true;
-    }
-
-    public static <E extends JanusGraphElement> And<E> of(Condition<E>... elements) {
-        return new And<>(elements);
     }
 
 }

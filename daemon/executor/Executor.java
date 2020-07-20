@@ -37,32 +37,8 @@ import java.util.concurrent.TimeoutException;
  */
 public class Executor {
 
-    public static class Result {
-
-        private final String stdout;
-        private final String stderr;
-        private final int exitCode;
-
-        public Result(String stdout, String stderr, int exitCode) {
-            this.stdout = stdout;
-            this.stderr = stderr;
-            this.exitCode = exitCode;
-        }
-
-        public boolean success() {
-            return exitCode() == 0;
-        }
-
-        public String stdout() { return stdout; }
-
-        public String stderr() { return stderr; }
-
-        public int exitCode() { return exitCode; }
-    }
-
     static final long WAIT_INTERVAL_SECOND = 2;
     private static final String SH = "/bin/sh";
-
 
     public CompletableFuture<Result> executeAsync(List<String> command, File workingDirectory) {
         return CompletableFuture.supplyAsync(() -> executeAndWait(command, workingDirectory));
@@ -137,12 +113,11 @@ public class Executor {
         return false;
     }
 
-
     /**
      * Method used to check whether the pid contained in the pid file actually corresponds
      * to a Grakn(Storage) process.
      *
-     * @param pidFile path to pid file
+     * @param pidFile   path to pid file
      * @param className name of Class associated to the given pid (e.g. "grakn.core.server.Grakn")
      * @return true if PID is associated to the a Grakn process, false otherwise.
      */
@@ -224,5 +199,28 @@ public class Executor {
 
     private boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
+    public static class Result {
+
+        private final String stdout;
+        private final String stderr;
+        private final int exitCode;
+
+        public Result(String stdout, String stderr, int exitCode) {
+            this.stdout = stdout;
+            this.stderr = stderr;
+            this.exitCode = exitCode;
+        }
+
+        public boolean success() {
+            return exitCode() == 0;
+        }
+
+        public String stdout() { return stdout; }
+
+        public String stderr() { return stderr; }
+
+        public int exitCode() { return exitCode; }
     }
 }

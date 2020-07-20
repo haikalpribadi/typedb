@@ -27,6 +27,7 @@ import grakn.core.graql.reasoner.state.ResolutionState;
 import grakn.core.kb.graql.reasoner.ReasonerException;
 import grakn.core.kb.graql.reasoner.atom.Atomic;
 import graql.lang.statement.Variable;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,13 +38,13 @@ import java.util.stream.Collectors;
 /**
  *
  */
-public class NodeImpl implements Node{
+public class NodeImpl implements Node {
     private final LinkedHashSet<Node> children = new LinkedHashSet<>();
     private final LinkedHashSet<ConceptMap> answers = new LinkedHashSet<>();
-    private long totalTime;
     private final ResolutionState state;
+    private long totalTime;
 
-    NodeImpl(ResolutionState state){
+    NodeImpl(ResolutionState state) {
         this.state = state;
     }
 
@@ -59,7 +60,7 @@ public class NodeImpl implements Node{
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return state.getClass().getSimpleName() +
                 "@" + Integer.toHexString(state.hashCode()) +
                 " Cost: " + totalTime() +
@@ -85,12 +86,12 @@ public class NodeImpl implements Node{
     }
 
     @Override
-    public void addChild(Node child){
+    public void addChild(Node child) {
         children.add(child);
     }
 
     @Override
-    public void addAnswer(ConceptMap answer){
+    public void addAnswer(ConceptMap answer) {
         if (answer.isEmpty()) return;
 //        validateAnswer(answer);
         answers.add(answer);
@@ -98,10 +99,11 @@ public class NodeImpl implements Node{
 
     /**
      * Validates answer to be attached in flight -> as the tree is constructed. This is how we test it for now.
+     *
      * @param answer
      */
-    private void validateAnswer(ConceptMap answer){
-        if (state instanceof AnswerPropagatorState){
+    private void validateAnswer(ConceptMap answer) {
+        if (state instanceof AnswerPropagatorState) {
             ResolvableQuery query = ((AnswerPropagatorState) state).getQuery();
             Set<Variable> atomVars = query.getAtoms().stream()
                     .filter(at -> at.isRelationAtom() || at.isAttributeAtom())
@@ -109,19 +111,19 @@ public class NodeImpl implements Node{
                     .collect(Collectors.toSet());
             Set<Variable> vars = query.getVarNames();
             Set<Variable> answerVars = answer.vars();
-           if(Sets.difference(vars, answerVars).stream().anyMatch(v -> !atomVars.contains(v))){
+            if (Sets.difference(vars, answerVars).stream().anyMatch(v -> !atomVars.contains(v))) {
                 throw ReasonerException.invalidResolutionProfilerAnswer(query, answer);
             }
         }
     }
 
     @Override
-    public List<Node> children(){ return new ArrayList<>(children);}
+    public List<Node> children() { return new ArrayList<>(children);}
 
     @Override
-    public Set<ConceptMap> answers(){ return answers;}
+    public Set<ConceptMap> answers() { return answers;}
 
     @Override
-    public long totalTime(){ return totalTime;}
+    public long totalTime() { return totalTime;}
 
 }

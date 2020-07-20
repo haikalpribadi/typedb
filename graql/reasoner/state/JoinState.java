@@ -26,6 +26,7 @@ import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
 import grakn.core.graql.reasoner.query.ReasonerQueryImpl;
 import grakn.core.graql.reasoner.utils.AnswerUtil;
 import grakn.core.kb.graql.reasoner.unifier.Unifier;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -50,16 +51,27 @@ public class JoinState extends AnswerPropagatorState<ReasonerQueryImpl> {
         subQueries.removeFirst();
     }
 
+    private static Explanation mergeExplanations(ConceptMap base, ConceptMap toMerge) {
+        if (toMerge.isEmpty()) return base.explanation();
+        if (base.isEmpty()) return toMerge.explanation();
+
+        List<ConceptMap> partialAnswers = new ArrayList<>();
+        if (base.explanation().isJoinExplanation()) partialAnswers.addAll(base.explanation().getAnswers());
+        else partialAnswers.add(base);
+        if (toMerge.explanation().isJoinExplanation()) partialAnswers.addAll(toMerge.explanation().getAnswers());
+        else partialAnswers.add(toMerge);
+        return new JoinExplanation(partialAnswers);
+    }
+
     @Override
     protected Iterator<ResolutionState> generateChildStateIterator() {
         //NB: we need lazy resolutionState initialisation here, otherwise they are marked as visited before visit happens
         return getQuery().expandedStates(getSubstitution(), getUnifier(), this, getVisitedSubGoals()).iterator();
     }
 
-
     @Override
-    public String toString(){
-        return super.toString() +  "\n" +
+    public String toString() {
+        return super.toString() + "\n" +
                 getSubstitution() + "\n" +
                 getQuery() + "\n" +
                 subQueries.stream().map(ReasonerQueryImpl::toString).collect(Collectors.joining("\n")) + "\n";
@@ -85,18 +97,6 @@ public class JoinState extends AnswerPropagatorState<ReasonerQueryImpl> {
     @Override
     ConceptMap consumeAnswer(AnswerState state) {
         return state.getSubstitution();
-    }
-
-    private static Explanation mergeExplanations(ConceptMap base, ConceptMap toMerge) {
-        if (toMerge.isEmpty()) return base.explanation();
-        if (base.isEmpty()) return toMerge.explanation();
-
-        List<ConceptMap> partialAnswers = new ArrayList<>();
-        if (base.explanation().isJoinExplanation()) partialAnswers.addAll(base.explanation().getAnswers());
-        else partialAnswers.add(base);
-        if (toMerge.explanation().isJoinExplanation()) partialAnswers.addAll(toMerge.explanation().getAnswers());
-        else partialAnswers.add(toMerge);
-        return new JoinExplanation(partialAnswers);
     }
 
 }

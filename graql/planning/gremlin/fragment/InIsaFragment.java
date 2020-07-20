@@ -39,7 +39,6 @@ import static grakn.core.core.Schema.EdgeLabel.SHARD;
 
 /**
  * A fragment representing traversing an isa edge from type to instance.
- *
  */
 
 public class InIsaFragment extends EdgeFragment {

@@ -116,20 +116,18 @@ import static io.vavr.API.Match;
  * configured).
  */
 public class CQLStoreManager extends AbstractStoreManager implements KeyColumnValueStoreManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CQLStoreManager.class);
-
-    private static final String CONSISTENCY_LOCAL_QUORUM = "LOCAL_QUORUM";
     static final String CONSISTENCY_QUORUM = "QUORUM";
+    private static final Logger LOGGER = LoggerFactory.getLogger(CQLStoreManager.class);
+    private static final String CONSISTENCY_LOCAL_QUORUM = "LOCAL_QUORUM";
     private static final int DEFAULT_PORT = 9042;
 
     private final String keyspace;
     private final boolean atomicBatch;
     private final TimestampProvider times;
-
-    private CqlSession session;
     private final StoreFeatures storeFeatures;
     private final Map<String, CQLKeyColumnValueStore> openStores;
     private final Semaphore semaphore;
+    private CqlSession session;
 
     /**
      * Constructor for the CQLStoreManager given a JanusGraph Configuration.
@@ -259,16 +257,16 @@ public class CQLStoreManager extends AbstractStoreManager implements KeyColumnVa
         Map<String, Object> replication = Match(configuration.get(REPLICATION_STRATEGY)).of(
                 Case($("SimpleStrategy"), strategy -> HashMap.<String, Object>of("class", strategy, "replication_factor", configuration.get(REPLICATION_FACTOR))),
                 Case($("NetworkTopologyStrategy"),
-                        strategy -> HashMap.<String, Object>of("class", strategy)
-                                .merge(Array.of(configuration.get(REPLICATION_OPTIONS))
-                                        .grouped(2)
-                                        .toMap(array -> Tuple.of(array.get(0), Integer.parseInt(array.get(1)))))))
+                     strategy -> HashMap.<String, Object>of("class", strategy)
+                             .merge(Array.of(configuration.get(REPLICATION_OPTIONS))
+                                            .grouped(2)
+                                            .toMap(array -> Tuple.of(array.get(0), Integer.parseInt(array.get(1)))))))
                 .toJavaMap();
 
         session.execute(createKeyspace(this.keyspace)
-                .ifNotExists()
-                .withReplicationOptions(replication)
-                .build());
+                                .ifNotExists()
+                                .withReplicationOptions(replication)
+                                .build());
     }
 
     CqlSession getSession() {
@@ -365,7 +363,7 @@ public class CQLStoreManager extends AbstractStoreManager implements KeyColumnVa
             Future<Seq<AsyncResultSet>> result = Future.sequence(
                     Iterator.ofAll(this.session.getMetadata().getKeyspace(this.keyspace).get().getTables().values())
                             .map(table -> Future.fromJavaFuture(this.session.executeAsync(truncate(this.keyspace, table.getName().toString()).build())
-                                    .toCompletableFuture())));
+                                                                        .toCompletableFuture())));
             result.await();
         } else {
             LOGGER.info("Keyspace {} does not exist in the cluster", this.keyspace);
@@ -494,6 +492,10 @@ public class CQLStoreManager extends AbstractStoreManager implements KeyColumnVa
         }
     }
 
+    private ModifiableConfiguration buildGraphConfiguration() {
+        return new ModifiableConfiguration(ROOT_NS, new CommonsConfiguration());
+    }
+
     /**
      * Helper class to create the deletion and addition timestamps for a particular transaction.
      * It needs to be ensured that the deletion time is prior to the addition time since
@@ -523,9 +525,5 @@ public class CQLStoreManager extends AbstractStoreManager implements KeyColumnVa
         private Instant getAdditionTimeInstant(TimestampProvider times) {
             return times.getTime(getAdditionTime(times));
         }
-    }
-
-    private ModifiableConfiguration buildGraphConfiguration() {
-        return new ModifiableConfiguration(ROOT_NS, new CommonsConfiguration());
     }
 }

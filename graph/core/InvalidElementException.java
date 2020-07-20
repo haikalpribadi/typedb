@@ -24,7 +24,6 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 /**
  * Exception thrown when an element is invalid for the executing operation or when an operation could not be performed
  * on an element.
- *
  */
 public class InvalidElementException extends JanusGraphException {
 
@@ -39,6 +38,12 @@ public class InvalidElementException extends JanusGraphException {
         this.element = element;
     }
 
+    public static IllegalStateException removedException(JanusGraphElement element) {
+        Class elementClass = Vertex.class.isAssignableFrom(element.getClass()) ? Vertex.class :
+                (Edge.class.isAssignableFrom(element.getClass()) ? Edge.class : VertexProperty.class);
+        return new IllegalStateException(String.format("%s with id %s was removed.", elementClass.getSimpleName(), element.id()));
+    }
+
     /**
      * Returns the element causing the exception
      *
@@ -51,12 +56,6 @@ public class InvalidElementException extends JanusGraphException {
     @Override
     public String toString() {
         return super.toString() + " [" + element.toString() + "]";
-    }
-
-    public static IllegalStateException removedException(JanusGraphElement element) {
-        Class elementClass = Vertex.class.isAssignableFrom(element.getClass()) ? Vertex.class :
-            (Edge.class.isAssignableFrom(element.getClass()) ? Edge.class : VertexProperty.class);
-        return new IllegalStateException(String.format("%s with id %s was removed.", elementClass.getSimpleName(), element.id()));
     }
 
 }

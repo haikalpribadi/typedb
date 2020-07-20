@@ -21,12 +21,12 @@ package grakn.core.graql.reasoner.query;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import grakn.core.concept.answer.ConceptMap;
-import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.graql.reasoner.ReasoningContext;
 import grakn.core.graql.reasoner.atom.Atom;
 import grakn.core.graql.reasoner.atom.PropertyAtomicFactory;
 import grakn.core.kb.concept.manager.ConceptManager;
 import grakn.core.kb.graql.executor.ExecutorFactory;
+import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.kb.graql.planning.gremlin.TraversalPlanFactory;
 import grakn.core.kb.graql.reasoner.atom.Atomic;
 import grakn.core.kb.graql.reasoner.cache.QueryCache;
@@ -81,7 +81,7 @@ public class ReasonerQueryFactory {
      * @return a resolvable reasoner query constructed from provided conjunctive pattern
      */
     public ResolvableQuery resolvable(Conjunction<Pattern> pattern) {
-        CompositeQuery query = new CompositeQuery(pattern,  traversalExecutor, ctx).inferTypes();
+        CompositeQuery query = new CompositeQuery(pattern, traversalExecutor, ctx).inferTypes();
         return query.isAtomic() ?
                 new ReasonerAtomicQuery(query.getAtoms(), traversalPlanFactory, traversalExecutor, ctx) :
                 query.isPositive() ?
@@ -89,7 +89,7 @@ public class ReasonerQueryFactory {
     }
 
     /**
-     * @param pattern disjunctive pattern defining the query
+     * @param pattern     disjunctive pattern defining the query
      * @param bindingVars the set of variables in the outer scope of the disjunction
      * @return a resolvable reasoner query constructed from provided disjunctive pattern
      */
@@ -97,7 +97,7 @@ public class ReasonerQueryFactory {
         if (pattern.getPatterns().size() == 1) {
             return resolvable(Iterators.getOnlyElement(pattern.getPatterns().iterator()));
         } else {
-            return new DisjunctiveQuery(pattern, bindingVars,  traversalExecutor, ctx).inferTypes();
+            return new DisjunctiveQuery(pattern, bindingVars, traversalExecutor, ctx).inferTypes();
         }
     }
 

@@ -39,12 +39,52 @@ import java.util.Optional;
  */
 
 class EdgeQueueMap {
-    final Partition<Node> partition;
     public final Map<Node, EdgeQueue> queueByDestination;
+    final Partition<Node> partition;
+
+    EdgeQueueMap(Partition<Node> partition) {
+        this.partition = partition;
+        this.queueByDestination = Maps.newHashMap();
+    }
+
+    public void addEdge(Weighted<DirectedEdge> edge) {
+        final Node destination = partition.componentOf(edge.val.destination);
+        if (!queueByDestination.containsKey(destination)) {
+            queueByDestination.put(destination, EdgeQueue.create(destination, partition));
+        }
+        final List<DirectedEdge> replaces = Lists.newLinkedList();
+        queueByDestination.get(destination).addEdge(ExclusiveEdge.of(edge.val, replaces, edge.weight));
+    }
+
+    /**
+     * Always breaks ties in favor of edges in best
+     */
+    public Optional<ExclusiveEdge> popBestEdge(Node component, Arborescence<Node> best) {
+        if (!queueByDestination.containsKey(component)) return Optional.empty();
+        return queueByDestination.get(component).popBestEdge(best);
+    }
+
+    public EdgeQueue merge(Node component, Iterable<QueueAndReplace> queuesToMerge) {
+        final EdgeQueue result = EdgeQueue.create(component, partition);
+        for (QueueAndReplace queueAndReplace : queuesToMerge) {
+            final EdgeQueue queue = queueAndReplace.queue();
+            final Weighted<DirectedEdge> replace = queueAndReplace.replace();
+            for (ExclusiveEdge wEdgeAndExcluded : queue.edges) {
+                final List<DirectedEdge> replaces = wEdgeAndExcluded.excluded;
+                replaces.add(replace.val);
+                result.addEdge(ExclusiveEdge.of(
+                        wEdgeAndExcluded.edge,
+                        replaces,
+                        wEdgeAndExcluded.weight - replace.weight));
+            }
+        }
+        queueByDestination.put(component, result);
+        return result;
+    }
 
     public static class EdgeQueue {
-        private final Node component;
         public final FibonacciQueue<ExclusiveEdge> edges;
+        private final Node component;
         private final Partition<Node> partition;
 
         private EdgeQueue(Node component, Partition<Node> partition) {
@@ -87,14 +127,6 @@ class EdgeQueueMap {
         private final EdgeQueue queue;
         private final Weighted<DirectedEdge> replace;
 
-        public EdgeQueue queue() {
-            return queue;
-        }
-
-        public Weighted<DirectedEdge> replace(){
-            return replace;
-        }
-
         QueueAndReplace(EdgeQueue queue, Weighted<DirectedEdge> replace) {
             this.queue = queue;
             this.replace = replace;
@@ -104,13 +136,21 @@ class EdgeQueueMap {
             return new QueueAndReplace(queue, replace);
         }
 
+        public EdgeQueue queue() {
+            return queue;
+        }
+
+        public Weighted<DirectedEdge> replace() {
+            return replace;
+        }
+
         public boolean equals(Object o) {
             if (o == this) {
                 return true;
             } else if (!(o instanceof QueueAndReplace)) {
                 return false;
             } else {
-                QueueAndReplace that = (QueueAndReplace)o;
+                QueueAndReplace that = (QueueAndReplace) o;
                 return this.queue.equals(that.queue()) && this.replace.equals(that.replace());
             }
         }
@@ -118,45 +158,5 @@ class EdgeQueueMap {
         public int hashCode() {
             return Objects.hash(queue, replace);
         }
-    }
-
-    EdgeQueueMap(Partition<Node> partition) {
-        this.partition = partition;
-        this.queueByDestination = Maps.newHashMap();
-    }
-
-    public void addEdge(Weighted<DirectedEdge> edge) {
-        final Node destination = partition.componentOf(edge.val.destination);
-        if (!queueByDestination.containsKey(destination)) {
-            queueByDestination.put(destination, EdgeQueue.create(destination, partition));
-        }
-        final List<DirectedEdge> replaces = Lists.newLinkedList();
-        queueByDestination.get(destination).addEdge(ExclusiveEdge.of(edge.val, replaces, edge.weight));
-    }
-
-    /**
-     * Always breaks ties in favor of edges in best
-     */
-    public Optional<ExclusiveEdge> popBestEdge(Node component, Arborescence<Node> best) {
-        if (!queueByDestination.containsKey(component)) return Optional.empty();
-        return queueByDestination.get(component).popBestEdge(best);
-    }
-
-    public EdgeQueue merge(Node component, Iterable<QueueAndReplace> queuesToMerge) {
-        final EdgeQueue result = EdgeQueue.create(component, partition);
-        for (QueueAndReplace queueAndReplace : queuesToMerge) {
-            final EdgeQueue queue = queueAndReplace.queue();
-            final Weighted<DirectedEdge> replace = queueAndReplace.replace();
-            for (ExclusiveEdge wEdgeAndExcluded : queue.edges) {
-                final List<DirectedEdge> replaces = wEdgeAndExcluded.excluded;
-                replaces.add(replace.val);
-                result.addEdge(ExclusiveEdge.of(
-                        wEdgeAndExcluded.edge,
-                        replaces,
-                        wEdgeAndExcluded.weight - replace.weight));
-            }
-        }
-        queueByDestination.put(component, result);
-        return result;
     }
 }

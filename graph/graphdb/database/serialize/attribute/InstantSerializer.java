@@ -39,6 +39,6 @@ public class InstantSerializer implements AttributeSerializer<Instant> {
     @Override
     public void write(WriteBuffer buffer, Instant attribute) {
         secondsSerializer.write(buffer, attribute.getEpochSecond());
-        nanosSerializer.write(buffer,attribute.getNano());
+        nanosSerializer.write(buffer, attribute.getNano());
     }
 }

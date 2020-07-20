@@ -24,13 +24,11 @@ import org.apache.commons.lang.ArrayUtils;
 
 /**
  * Basic comparison relations for comparable (i.e. linearly ordered) objects.
- *
  */
 
 public enum Cmp implements JanusGraphPredicate {
 
     EQUAL {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             return true;
@@ -43,8 +41,8 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            if (condition==null) {
-                return value==null;
+            if (condition == null) {
+                return value == null;
             } else {
                 return condition.equals(value) || (condition.getClass().isArray() && ArrayUtils.isEquals(condition, value));
             }
@@ -62,7 +60,6 @@ public enum Cmp implements JanusGraphPredicate {
     },
 
     NOT_EQUAL {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             return true;
@@ -75,8 +72,8 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            if (condition==null) {
-                return value!=null;
+            if (condition == null) {
+                return value != null;
             } else {
                 return !condition.equals(value);
             }
@@ -94,7 +91,6 @@ public enum Cmp implements JanusGraphPredicate {
     },
 
     LESS_THAN {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             Preconditions.checkNotNull(clazz);
@@ -108,7 +104,7 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            Integer cmp = AttributeUtil.compare(value,condition);
+            Integer cmp = AttributeUtil.compare(value, condition);
             return cmp != null && cmp < 0;
         }
 
@@ -124,7 +120,6 @@ public enum Cmp implements JanusGraphPredicate {
     },
 
     LESS_THAN_EQUAL {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             Preconditions.checkNotNull(clazz);
@@ -138,7 +133,7 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            Integer cmp = AttributeUtil.compare(value,condition);
+            Integer cmp = AttributeUtil.compare(value, condition);
             return cmp != null && cmp <= 0;
         }
 
@@ -154,7 +149,6 @@ public enum Cmp implements JanusGraphPredicate {
     },
 
     GREATER_THAN {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             Preconditions.checkNotNull(clazz);
@@ -168,7 +162,7 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            Integer cmp = AttributeUtil.compare(value,condition);
+            Integer cmp = AttributeUtil.compare(value, condition);
             return cmp != null && cmp > 0;
         }
 
@@ -184,7 +178,6 @@ public enum Cmp implements JanusGraphPredicate {
     },
 
     GREATER_THAN_EQUAL {
-
         @Override
         public boolean isValidValueType(Class<?> clazz) {
             Preconditions.checkNotNull(clazz);
@@ -198,7 +191,7 @@ public enum Cmp implements JanusGraphPredicate {
 
         @Override
         public boolean test(Object value, Object condition) {
-            Integer cmp = AttributeUtil.compare(value,condition);
+            Integer cmp = AttributeUtil.compare(value, condition);
             return cmp != null && cmp >= 0;
         }
 

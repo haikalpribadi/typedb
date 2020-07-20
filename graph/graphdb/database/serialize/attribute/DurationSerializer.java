@@ -38,7 +38,7 @@ public class DurationSerializer implements AttributeSerializer<Duration> {
 
     @Override
     public void write(WriteBuffer buffer, Duration attribute) {
-        secondsSerializer.write(buffer,attribute.getSeconds());
-        nanosSerializer.write(buffer,attribute.getNano());
+        secondsSerializer.write(buffer, attribute.getSeconds());
+        nanosSerializer.write(buffer, attribute.getNano());
     }
 }

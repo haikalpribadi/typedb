@@ -24,10 +24,14 @@ import grakn.core.graph.diskstorage.ReadBuffer;
  * <p>
  * Note, that the position does not impact the state of the object. Meaning, equals, hashcode,
  * and compare ignore the position.
- *
  */
 
 public class ReadArrayBuffer extends StaticArrayBuffer implements ReadBuffer {
+
+    /*
+    ############ IDENTICAL CODE #############
+     */
+    private transient int position = 0;
 
     public ReadArrayBuffer(byte[] array) {
         super(array);
@@ -46,11 +50,6 @@ public class ReadArrayBuffer extends StaticArrayBuffer implements ReadBuffer {
         position = 0;
         super.reset(newOffset, newLimit);
     }
-
-    /*
-    ############ IDENTICAL CODE #############
-     */
-    private transient int position = 0;
 
     private int updatePos(int update) {
         int pos = position;

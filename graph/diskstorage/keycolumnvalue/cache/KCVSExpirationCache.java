@@ -50,15 +50,12 @@ public class KCVSExpirationCache extends KCVSCache {
 
     private static final int INVALIDATE_KEY_FRACTION_PENALTY = 1000;
     private static final int PENALTY_THRESHOLD = 5;
-
-    private volatile CountDownLatch penaltyCountdown;
-
     private final Cache<KeySliceQuery, EntryList> cache;
     private final ConcurrentHashMap<StaticBuffer, Long> expiredKeys;
-
     private final long cacheTimeMS;
     private final long invalidationGracePeriodMS;
     private final CleanupThread cleanupThread;
+    private volatile CountDownLatch penaltyCountdown;
 
     public KCVSExpirationCache(KeyColumnValueStore store, long cacheTimeMS, long invalidationGracePeriodMS, long maximumByteSize) {
         super(store);

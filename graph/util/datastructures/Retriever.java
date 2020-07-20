@@ -19,9 +19,8 @@ package grakn.core.graph.util.datastructures;
 
 /**
  * Interface for the Retriever design pattern.
- *
  */
-public interface Retriever<I,O> {
+public interface Retriever<I, O> {
 
     O get(I input);
 

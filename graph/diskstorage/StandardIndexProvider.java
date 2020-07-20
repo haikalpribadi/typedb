@@ -34,28 +34,8 @@ public enum StandardIndexProvider {
     ELASTICSEARCH("grakn.core.graph.diskstorage.es.ElasticSearchIndex", ImmutableList.of("elasticsearch", "es")),
     SOLR("grakn.core.graph.diskstorage.solr.SolrIndex", "solr");
 
-    private final String providerName;
-    private final ImmutableList<String> shorthands;
-
-    StandardIndexProvider(String providerName, String shorthand) {
-        this(providerName, ImmutableList.of(shorthand));
-    }
-
-    StandardIndexProvider(String providerName, ImmutableList<String> shorthands) {
-        this.providerName = providerName;
-        this.shorthands = shorthands;
-    }
-
     private static final ImmutableList<String> ALL_SHORTHANDS;
     private static final ImmutableMap<String, String> ALL_MANAGER_CLASSES;
-
-    private List<String> getShorthands() {
-        return shorthands;
-    }
-
-    private String getProviderName() {
-        return providerName;
-    }
 
     static {
         StandardIndexProvider[] backends = values();
@@ -71,11 +51,30 @@ public enum StandardIndexProvider {
         ALL_MANAGER_CLASSES = ImmutableMap.copyOf(tempClassMap);
     }
 
+    private final String providerName;
+    private final ImmutableList<String> shorthands;
+    StandardIndexProvider(String providerName, String shorthand) {
+        this(providerName, ImmutableList.of(shorthand));
+    }
+
+    StandardIndexProvider(String providerName, ImmutableList<String> shorthands) {
+        this.providerName = providerName;
+        this.shorthands = shorthands;
+    }
+
     public static List<String> getAllShorthands() {
         return ALL_SHORTHANDS;
     }
 
     public static Map<String, String> getAllProviderClasses() {
         return ALL_MANAGER_CLASSES;
+    }
+
+    private List<String> getShorthands() {
+        return shorthands;
+    }
+
+    private String getProviderName() {
+        return providerName;
     }
 }

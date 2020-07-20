@@ -41,7 +41,6 @@ import static grakn.core.core.Schema.EdgeProperty.ROLE_LABEL_ID;
  * role-player.
  * <p>
  * Part of a EquivalentFragmentSet, along with InRolePlayerFragment.
- *
  */
 public class OutRolePlayerFragment extends AbstractRolePlayerFragment {
 

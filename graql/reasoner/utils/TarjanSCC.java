@@ -37,16 +37,16 @@ import java.util.stream.Collectors;
  *
  * @param <T> type of the graph node
  */
-public  class TarjanSCC<T> {
+public class TarjanSCC<T> {
 
     private final Set<T> visited = new HashSet<>();
     private final Stack<T> stack = new Stack<>();
     private final HashMap<T, Integer> lowLink = new HashMap<>();
 
     private final List<Set<T>> scc = new ArrayList<>();
-    private int pre = 0;
-
     private final HashMultimap<T, T> graph;
+    private final HashMultimap<T, T> successors = HashMultimap.create();
+    private int pre = 0;
 
     public TarjanSCC(HashMultimap<T, T> graph) {
         this.graph = graph;
@@ -55,23 +55,22 @@ public  class TarjanSCC<T> {
         }
     }
 
-    public List<Set<T>> getSCC(){ return scc;}
+    public List<Set<T>> getSCC() { return scc;}
 
     /**
      * A cycle isa a connected component that has more than one vertex or a single vertex linked to itself.
+     *
      * @return list of cycles in the graph
      */
     public List<Set<T>> getCycles() {
         return scc.stream().filter(cc ->
-                cc.size() > 1
-                        || graph.get(Iterables.getOnlyElement(cc)).contains(Iterables.getOnlyElement(cc))
+                                           cc.size() > 1
+                                                   || graph.get(Iterables.getOnlyElement(cc)).contains(Iterables.getOnlyElement(cc))
         )
                 .collect(Collectors.toList());
     }
 
-    private final HashMultimap<T, T> successors = HashMultimap.create();
-
-    public HashMultimap<T, T> successorMap(){ return successors;}
+    public HashMultimap<T, T> successorMap() { return successors;}
 
     private void dfs(T node) {
         visited.add(node);

@@ -61,7 +61,7 @@ public class LazyMergingStreamTest {
 
     @Test
     public void whenoneInnerStreamsEmptyNoErrorIsThrown() {
-        Stream<Stream<Integer>> emptyStream = Stream.of(Stream.of(1,2), Stream.empty(), Stream.of(3,4));
+        Stream<Stream<Integer>> emptyStream = Stream.of(Stream.of(1, 2), Stream.empty(), Stream.of(3, 4));
         LazyMergingStream<Integer> mergingStream = new LazyMergingStream<>(emptyStream);
         long count = mergingStream.flatStream().count();
         assertEquals(4, count);

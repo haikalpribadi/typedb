@@ -64,7 +64,7 @@ public class AnswerUtil {
                             Sets.newHashSet(
                                     concept.asSchemaConcept(),
                                     otherConcept.asSchemaConcept())
-                            )
+                                                                     )
                     );
                     entryMap.put(var, topType);
                 }

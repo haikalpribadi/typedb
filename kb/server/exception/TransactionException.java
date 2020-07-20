@@ -40,11 +40,6 @@ public class TransactionException extends GraknException {
         super(error, e);
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
-
     public static TransactionException create(String error) {
         return new TransactionException(error);
     }
@@ -93,12 +88,16 @@ public class TransactionException extends GraknException {
         return new TransactionException(ErrorMessage.TRANSACTION_CHANGED_THREAD.getMessage());
     }
 
-
     /**
      * Thrown when creating an invalid KeyspaceImpl
      */
     public static TransactionException invalidKeyspaceName(String keyspace) {
         return create(ErrorMessage.INVALID_KEYSPACE_NAME.getMessage(keyspace));
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
     }
 
 }

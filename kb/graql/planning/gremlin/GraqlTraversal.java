@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import grakn.core.kb.concept.api.ConceptId;
 import graql.lang.statement.Variable;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.Map;

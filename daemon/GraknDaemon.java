@@ -53,6 +53,11 @@ public class GraknDaemon {
     private final Storage storageExecutor;
     private final Server serverExecutor;
 
+    private GraknDaemon(Storage storageExecutor, Server serverExecutor) {
+        this.storageExecutor = storageExecutor;
+        this.serverExecutor = serverExecutor;
+    }
+
     /**
      * Main function of the GraknDaemon. It is meant to be invoked by the 'grakn' bash script.
      * You should have 'grakn.dir' and 'grakn.conf' Java properties set.
@@ -80,11 +85,6 @@ public class GraknDaemon {
             System.err.println(ex.getMessage());
             System.exit(1);
         }
-    }
-
-    private GraknDaemon(Storage storageExecutor, Server serverExecutor) {
-        this.storageExecutor = storageExecutor;
-        this.serverExecutor = serverExecutor;
     }
 
     /**

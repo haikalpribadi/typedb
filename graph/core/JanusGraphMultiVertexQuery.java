@@ -38,14 +38,13 @@ import java.util.Map;
  * Note, that the #limit(int) constraint applies to each individual result set.
  *
  * see JanusGraphVertexQuery
-
  */
 public interface JanusGraphMultiVertexQuery<Q extends JanusGraphMultiVertexQuery<Q>> extends BaseVertexQuery<Q> {
 
-   /* ---------------------------------------------------------------
-    * Query Specification
-    * ---------------------------------------------------------------
-    */
+    /* ---------------------------------------------------------------
+     * Query Specification
+     * ---------------------------------------------------------------
+     */
 
     /**
      * Adds the given vertex to the set of vertices against which to execute this query.
@@ -104,10 +103,10 @@ public interface JanusGraphMultiVertexQuery<Q extends JanusGraphMultiVertexQuery
     @Override
     Q orderBy(String key, Order order);
 
-   /* ---------------------------------------------------------------
-    * Query execution
-    * ---------------------------------------------------------------
-    */
+    /* ---------------------------------------------------------------
+     * Query execution
+     * ---------------------------------------------------------------
+     */
 
     /**
      * Returns an iterable over all incident edges that match this query for each vertex

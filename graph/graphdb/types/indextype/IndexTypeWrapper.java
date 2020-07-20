@@ -35,6 +35,9 @@ import java.util.Map;
 public abstract class IndexTypeWrapper implements IndexType {
 
     protected final SchemaSource base;
+    private volatile Map<PropertyKey, IndexField> fieldMap = null;
+    private volatile boolean cachedTypeConstraint = false;
+    private volatile JanusGraphSchemaType schemaTypeConstraint = null;
 
     IndexTypeWrapper(SchemaSource base) {
         Preconditions.checkNotNull(base);
@@ -76,8 +79,6 @@ public abstract class IndexTypeWrapper implements IndexType {
         return base.name();
     }
 
-    private volatile Map<PropertyKey, IndexField> fieldMap = null;
-
     @Override
     public IndexField getField(PropertyKey key) {
         Map<PropertyKey, IndexField> result = fieldMap;
@@ -91,9 +92,6 @@ public abstract class IndexTypeWrapper implements IndexType {
         }
         return result.get(key);
     }
-
-    private volatile boolean cachedTypeConstraint = false;
-    private volatile JanusGraphSchemaType schemaTypeConstraint = null;
 
     @Override
     public boolean hasSchemaTypeConstraint() {

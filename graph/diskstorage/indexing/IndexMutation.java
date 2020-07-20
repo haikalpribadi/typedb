@@ -37,12 +37,11 @@ public class IndexMutation extends Mutation<IndexEntry, IndexEntry> {
 
     private final KeyInformation.StoreRetriever storeRetriever;
     private final boolean isNew;
-    private boolean isDeleted;
-
     private final Function<IndexEntry, Object> entryConversionFunction =
             indexEntry -> isCollection(indexEntry.field) ?
                     new AbstractMap.SimpleEntry<>(indexEntry.field, indexEntry.value) :
                     indexEntry.field;
+    private boolean isDeleted;
 
     public IndexMutation(KeyInformation.StoreRetriever storeRetriever, boolean isNew, boolean isDeleted) {
         super();
@@ -50,6 +49,28 @@ public class IndexMutation extends Mutation<IndexEntry, IndexEntry> {
         this.storeRetriever = storeRetriever;
         this.isNew = isNew;
         this.isDeleted = isDeleted;
+    }
+
+    private static int determineTTL(List<IndexEntry> additions) {
+        if (additions == null || additions.isEmpty()) {
+            return 0;
+        }
+
+        int ttl = -1;
+        for (IndexEntry add : additions) {
+            int ittl = 0;
+            if (add.hasMetaData()) {
+                Preconditions.checkArgument(add.getMetaData().size() == 1 && add.getMetaData().containsKey(EntryMetaData.TTL),
+                                            "Index only supports TTL meta data. Found: %s", add.getMetaData());
+                ittl = (Integer) add.getMetaData().get(EntryMetaData.TTL);
+            }
+            if (ttl < 0) {
+                ttl = ittl;
+            }
+            Preconditions.checkArgument(ttl == ittl, "Index only supports uniform TTL values across all " +
+                    "index fields, but got additions: %s", additions);
+        }
+        return ttl;
     }
 
     public void merge(IndexMutation m) {
@@ -87,28 +108,6 @@ public class IndexMutation extends Mutation<IndexEntry, IndexEntry> {
 
     public int determineTTL() {
         return hasDeletions() ? 0 : determineTTL(getAdditions());
-    }
-
-    private static int determineTTL(List<IndexEntry> additions) {
-        if (additions == null || additions.isEmpty()) {
-            return 0;
-        }
-
-        int ttl = -1;
-        for (IndexEntry add : additions) {
-            int ittl = 0;
-            if (add.hasMetaData()) {
-                Preconditions.checkArgument(add.getMetaData().size() == 1 && add.getMetaData().containsKey(EntryMetaData.TTL),
-                        "Index only supports TTL meta data. Found: %s", add.getMetaData());
-                ittl = (Integer) add.getMetaData().get(EntryMetaData.TTL);
-            }
-            if (ttl < 0) {
-                ttl = ittl;
-            }
-            Preconditions.checkArgument(ttl == ittl, "Index only supports uniform TTL values across all " +
-                    "index fields, but got additions: %s", additions);
-        }
-        return ttl;
     }
 
 }

@@ -271,8 +271,8 @@ public class ComputeExecutorImpl implements ComputeExecutor {
     /**
      * Helper method to intialise the vertex program for compute statistics queries
      *
-     * @param query          representing the compute query
-     * @param targetTypes    representing the attribute types in which the statistics computation is targeted for
+     * @param query           representing the compute query
+     * @param targetTypes     representing the attribute types in which the statistics computation is targeted for
      * @param targetValueType representing the value type of the target attribute types
      * @return an object which is a subclass of VertexProgram
      */
@@ -284,7 +284,7 @@ public class ComputeExecutorImpl implements ComputeExecutor {
     /**
      * Helper method to initialise the MapReduce algorithm for compute statistics queries
      *
-     * @param targetTypes    representing the attribute types in which the statistics computation is targeted for
+     * @param targetTypes     representing the attribute types in which the statistics computation is targeted for
      * @param targetValueType representing the value type of the target attribute types
      * @return an object which is a subclass of StatisticsMapReduce
      */
@@ -462,8 +462,8 @@ public class ComputeExecutorImpl implements ComputeExecutor {
         Set<LabelId> targetTypeLabelIDs = convertLabelsToIds(targetTypeLabels);
 
         ComputerResult computerResult = compute(new DegreeVertexProgram(targetTypeLabelIDs),
-                new DegreeDistributionMapReduce(targetTypeLabelIDs, DegreeVertexProgram.DEGREE),
-                scopeTypeLabelIDs);
+                                                new DegreeDistributionMapReduce(targetTypeLabelIDs, DegreeVertexProgram.DEGREE),
+                                                scopeTypeLabelIDs);
 
         Map<Long, Set<ConceptId>> centralityMap = computerResult.memory().get(DegreeDistributionMapReduce.class.getName());
 
@@ -511,8 +511,8 @@ public class ComputeExecutorImpl implements ComputeExecutor {
 
         try {
             result = compute(new CorenessVertexProgram(k),
-                    new DegreeDistributionMapReduce(targetTypeLabelIDs, CorenessVertexProgram.CORENESS),
-                    scopeTypeLabelIDs);
+                             new DegreeDistributionMapReduce(targetTypeLabelIDs, CorenessVertexProgram.CORENESS),
+                             scopeTypeLabelIDs);
         } catch (NoResultException e) {
             return Stream.empty();
         }
@@ -555,8 +555,7 @@ public class ComputeExecutorImpl implements ComputeExecutor {
         GraknMapReduce<?> mapReduce;
         if (restrictSize) {
             mapReduce = new ClusterMemberMapReduce(ConnectedComponentsVertexProgram.CLUSTER_LABEL, query.where().size().get());
-        }
-        else mapReduce = new ClusterMemberMapReduce(ConnectedComponentsVertexProgram.CLUSTER_LABEL);
+        } else mapReduce = new ClusterMemberMapReduce(ConnectedComponentsVertexProgram.CLUSTER_LABEL);
 
         Memory memory = compute(vertexProgram, mapReduce, scopeTypeLabelIDs).memory();
         Map<String, Set<ConceptId>> result = memory.get(mapReduce.getClass().getName());
@@ -744,10 +743,10 @@ public class ComputeExecutorImpl implements ComputeExecutor {
         );
         return targetLabels.stream()
                 .flatMap(attributeType ->
-                        scopeLabels.stream()
-                                .map(type -> patternFunction.apply(attributeType, type))
-                                .map(pattern -> Graql.and(Collections.singleton(pattern)))
-                                .flatMap(pattern -> traversalExecutor.traverse(pattern))
+                                 scopeLabels.stream()
+                                         .map(type -> patternFunction.apply(attributeType, type))
+                                         .map(pattern -> Graql.and(Collections.singleton(pattern)))
+                                         .flatMap(pattern -> traversalExecutor.traverse(pattern))
                 ).findFirst().isPresent();
     }
 
@@ -796,6 +795,7 @@ public class ComputeExecutorImpl implements ComputeExecutor {
             return subTypes;
         }
     }
+
     /**
      * Helper method to get the labels of the type in the query scope
      *

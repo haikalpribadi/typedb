@@ -19,7 +19,7 @@ package grakn.core.graph.core;
 
 import grakn.core.graph.core.schema.JanusGraphManagement;
 
-public interface JanusGraph extends AutoCloseable{
+public interface JanusGraph extends AutoCloseable {
 
     /* ---------------------------------------------------------------
      * Transactions and general admin

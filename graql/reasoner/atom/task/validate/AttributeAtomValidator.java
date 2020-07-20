@@ -32,6 +32,7 @@ import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Type;
 import grakn.core.kb.graql.exception.GraqlSemanticException;
 import graql.lang.statement.Variable;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ public class AttributeAtomValidator implements AtomValidator<AttributeAtom> {
 
     private final BasicAtomValidator basicValidator;
 
-    public AttributeAtomValidator(){
+    public AttributeAtomValidator() {
         this.basicValidator = new BasicAtomValidator();
     }
 
@@ -53,17 +54,17 @@ public class AttributeAtomValidator implements AtomValidator<AttributeAtom> {
     }
 
     @Override
-    public Set<String> validateAsRuleHead(AttributeAtom atom, Rule rule, ReasoningContext ctx){
+    public Set<String> validateAsRuleHead(AttributeAtom atom, Rule rule, ReasoningContext ctx) {
         Set<String> errors = basicValidator.validateAsRuleHead(atom, rule, ctx);
         SchemaConcept type = atom.getSchemaConcept();
         Set<ValuePredicate> multiPredicate = atom.getMultiPredicate();
 
-        if ( type == null || multiPredicate.size() > 1){
+        if (type == null || multiPredicate.size() > 1) {
             errors.add(ErrorMessage.VALIDATION_RULE_ILLEGAL_HEAD_ATTRIBUTE_WITH_AMBIGUOUS_PREDICATES.getMessage(rule.then(), rule.label()));
         }
 
         Variable attributeVar = atom.getAttributeVariable();
-        if (multiPredicate.isEmpty()){
+        if (multiPredicate.isEmpty()) {
             boolean predicateBound = atom.getParentQuery().getAtoms(Atom.class)
                     .filter(at -> !at.equals(atom))
                     .anyMatch(at -> at.getVarNames().contains(attributeVar));
@@ -83,8 +84,8 @@ public class AttributeAtomValidator implements AtomValidator<AttributeAtom> {
 
         multiPredicate.stream()
                 .filter(p -> !p.getPredicate().isValueEquality())
-                .forEach( p ->
-                        errors.add(ErrorMessage.VALIDATION_RULE_ILLEGAL_HEAD_ATTRIBUTE_WITH_NONSPECIFIC_PREDICATE.getMessage(rule.then(), rule.label()))
+                .forEach(p ->
+                                 errors.add(ErrorMessage.VALIDATION_RULE_ILLEGAL_HEAD_ATTRIBUTE_WITH_NONSPECIFIC_PREDICATE.getMessage(rule.then(), rule.label()))
                 );
         return errors;
     }
@@ -95,7 +96,7 @@ public class AttributeAtomValidator implements AtomValidator<AttributeAtom> {
         Set<String> errors = new HashSet<>();
         if (type == null) return errors;
 
-        if (!type.isAttributeType()){
+        if (!type.isAttributeType()) {
             errors.add(ErrorMessage.VALIDATION_RULE_INVALID_ATTRIBUTE_TYPE.getMessage(ruleLabel, type.label()));
             return errors;
         }
@@ -103,7 +104,7 @@ public class AttributeAtomValidator implements AtomValidator<AttributeAtom> {
         Type ownerType = atom.getParentQuery().getUnambiguousType(atom.getVarName(), false);
 
         if (ownerType != null
-                && ownerType.has().noneMatch(rt -> rt.equals(type.asAttributeType()))){
+                && ownerType.has().noneMatch(rt -> rt.equals(type.asAttributeType()))) {
             errors.add(ErrorMessage.VALIDATION_RULE_ATTRIBUTE_OWNER_CANNOT_HAVE_ATTRIBUTE.getMessage(ruleLabel, type.label(), ownerType.label()));
         }
         return errors;

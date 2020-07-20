@@ -56,13 +56,11 @@ import java.util.stream.Stream;
 
 public class BackendTransaction implements LoggableTransaction {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BackendTransaction.class);
-    private static final int MIN_TASKS_TO_PARALLELIZE = 2;
-
     //Assumes 64 bit key length as specified in IDManager
     public static final StaticBuffer EDGESTORE_MIN_KEY = BufferUtil.zeroBuffer(8);
     public static final StaticBuffer EDGESTORE_MAX_KEY = BufferUtil.oneBuffer(8);
-
+    private static final Logger LOG = LoggerFactory.getLogger(BackendTransaction.class);
+    private static final int MIN_TASKS_TO_PARALLELIZE = 2;
     private final CacheTransaction storeTx;
     private final BaseTransactionConfig txConfig;
     private final StoreFeatures storeFeatures;
@@ -257,37 +255,6 @@ public class BackendTransaction implements LoggableTransaction {
         }
     }
 
-    private class SliceQueryRunner implements Runnable {
-        final KeySliceQuery kq;
-        final CountDownLatch doneSignal;
-        final AtomicInteger failureCount;
-        final Object[] resultArray;
-        final int resultPosition;
-
-        private SliceQueryRunner(KeySliceQuery kq, CountDownLatch doneSignal, AtomicInteger failureCount,
-                                 Object[] resultArray, int resultPosition) {
-            this.kq = kq;
-            this.doneSignal = doneSignal;
-            this.failureCount = failureCount;
-            this.resultArray = resultArray;
-            this.resultPosition = resultPosition;
-        }
-
-        @Override
-        public void run() {
-            try {
-                List<Entry> result;
-                result = edgeStoreQuery(kq);
-                resultArray[resultPosition] = result;
-            } catch (Exception e) {
-                failureCount.incrementAndGet();
-                LOG.warn("Individual query in multi-transaction failed: ", e);
-            } finally {
-                doneSignal.countDown();
-            }
-        }
-    }
-
     public KeyIterator edgeStoreKeys(SliceQuery sliceQuery) {
         if (!storeFeatures.hasScan()) {
             throw new UnsupportedOperationException("The configured storage backend does not support global graph operations - use Faunus instead");
@@ -369,6 +336,53 @@ public class BackendTransaction implements LoggableTransaction {
         });
     }
 
+    public Long totals(String index, RawQuery query) {
+        IndexTransaction indexTx = getIndexTransaction(index);
+        return executeRead(new TotalsCallable(query, indexTx));
+    }
+
+    private <V> V executeRead(Callable<V> exe) throws JanusGraphException {
+        try {
+            return BackendOperation.execute(exe, maxReadTime);
+        } catch (JanusGraphException e) {
+            // support traversal interruption
+            // TODO: Refactor to allow direct propagation of underlying interrupt exception
+            if (Thread.interrupted()) throw new TraversalInterruptedException();
+            throw e;
+        }
+    }
+
+    private class SliceQueryRunner implements Runnable {
+        final KeySliceQuery kq;
+        final CountDownLatch doneSignal;
+        final AtomicInteger failureCount;
+        final Object[] resultArray;
+        final int resultPosition;
+
+        private SliceQueryRunner(KeySliceQuery kq, CountDownLatch doneSignal, AtomicInteger failureCount,
+                                 Object[] resultArray, int resultPosition) {
+            this.kq = kq;
+            this.doneSignal = doneSignal;
+            this.failureCount = failureCount;
+            this.resultArray = resultArray;
+            this.resultPosition = resultPosition;
+        }
+
+        @Override
+        public void run() {
+            try {
+                List<Entry> result;
+                result = edgeStoreQuery(kq);
+                resultArray[resultPosition] = result;
+            } catch (Exception e) {
+                failureCount.incrementAndGet();
+                LOG.warn("Individual query in multi-transaction failed: ", e);
+            } finally {
+                doneSignal.countDown();
+            }
+        }
+    }
+
     private class TotalsCallable implements Callable<Long> {
         final private RawQuery query;
         final private IndexTransaction indexTx;
@@ -386,22 +400,6 @@ public class BackendTransaction implements LoggableTransaction {
         @Override
         public String toString() {
             return "Totals";
-        }
-    }
-
-    public Long totals(String index, RawQuery query) {
-        IndexTransaction indexTx = getIndexTransaction(index);
-        return executeRead(new TotalsCallable(query, indexTx));
-    }
-
-    private <V> V executeRead(Callable<V> exe) throws JanusGraphException {
-        try {
-            return BackendOperation.execute(exe, maxReadTime);
-        } catch (JanusGraphException e) {
-            // support traversal interruption
-            // TODO: Refactor to allow direct propagation of underlying interrupt exception
-            if (Thread.interrupted()) throw new TraversalInterruptedException();
-            throw e;
         }
     }
 

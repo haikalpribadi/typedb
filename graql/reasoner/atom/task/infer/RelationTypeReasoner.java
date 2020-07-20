@@ -46,6 +46,7 @@ import grakn.core.kb.keyspace.KeyspaceStatistics;
 import graql.lang.property.RelationProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -205,7 +206,8 @@ public class RelationTypeReasoner implements TypeReasoner<RelationAtom> {
      */
     private RelationAtom inferType(RelationAtom atom, ConceptMap sub, ReasoningContext ctx) {
         if (atom.getTypeLabel() != null) return atom;
-        if (sub.containsVar(atom.getPredicateVariable())) return atom.addType(sub.get(atom.getPredicateVariable()).asType());
+        if (sub.containsVar(atom.getPredicateVariable()))
+            return atom.addType(sub.get(atom.getPredicateVariable()).asType());
         List<Type> relationTypes = inferPossibleTypes(atom, sub, ctx);
         if (relationTypes.size() == 1) return atom.addType(Iterables.getOnlyElement(relationTypes));
         return atom;

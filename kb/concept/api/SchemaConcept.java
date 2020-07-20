@@ -19,8 +19,6 @@
 package grakn.core.kb.concept.api;
 
 
-import com.sun.xml.internal.bind.v2.TODO;
-
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import java.util.stream.Stream;

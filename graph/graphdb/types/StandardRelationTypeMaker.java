@@ -44,12 +44,11 @@ public abstract class StandardRelationTypeMaker implements RelationTypeMaker {
 
     protected final StandardJanusGraphTx tx;
     private final AttributeHandler attributeHandler;
-
+    private final List<PropertyKey> sortKey;
+    private final List<PropertyKey> signature;
     private String name;
     private boolean isInvisible;
-    private final List<PropertyKey> sortKey;
     private Order sortOrder;
-    private final List<PropertyKey> signature;
     private Multiplicity multiplicity;
     private SchemaStatus status = SchemaStatus.ENABLED;
 
@@ -66,6 +65,18 @@ public abstract class StandardRelationTypeMaker implements RelationTypeMaker {
         multiplicity = Multiplicity.MULTI;
     }
 
+    private static long[] checkSignature(List<PropertyKey> sig) {
+        Preconditions.checkArgument(sig.size() == (Sets.newHashSet(sig)).size(), "Signature and sort key cannot contain duplicate types");
+        long[] signature = new long[sig.size()];
+        for (int i = 0; i < sig.size(); i++) {
+            PropertyKey key = sig.get(i);
+            Preconditions.checkNotNull(key);
+            Preconditions.checkArgument(!((PropertyKey) key).dataType().equals(Object.class),
+                                        "Signature and sort keys must have a proper declared datatype: %s", key.name());
+            signature[i] = key.longId();
+        }
+        return signature;
+    }
 
     public String getName() {
         return this.name;
@@ -86,29 +97,16 @@ public abstract class StandardRelationTypeMaker implements RelationTypeMaker {
         Preconditions.checkArgument(sortOrder == Order.ASC || hasSortKey(), "Must define a sort key to use ordering");
         checkSignature(signature);
         Preconditions.checkArgument(Sets.intersection(Sets.newHashSet(sortKey), Sets.newHashSet(signature)).isEmpty(),
-                "Signature and sort key must be disjoined");
+                                    "Signature and sort key must be disjoined");
         Preconditions.checkArgument(!hasSortKey() || !multiplicity.isConstrained(), "Cannot define a sort-key on constrained edge labels");
     }
 
     private long[] checkSortKey(List<PropertyKey> sig) {
         for (PropertyKey key : sig) {
             Preconditions.checkArgument(attributeHandler.isOrderPreservingDatatype(key.dataType()),
-                    "Key must have an order-preserving data type to be used as sort key: " + key);
+                                        "Key must have an order-preserving data type to be used as sort key: " + key);
         }
         return checkSignature(sig);
-    }
-
-    private static long[] checkSignature(List<PropertyKey> sig) {
-        Preconditions.checkArgument(sig.size() == (Sets.newHashSet(sig)).size(), "Signature and sort key cannot contain duplicate types");
-        long[] signature = new long[sig.size()];
-        for (int i = 0; i < sig.size(); i++) {
-            PropertyKey key = sig.get(i);
-            Preconditions.checkNotNull(key);
-            Preconditions.checkArgument(!((PropertyKey) key).dataType().equals(Object.class),
-                    "Signature and sort keys must have a proper declared datatype: %s", key.name());
-            signature[i] = key.longId();
-        }
-        return signature;
     }
 
     protected final TypeDefinitionMap makeDefinition() {

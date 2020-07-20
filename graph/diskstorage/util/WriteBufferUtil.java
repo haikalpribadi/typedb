@@ -30,7 +30,7 @@ public class WriteBufferUtil {
     }
 
     public static WriteBuffer put(WriteBuffer out, StaticBuffer in) {
-        for (int i=0;i<in.length();i++) out.putByte(in.getByte(i));
+        for (int i = 0; i < in.length(); i++) out.putByte(in.getByte(i));
         return out;
     }
 

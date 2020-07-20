@@ -24,6 +24,7 @@ import grakn.core.concept.answer.Explanation;
 public interface ExplanationCache {
     /**
      * Record the explanation tree for a computed ConceptMap
+     *
      * @param answer
      * @param explanation
      */

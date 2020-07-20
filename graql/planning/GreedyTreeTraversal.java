@@ -43,8 +43,8 @@ public class GreedyTreeTraversal {
     // standard tree traversal from the root node
     // always visit the branch/node with smaller cost
     static List<Fragment> greedyTraversal(Arborescence<Node> arborescence,
-                                              Map<NodeId, Node> nodes,
-                                              Map<Node, Map<Node, Fragment>> edgeFragmentChildToParent) {
+                                          Map<NodeId, Node> nodes,
+                                          Map<Node, Map<Node, Fragment>> edgeFragmentChildToParent) {
 
         List<Fragment> plan = new LinkedList<>();
 
@@ -65,14 +65,13 @@ public class GreedyTreeTraversal {
         while (!reachableNodes.isEmpty()) {
 
             Node nodeWithMinCost = reachableNodes.stream().min(Comparator.comparingDouble(node ->
-                    branchWeight(node, arborescence, edgesParentToChild, edgeFragmentChildToParent))).orElse(null);
+                                                                                                  branchWeight(node, arborescence, edgesParentToChild, edgeFragmentChildToParent))).orElse(null);
 
             Preconditions.checkNotNull(nodeWithMinCost, "reachableNodes is never empty, so there is always a minimum");
 
             // add fragments without dependencies first (eg. could be the index fragments)
             nodeFragmentsWithoutDependencies(nodeWithMinCost).forEach(fragment -> {
-                if (fragment.hasFixedFragmentCost()) { plan.add(0, fragment); }
-                else { plan.add(fragment); }
+                if (fragment.hasFixedFragmentCost()) { plan.add(0, fragment); } else { plan.add(fragment); }
             });
             nodeWithMinCost.getFragmentsWithoutDependency().clear();
 
@@ -82,8 +81,7 @@ public class GreedyTreeTraversal {
 
             // add node's dependant fragments
             nodeVisitedDependenciesFragments(nodeWithMinCost, nodes).forEach(frag -> {
-                if (frag.hasFixedFragmentCost()) { plan.add(0, frag); }
-                else { plan.add(frag); }
+                if (frag.hasFixedFragmentCost()) { plan.add(0, frag); } else { plan.add(frag); }
             });
 
             reachableNodes.remove(nodeWithMinCost);
@@ -113,7 +111,7 @@ public class GreedyTreeTraversal {
             final double[] weight = {nodeWeight};
             if (edgesParentToChild.containsKey(node)) {
                 edgesParentToChild.get(node).forEach(child ->
-                        weight[0] += branchWeight(child, arborescence, edgesParentToChild, edgeFragmentChildToParent));
+                                                             weight[0] += branchWeight(child, arborescence, edgesParentToChild, edgeFragmentChildToParent));
             }
             branchWeight = weight[0];
             node.setBranchWeight(branchWeight);

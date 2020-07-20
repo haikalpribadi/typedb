@@ -94,6 +94,16 @@ public class ManagementSystem implements JanusGraphManagement {
         this.isOpen = true;
     }
 
+    private static String composeRelationTypeIndexName(RelationType type, String name) {
+        return String.valueOf(type.longId()) + RELATION_INDEX_SEPARATOR + name;
+    }
+
+    public static IndexType getGraphIndexDirect(String name, StandardJanusGraphTx transaction) {
+        JanusGraphSchemaVertex v = transaction.getSchemaVertex(JanusGraphSchemaCategory.GRAPHINDEX.getSchemaName(name));
+        if (v == null) return null;
+        return v.asIndexType();
+    }
+
     private void ensureOpen() {
         Preconditions.checkState(isOpen, "This management system instance has been closed");
     }
@@ -119,6 +129,12 @@ public class ManagementSystem implements JanusGraphManagement {
         return isOpen;
     }
 
+    // ###### INDEXING SYSTEM #####################
+
+    /* --------------
+    Type Indexes
+     --------------- */
+
     private void close() {
         isOpen = false;
     }
@@ -126,12 +142,6 @@ public class ManagementSystem implements JanusGraphManagement {
     private JanusGraphEdge addSchemaEdge(JanusGraphVertex out, JanusGraphVertex in, TypeDefinitionCategory def, Object modifier) {
         return transaction.addSchemaEdge(out, in, def, modifier);
     }
-
-    // ###### INDEXING SYSTEM #####################
-
-    /* --------------
-    Type Indexes
-     --------------- */
 
     public JanusGraphSchemaElement getSchemaElement(long id) {
         JanusGraphVertex v = transaction.getVertex(id);
@@ -176,9 +186,9 @@ public class ManagementSystem implements JanusGraphManagement {
         Preconditions.checkArgument(sortKeys.length > 0, "Need to specify sort keys");
         for (RelationType key : sortKeys) Preconditions.checkArgument(key != null, "Keys cannot be null");
         Preconditions.checkArgument(!(type instanceof EdgeLabel) || !((EdgeLabel) type).isUnidirected() || direction == Direction.OUT,
-                "Can only index uni-directed labels in the out-direction: %s", type);
+                                    "Can only index uni-directed labels in the out-direction: %s", type);
         Preconditions.checkArgument(!((InternalRelationType) type).multiplicity().isUnique(direction),
-                "The relation type [%s] has a multiplicity or cardinality constraint in direction [%s] and can therefore not be indexed", type, direction);
+                                    "The relation type [%s] has a multiplicity or cardinality constraint in direction [%s] and can therefore not be indexed", type, direction);
 
         String composedName = composeRelationTypeIndexName(type, name);
         StandardRelationTypeMaker maker;
@@ -211,10 +221,6 @@ public class ManagementSystem implements JanusGraphManagement {
         return new RelationTypeIndexWrapper((InternalRelationType) typeIndex);
     }
 
-    private static String composeRelationTypeIndexName(RelationType type, String name) {
-        return String.valueOf(type.longId()) + RELATION_INDEX_SEPARATOR + name;
-    }
-
     @Override
     public boolean containsRelationIndex(RelationType type, String name) {
         return getRelationIndex(type, name) != null;
@@ -232,20 +238,14 @@ public class ManagementSystem implements JanusGraphManagement {
         return new RelationTypeIndexWrapper((InternalRelationType) v);
     }
 
-    @Override
-    public Iterable<RelationTypeIndex> getRelationIndexes(RelationType type) {
-        Preconditions.checkArgument(type instanceof InternalRelationType, "Invalid relation type provided: %s", type);
-        return Iterables.transform(Iterables.filter(((InternalRelationType) type).getRelationIndexes(), internalRelationType -> !type.equals(internalRelationType)), RelationTypeIndexWrapper::new);
-    }
-
     /* --------------
     Graph Indexes
      --------------- */
 
-    public static IndexType getGraphIndexDirect(String name, StandardJanusGraphTx transaction) {
-        JanusGraphSchemaVertex v = transaction.getSchemaVertex(JanusGraphSchemaCategory.GRAPHINDEX.getSchemaName(name));
-        if (v == null) return null;
-        return v.asIndexType();
+    @Override
+    public Iterable<RelationTypeIndex> getRelationIndexes(RelationType type) {
+        Preconditions.checkArgument(type instanceof InternalRelationType, "Invalid relation type provided: %s", type);
+        return Iterables.transform(Iterables.filter(((InternalRelationType) type).getRelationIndexes(), internalRelationType -> !type.equals(internalRelationType)), RelationTypeIndexWrapper::new);
     }
 
     @Override
@@ -297,12 +297,12 @@ public class ManagementSystem implements JanusGraphManagement {
     @Override
     public void addIndexKey(JanusGraphIndex index, PropertyKey key, Parameter... parameters) {
         Preconditions.checkArgument(key != null && index instanceof JanusGraphIndexWrapper
-                && !(key instanceof BaseKey), "Need to provide valid index and key");
+                                            && !(key instanceof BaseKey), "Need to provide valid index and key");
         if (parameters == null) parameters = new Parameter[0];
         IndexType indexType = ((JanusGraphIndexWrapper) index).getBaseIndex();
         Preconditions.checkArgument(indexType instanceof MixedIndexType, "Can only add keys to an external index, not %s", index.name());
         Preconditions.checkArgument(indexType instanceof IndexTypeWrapper && key instanceof JanusGraphSchemaVertex
-                && ((IndexTypeWrapper) indexType).getSchemaBase() instanceof JanusGraphSchemaVertex);
+                                            && ((IndexTypeWrapper) indexType).getSchemaBase() instanceof JanusGraphSchemaVertex);
 
         JanusGraphSchemaVertex indexVertex = (JanusGraphSchemaVertex) ((IndexTypeWrapper) indexType).getSchemaBase();
 
@@ -379,79 +379,9 @@ public class ManagementSystem implements JanusGraphManagement {
         return new IndexBuilder(indexName, ElementCategory.getByClazz(elementType));
     }
 
-    private class IndexBuilder implements JanusGraphManagement.IndexBuilder {
-
-        private final String indexName;
-        private final ElementCategory elementCategory;
-        private boolean unique = false;
-        private JanusGraphSchemaType constraint = null;
-        private final Map<PropertyKey, Parameter[]> keys = new HashMap<>();
-
-        private IndexBuilder(String indexName, ElementCategory elementCategory) {
-            this.indexName = indexName;
-            this.elementCategory = elementCategory;
-        }
-
-        @Override
-        public JanusGraphManagement.IndexBuilder addKey(PropertyKey key) {
-            Preconditions.checkArgument(key instanceof PropertyKeyVertex, "Key must be a user defined key: %s", key);
-            keys.put(key, null);
-            return this;
-        }
-
-        @Override
-        public JanusGraphManagement.IndexBuilder addKey(PropertyKey key, Parameter... parameters) {
-            Preconditions.checkArgument(key instanceof PropertyKeyVertex, "Key must be a user defined key: %s", key);
-            keys.put(key, parameters);
-            return this;
-        }
-
-        @Override
-        public JanusGraphManagement.IndexBuilder indexOnly(JanusGraphSchemaType schemaType) {
-            Preconditions.checkNotNull(schemaType);
-            Preconditions.checkArgument(elementCategory.isValidConstraint(schemaType), "Need to specify a valid schema type for this index definition: %s", schemaType);
-            constraint = schemaType;
-            return this;
-        }
-
-        @Override
-        public JanusGraphManagement.IndexBuilder unique() {
-            unique = true;
-            return this;
-        }
-
-        @Override
-        public JanusGraphIndex buildCompositeIndex() {
-            Preconditions.checkArgument(!keys.isEmpty(), "Need to specify at least one key for the composite index");
-            PropertyKey[] keyArr = new PropertyKey[keys.size()];
-            int pos = 0;
-            for (Map.Entry<PropertyKey, Parameter[]> entry : keys.entrySet()) {
-                Preconditions.checkArgument(entry.getValue() == null, "Cannot specify parameters for composite index: %s", entry.getKey());
-                keyArr[pos++] = entry.getKey();
-            }
-            return createCompositeIndex(indexName, elementCategory, unique, constraint, keyArr);
-        }
-
-        @Override
-        public JanusGraphIndex buildMixedIndex(String backingIndex) {
-            Preconditions.checkArgument(StringUtils.isNotBlank(backingIndex), "Need to specify backing index name");
-            Preconditions.checkArgument(!unique, "An external index cannot be unique");
-
-            JanusGraphIndex index = createMixedIndex(indexName, elementCategory, constraint, backingIndex);
-            for (Map.Entry<PropertyKey, Parameter[]> entry : keys.entrySet()) {
-                addIndexKey(index, entry.getKey(), entry.getValue());
-            }
-            return index;
-        }
-    }
-
     private void updateSchemaVertex(JanusGraphSchemaVertex schemaVertex) {
         transaction.updateSchemaVertex(schemaVertex);
     }
-
-    /* --------------
-    Type Modifiers
-     --------------- */
 
     /**
      * Retrieves the consistency level for a schema element (types and internal indexes)
@@ -467,6 +397,10 @@ public class ManagementSystem implements JanusGraphManagement {
         } else return ConsistencyModifier.DEFAULT;
     }
 
+    /* --------------
+    Type Modifiers
+     --------------- */
+
     @Override
     public Duration getTTL(JanusGraphSchemaType type) {
         Preconditions.checkArgument(type != null);
@@ -481,12 +415,12 @@ public class ManagementSystem implements JanusGraphManagement {
         return Duration.ofSeconds(ttl);
     }
 
-    // ###### TRANSACTION PROXY #########
-
     @Override
     public boolean containsRelationType(String name) {
         return transaction.containsRelationType(name);
     }
+
+    // ###### TRANSACTION PROXY #########
 
     @Override
     public RelationType getRelationType(String name) {
@@ -590,6 +524,72 @@ public class ManagementSystem implements JanusGraphManagement {
     @Override
     public Iterable<VertexLabel> getVertexLabels() {
         return Iterables.filter(QueryUtil.getVertices(transaction, BaseKey.SchemaCategory,
-                JanusGraphSchemaCategory.VERTEXLABEL), VertexLabel.class);
+                                                      JanusGraphSchemaCategory.VERTEXLABEL), VertexLabel.class);
+    }
+
+    private class IndexBuilder implements JanusGraphManagement.IndexBuilder {
+
+        private final String indexName;
+        private final ElementCategory elementCategory;
+        private final Map<PropertyKey, Parameter[]> keys = new HashMap<>();
+        private boolean unique = false;
+        private JanusGraphSchemaType constraint = null;
+
+        private IndexBuilder(String indexName, ElementCategory elementCategory) {
+            this.indexName = indexName;
+            this.elementCategory = elementCategory;
+        }
+
+        @Override
+        public JanusGraphManagement.IndexBuilder addKey(PropertyKey key) {
+            Preconditions.checkArgument(key instanceof PropertyKeyVertex, "Key must be a user defined key: %s", key);
+            keys.put(key, null);
+            return this;
+        }
+
+        @Override
+        public JanusGraphManagement.IndexBuilder addKey(PropertyKey key, Parameter... parameters) {
+            Preconditions.checkArgument(key instanceof PropertyKeyVertex, "Key must be a user defined key: %s", key);
+            keys.put(key, parameters);
+            return this;
+        }
+
+        @Override
+        public JanusGraphManagement.IndexBuilder indexOnly(JanusGraphSchemaType schemaType) {
+            Preconditions.checkNotNull(schemaType);
+            Preconditions.checkArgument(elementCategory.isValidConstraint(schemaType), "Need to specify a valid schema type for this index definition: %s", schemaType);
+            constraint = schemaType;
+            return this;
+        }
+
+        @Override
+        public JanusGraphManagement.IndexBuilder unique() {
+            unique = true;
+            return this;
+        }
+
+        @Override
+        public JanusGraphIndex buildCompositeIndex() {
+            Preconditions.checkArgument(!keys.isEmpty(), "Need to specify at least one key for the composite index");
+            PropertyKey[] keyArr = new PropertyKey[keys.size()];
+            int pos = 0;
+            for (Map.Entry<PropertyKey, Parameter[]> entry : keys.entrySet()) {
+                Preconditions.checkArgument(entry.getValue() == null, "Cannot specify parameters for composite index: %s", entry.getKey());
+                keyArr[pos++] = entry.getKey();
+            }
+            return createCompositeIndex(indexName, elementCategory, unique, constraint, keyArr);
+        }
+
+        @Override
+        public JanusGraphIndex buildMixedIndex(String backingIndex) {
+            Preconditions.checkArgument(StringUtils.isNotBlank(backingIndex), "Need to specify backing index name");
+            Preconditions.checkArgument(!unique, "An external index cannot be unique");
+
+            JanusGraphIndex index = createMixedIndex(indexName, elementCategory, constraint, backingIndex);
+            for (Map.Entry<PropertyKey, Parameter[]> entry : keys.entrySet()) {
+                addIndexKey(index, entry.getKey(), entry.getValue());
+            }
+            return index;
+        }
     }
 }

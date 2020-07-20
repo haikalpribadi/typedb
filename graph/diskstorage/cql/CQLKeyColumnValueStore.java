@@ -90,15 +90,16 @@ import static io.vavr.Predicates.instanceOf;
  */
 public class CQLKeyColumnValueStore implements KeyColumnValueStore {
 
-    private static final String TTL_FUNCTION_NAME = "ttl";
-    private static final String WRITETIME_FUNCTION_NAME = "writetime";
-
     public static final String KEY_COLUMN_NAME = "key";
     public static final String COLUMN_COLUMN_NAME = "column1";
     public static final String VALUE_COLUMN_NAME = "value";
     static final String WRITETIME_COLUMN_NAME = "writetime";
     static final String TTL_COLUMN_NAME = "ttl";
-
+    static final Function<? super Throwable, BackendException> EXCEPTION_MAPPER = cause -> Match(cause).of(
+            Case($(instanceOf(QueryValidationException.class)), PermanentBackendException::new),
+            Case($(), () -> new TemporaryBackendException(cause.getMessage(), false)));
+    private static final String TTL_FUNCTION_NAME = "ttl";
+    private static final String WRITETIME_FUNCTION_NAME = "writetime";
     private static final String KEY_BINDING = "key";
     private static final String COLUMN_BINDING = "column1";
     private static final String VALUE_BINDING = "value";
@@ -109,11 +110,6 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
     private static final String KEY_START_BINDING = "keyStart";
     private static final String KEY_END_BINDING = "keyEnd";
     private static final String LIMIT_BINDING = "maxRows";
-
-    static final Function<? super Throwable, BackendException> EXCEPTION_MAPPER = cause -> Match(cause).of(
-            Case($(instanceOf(QueryValidationException.class)), PermanentBackendException::new),
-            Case($(), () -> new TemporaryBackendException(cause.getMessage(), false)));
-
     private final CQLStoreManager storeManager;
     private final CqlSession session;
     private final String tableName;
@@ -157,61 +153,109 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
         }
 
         this.getSlice = this.session.prepare(selectFrom(this.storeManager.getKeyspaceName(), this.tableName)
-                .column(COLUMN_COLUMN_NAME)
-                .column(VALUE_COLUMN_NAME)
-                .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
-                .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
-                .where(
-                        Relation.column(KEY_COLUMN_NAME).isEqualTo(bindMarker(KEY_BINDING)),
-                        Relation.column(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING)),
-                        Relation.column(COLUMN_COLUMN_NAME).isLessThan(bindMarker(SLICE_END_BINDING))
-                )
-                .limit(bindMarker(LIMIT_BINDING)).build());
+                                                     .column(COLUMN_COLUMN_NAME)
+                                                     .column(VALUE_COLUMN_NAME)
+                                                     .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
+                                                     .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
+                                                     .where(
+                                                             Relation.column(KEY_COLUMN_NAME).isEqualTo(bindMarker(KEY_BINDING)),
+                                                             Relation.column(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING)),
+                                                             Relation.column(COLUMN_COLUMN_NAME).isLessThan(bindMarker(SLICE_END_BINDING))
+                                                     )
+                                                     .limit(bindMarker(LIMIT_BINDING)).build());
 
         this.getKeysRanged = this.session.prepare(selectFrom(this.storeManager.getKeyspaceName(), this.tableName)
-                .column(KEY_COLUMN_NAME)
-                .column(COLUMN_COLUMN_NAME)
-                .column(VALUE_COLUMN_NAME)
-                .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
-                .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
-                .allowFiltering()
-                .where(
-                        Relation.token(KEY_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(KEY_START_BINDING)),
-                        Relation.token(KEY_COLUMN_NAME).isLessThan(bindMarker(KEY_END_BINDING))
-                )
-                .whereColumn(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING))
-                .whereColumn(COLUMN_COLUMN_NAME).isLessThanOrEqualTo(bindMarker(SLICE_END_BINDING))
-                .build());
+                                                          .column(KEY_COLUMN_NAME)
+                                                          .column(COLUMN_COLUMN_NAME)
+                                                          .column(VALUE_COLUMN_NAME)
+                                                          .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
+                                                          .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
+                                                          .allowFiltering()
+                                                          .where(
+                                                                  Relation.token(KEY_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(KEY_START_BINDING)),
+                                                                  Relation.token(KEY_COLUMN_NAME).isLessThan(bindMarker(KEY_END_BINDING))
+                                                          )
+                                                          .whereColumn(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING))
+                                                          .whereColumn(COLUMN_COLUMN_NAME).isLessThanOrEqualTo(bindMarker(SLICE_END_BINDING))
+                                                          .build());
 
         this.getKeysAll = this.session.prepare(selectFrom(this.storeManager.getKeyspaceName(), this.tableName)
-                .column(KEY_COLUMN_NAME)
-                .column(COLUMN_COLUMN_NAME)
-                .column(VALUE_COLUMN_NAME)
-                .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
-                .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
-                .allowFiltering()
-                .whereColumn(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING))
-                .whereColumn(COLUMN_COLUMN_NAME).isLessThan(bindMarker(SLICE_END_BINDING))
-                .build());
+                                                       .column(KEY_COLUMN_NAME)
+                                                       .column(COLUMN_COLUMN_NAME)
+                                                       .column(VALUE_COLUMN_NAME)
+                                                       .function(WRITETIME_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(WRITETIME_COLUMN_NAME)
+                                                       .function(TTL_FUNCTION_NAME, column(VALUE_COLUMN_NAME)).as(TTL_COLUMN_NAME)
+                                                       .allowFiltering()
+                                                       .whereColumn(COLUMN_COLUMN_NAME).isGreaterThanOrEqualTo(bindMarker(SLICE_START_BINDING))
+                                                       .whereColumn(COLUMN_COLUMN_NAME).isLessThan(bindMarker(SLICE_END_BINDING))
+                                                       .build());
 
         this.deleteColumn = this.session.prepare(deleteFrom(this.storeManager.getKeyspaceName(), this.tableName)
-                .usingTimestamp(bindMarker(TIMESTAMP_BINDING))
-                .whereColumn(KEY_COLUMN_NAME).isEqualTo(bindMarker(KEY_BINDING))
-                .whereColumn(COLUMN_COLUMN_NAME).isEqualTo(bindMarker(COLUMN_BINDING))
-                .build());
+                                                         .usingTimestamp(bindMarker(TIMESTAMP_BINDING))
+                                                         .whereColumn(KEY_COLUMN_NAME).isEqualTo(bindMarker(KEY_BINDING))
+                                                         .whereColumn(COLUMN_COLUMN_NAME).isEqualTo(bindMarker(COLUMN_BINDING))
+                                                         .build());
 
         this.insertColumn = this.session.prepare(insertInto(this.storeManager.getKeyspaceName(), this.tableName)
-                .value(KEY_COLUMN_NAME, bindMarker(KEY_BINDING))
-                .value(COLUMN_COLUMN_NAME, bindMarker(COLUMN_BINDING))
-                .value(VALUE_COLUMN_NAME, bindMarker(VALUE_BINDING))
-                .usingTimestamp(bindMarker(TIMESTAMP_BINDING)).build());
+                                                         .value(KEY_COLUMN_NAME, bindMarker(KEY_BINDING))
+                                                         .value(COLUMN_COLUMN_NAME, bindMarker(COLUMN_BINDING))
+                                                         .value(VALUE_COLUMN_NAME, bindMarker(VALUE_BINDING))
+                                                         .usingTimestamp(bindMarker(TIMESTAMP_BINDING)).build());
 
         this.insertColumnWithTTL = this.session.prepare(insertInto(this.storeManager.getKeyspaceName(), this.tableName)
-                .value(KEY_COLUMN_NAME, bindMarker(KEY_BINDING))
-                .value(COLUMN_COLUMN_NAME, bindMarker(COLUMN_BINDING))
-                .value(VALUE_COLUMN_NAME, bindMarker(VALUE_BINDING))
-                .usingTimestamp(bindMarker(TIMESTAMP_BINDING))
-                .usingTtl(bindMarker(TTL_BINDING)).build());
+                                                                .value(KEY_COLUMN_NAME, bindMarker(KEY_BINDING))
+                                                                .value(COLUMN_COLUMN_NAME, bindMarker(COLUMN_BINDING))
+                                                                .value(VALUE_COLUMN_NAME, bindMarker(VALUE_BINDING))
+                                                                .usingTimestamp(bindMarker(TIMESTAMP_BINDING))
+                                                                .usingTtl(bindMarker(TTL_BINDING)).build());
+    }
+
+    private static CreateTableWithOptions compressionOptions(CreateTableWithOptions createTable, Configuration configuration) {
+        if (!configuration.get(CF_COMPRESSION)) {
+            // No compression
+            return createTable.withNoCompression();
+        }
+        String compressionType = configuration.get(CF_COMPRESSION_TYPE);
+        int chunkLengthInKb = configuration.get(CF_COMPRESSION_BLOCK_SIZE);
+
+        return createTable.withOption("compression",
+                                      ImmutableMap.of("class", compressionType, "chunk_length_kb", chunkLengthInKb));
+
+    }
+
+    private static CreateTableWithOptions compactionOptions(CreateTableWithOptions createTable, Configuration configuration) {
+        if (!configuration.has(COMPACTION_STRATEGY)) {
+            return createTable;
+        }
+
+        CompactionStrategy<?> compactionStrategy = Match(configuration.get(COMPACTION_STRATEGY))
+                .of(
+                        Case($("SizeTieredCompactionStrategy"), leveledCompactionStrategy()),
+                        Case($("TimeWindowCompactionStrategy"), timeWindowCompactionStrategy()),
+                        Case($("LeveledCompactionStrategy"), leveledCompactionStrategy()));
+        Iterator<Array<String>> groupedOptions = Array.of(configuration.get(COMPACTION_OPTIONS))
+                .grouped(2);
+
+        for (Array<String> keyValue : groupedOptions) {
+            compactionStrategy = compactionStrategy.withOption(keyValue.get(0), keyValue.get(1));
+        }
+
+        return createTable.withCompaction(compactionStrategy);
+    }
+
+    private static EntryList fromResultSet(ResultSet resultSet, StaticArrayEntry.GetColVal<Tuple3<StaticBuffer, StaticBuffer, Row>, StaticBuffer> getter) {
+        Lazy<ArrayList<Row>> lazyList = Lazy.of(() -> Lists.newArrayList(resultSet));
+
+        // Use the Iterable overload of of ByteBuffer as it's able to allocate
+        // the byte array up front.
+        // To ensure that the Iterator instance is recreated, it is created
+        // within the closure otherwise
+        // the same iterator would be reused and would be exhausted.
+        return StaticArrayEntryList.ofStaticBuffer(() -> Iterator.ofAll(lazyList.get()).map(row -> Tuple.of(
+                StaticArrayBuffer.of(row.getByteBuffer(COLUMN_COLUMN_NAME)),
+                StaticArrayBuffer.of(row.getByteBuffer(VALUE_COLUMN_NAME)),
+                row)),
+                                                   getter);
     }
 
     /**
@@ -250,39 +294,6 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
         this.storeManager.executeOnSession(createTable.build());
     }
 
-    private static CreateTableWithOptions compressionOptions(CreateTableWithOptions createTable, Configuration configuration) {
-        if (!configuration.get(CF_COMPRESSION)) {
-            // No compression
-            return createTable.withNoCompression();
-        }
-        String compressionType = configuration.get(CF_COMPRESSION_TYPE);
-        int chunkLengthInKb = configuration.get(CF_COMPRESSION_BLOCK_SIZE);
-
-        return createTable.withOption("compression",
-                ImmutableMap.of("class", compressionType, "chunk_length_kb", chunkLengthInKb));
-
-    }
-
-    private static CreateTableWithOptions compactionOptions(CreateTableWithOptions createTable, Configuration configuration) {
-        if (!configuration.has(COMPACTION_STRATEGY)) {
-            return createTable;
-        }
-
-        CompactionStrategy<?> compactionStrategy = Match(configuration.get(COMPACTION_STRATEGY))
-                .of(
-                        Case($("SizeTieredCompactionStrategy"), leveledCompactionStrategy()),
-                        Case($("TimeWindowCompactionStrategy"), timeWindowCompactionStrategy()),
-                        Case($("LeveledCompactionStrategy"), leveledCompactionStrategy()));
-        Iterator<Array<String>> groupedOptions = Array.of(configuration.get(COMPACTION_OPTIONS))
-                .grouped(2);
-
-        for (Array<String> keyValue : groupedOptions) {
-            compactionStrategy = compactionStrategy.withOption(keyValue.get(0), keyValue.get(1));
-        }
-
-        return createTable.withCompaction(compactionStrategy);
-    }
-
     @Override
     public void close() {
         this.closer.run();
@@ -296,11 +307,11 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
     @Override
     public EntryList getSlice(KeySliceQuery query, StoreTransaction txh) {
         ResultSet result = this.storeManager.executeOnSession(this.getSlice.bind()
-                .setByteBuffer(KEY_BINDING, query.getKey().asByteBuffer())
-                .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
-                .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
-                .setInt(LIMIT_BINDING, query.getLimit())
-                .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()));
+                                                                      .setByteBuffer(KEY_BINDING, query.getKey().asByteBuffer())
+                                                                      .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
+                                                                      .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
+                                                                      .setInt(LIMIT_BINDING, query.getLimit())
+                                                                      .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()));
 
         return fromResultSet(result, this.getter);
     }
@@ -308,21 +319,6 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
     @Override
     public Map<StaticBuffer, EntryList> getSlice(List<StaticBuffer> keys, SliceQuery query, StoreTransaction txh) throws BackendException {
         throw new UnsupportedOperationException("The CQL backend does not support multi-key queries");
-    }
-
-    private static EntryList fromResultSet(ResultSet resultSet, StaticArrayEntry.GetColVal<Tuple3<StaticBuffer, StaticBuffer, Row>, StaticBuffer> getter) {
-        Lazy<ArrayList<Row>> lazyList = Lazy.of(() -> Lists.newArrayList(resultSet));
-
-        // Use the Iterable overload of of ByteBuffer as it's able to allocate
-        // the byte array up front.
-        // To ensure that the Iterator instance is recreated, it is created
-        // within the closure otherwise
-        // the same iterator would be reused and would be exhausted.
-        return StaticArrayEntryList.ofStaticBuffer(() -> Iterator.ofAll(lazyList.get()).map(row -> Tuple.of(
-                StaticArrayBuffer.of(row.getByteBuffer(COLUMN_COLUMN_NAME)),
-                StaticArrayBuffer.of(row.getByteBuffer(VALUE_COLUMN_NAME)),
-                row)),
-                getter);
     }
 
     /*
@@ -371,12 +367,12 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
                 query,
                 this.getter,
                 this.storeManager.executeOnSession(this.getKeysRanged.bind()
-                        .setToken(KEY_START_BINDING, tokenMap.newToken(query.getKeyStart().asByteBuffer()))
-                        .setToken(KEY_END_BINDING, tokenMap.newToken(query.getKeyEnd().asByteBuffer()))
-                        .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
-                        .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
-                        .setPageSize(this.pageSize)
-                        .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()))))
+                                                           .setToken(KEY_START_BINDING, tokenMap.newToken(query.getKeyStart().asByteBuffer()))
+                                                           .setToken(KEY_END_BINDING, tokenMap.newToken(query.getKeyEnd().asByteBuffer()))
+                                                           .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
+                                                           .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
+                                                           .setPageSize(this.pageSize)
+                                                           .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()))))
                 .getOrElseThrow(EXCEPTION_MAPPER);
     }
 
@@ -390,10 +386,10 @@ public class CQLKeyColumnValueStore implements KeyColumnValueStore {
                 query,
                 this.getter,
                 this.storeManager.executeOnSession(this.getKeysAll.bind()
-                        .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
-                        .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
-                        .setPageSize(this.pageSize)
-                        .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()))))
+                                                           .setByteBuffer(SLICE_START_BINDING, query.getSliceStart().asByteBuffer())
+                                                           .setByteBuffer(SLICE_END_BINDING, query.getSliceEnd().asByteBuffer())
+                                                           .setPageSize(this.pageSize)
+                                                           .setConsistencyLevel(getTransaction(txh).getReadConsistencyLevel()))))
                 .getOrElseThrow(EXCEPTION_MAPPER);
     }
 }

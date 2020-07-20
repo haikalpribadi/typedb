@@ -35,9 +35,9 @@ import grakn.core.graph.diskstorage.WriteBuffer;
  * is configured, then it will use this custom serializer for persistence operations.
  *
  * @param <V> Type of the attribute associated with the AttributeSerializer
- * see RelationTypeMaker
- * see <a href="https://docs.janusgraph.org/latest/serializer.html">
- *      "Datatype and Attribute Serializer Configuration" manual chapter</a>
+ *            see RelationTypeMaker
+ *            see <a href="https://docs.janusgraph.org/latest/serializer.html">
+ *            "Datatype and Attribute Serializer Configuration" manual chapter</a>
  */
 public interface AttributeSerializer<V> {
 
@@ -70,7 +70,7 @@ public interface AttributeSerializer<V> {
      * @param value to verify
      */
     default void verifyAttribute(V value) {
-        Preconditions.checkNotNull(value,"Provided value cannot be null");
+        Preconditions.checkNotNull(value, "Provided value cannot be null");
     }
 
     /**
@@ -83,7 +83,7 @@ public interface AttributeSerializer<V> {
      */
     default V convert(Object value) {
         try {
-            return (V)value;
+            return (V) value;
         } catch (ClassCastException e) {
             return null;
         }

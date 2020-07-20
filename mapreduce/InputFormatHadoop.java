@@ -45,8 +45,8 @@ import java.util.function.Function;
 
 public class InputFormatHadoop extends InputFormat<NullWritable, VertexWritable> implements Configurable, GraphFilterAware {
 
-    private final InputFormat<StaticBuffer, Iterable<Entry>> inputFormat;
     private static final RefCountedCloseable<VertexDeserializer> refCounter = new RefCountedCloseable<>(VertexDeserializer::new);
+    private final InputFormat<StaticBuffer, Iterable<Entry>> inputFormat;
 
     public InputFormatHadoop() {
         this.inputFormat = new InputFormatCQL();
@@ -64,15 +64,15 @@ public class InputFormatHadoop extends InputFormat<NullWritable, VertexWritable>
     }
 
     @Override
+    public Configuration getConf() {
+        return ((Configurable) inputFormat).getConf();
+    }
+
+    @Override
     public void setConf(Configuration conf) {
         ((Configurable) inputFormat).setConf(conf);
 
         refCounter.setBuilderConfiguration(conf);
-    }
-
-    @Override
-    public Configuration getConf() {
-        return ((Configurable) inputFormat).getConf();
     }
 
     @Override
@@ -82,9 +82,9 @@ public class InputFormatHadoop extends InputFormat<NullWritable, VertexWritable>
 
     private static class RefCountedCloseable<T extends AutoCloseable> {
 
+        private final Function<Configuration, T> builder;
         private T current;
         private long refCount;
-        private final Function<Configuration, T> builder;
         private Configuration configuration;
 
         RefCountedCloseable(Function<Configuration, T> builder) {

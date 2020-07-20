@@ -40,36 +40,36 @@ import java.util.stream.Collectors;
  */
 public final class ResolutionPlan {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ResolutionPlan.class);
     private final ImmutableList<Atom> plan;
     private final ReasonerQueryImpl query;
-    private static final Logger LOG = LoggerFactory.getLogger(ResolutionPlan.class);
 
-    public ResolutionPlan(ReasonerQueryImpl q, TraversalPlanFactory traversalPlanFactory){
+    public ResolutionPlan(ReasonerQueryImpl q, TraversalPlanFactory traversalPlanFactory) {
         this.query = q;
         this.plan = GraqlTraversalPlanner.plan(query, traversalPlanFactory);
         validatePlan();
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return plan.stream().map(AtomicBase::toString).collect(Collectors.joining("\n"));
     }
 
     /**
      * @return corresponding atom plan
      */
-    public ImmutableList<Atom> plan(){ return plan;}
+    public ImmutableList<Atom> plan() { return plan;}
 
     /**
      * @return true if the plan is complete with respect to provided query - contains all selectable atoms
      */
-    private boolean isComplete(){
+    private boolean isComplete() {
         return query.selectAtoms().allMatch(plan::contains);
     }
 
 
     private void validatePlan() {
-        if (!isComplete()){
+        if (!isComplete()) {
             throw ReasonerException.incompleteResolutionPlan(query);
         }
 

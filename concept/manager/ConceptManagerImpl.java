@@ -86,10 +86,10 @@ import static grakn.core.core.Schema.BaseType.RULE;
  */
 public class ConceptManagerImpl implements ConceptManager {
 
+    private final AttributeManager attributeManager;
     private ElementFactory elementFactory;
     private TransactionCache transactionCache;
     private ConceptNotificationChannel conceptNotificationChannel;
-    private final AttributeManager attributeManager;
 
     public ConceptManagerImpl(ElementFactory elementFactory, TransactionCache transactionCache, ConceptNotificationChannel conceptNotificationChannel, AttributeManager attributeManager) {
         this.elementFactory = elementFactory;
@@ -105,8 +105,8 @@ public class ConceptManagerImpl implements ConceptManager {
      */
 
     /**
-     * @param label             The Label of the SchemaConcept to create
-     * @param baseType          The Schema.BaseType of the SchemaConcept to find or create
+     * @param label    The Label of the SchemaConcept to create
+     * @param baseType The Schema.BaseType of the SchemaConcept to find or create
      */
     private VertexElement createSchemaVertex(Label label, Schema.BaseType baseType) {
         return addTypeVertex(getNextId(), label, baseType);
@@ -221,10 +221,11 @@ public class ConceptManagerImpl implements ConceptManager {
 
     /**
      * Create a new attribute instance from a vertex, skip checking caches because this should be a brand new vertex
-     * @param type - the Concept type
-     * @param value - value saved in the attribute
+     *
+     * @param type       - the Concept type
+     * @param value      - value saved in the attribute
      * @param isInferred - if the new concept is inferred or concrete
-     * @param <V> - attribute type
+     * @param <V>        - attribute type
      * @return - new Attribute Concept
      */
     @Override
@@ -238,7 +239,7 @@ public class ConceptManagerImpl implements ConceptManager {
         V convertedValue;
         try {
             convertedValue = AttributeValueConverter.of(type.valueType()).convert(value);
-        } catch (ClassCastException e){
+        } catch (ClassCastException e) {
             throw GraknConceptException.invalidAttributeValue(type, value, valueType);
         }
 

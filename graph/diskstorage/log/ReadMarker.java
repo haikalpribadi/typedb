@@ -34,6 +34,41 @@ public class ReadMarker {
     }
 
     /**
+     * Starts reading the LOG such that it will start with the first entry written after now.
+     */
+    public static ReadMarker fromNow() {
+        return new ReadMarker(null, null);
+    }
+
+    /**
+     * Starts reading the LOG from the given timestamp onward. The specified timestamp is included.
+     */
+    public static ReadMarker fromTime(Instant timestamp) {
+        return new ReadMarker(null, timestamp);
+    }
+
+    /**
+     * Starts reading the LOG from the last recorded point in the LOG for the given id.
+     * If the LOG has a record of such an id, it will use it as the starting point.
+     * If not, it will start from the given timestamp and set it as the first read record for the given id.
+     * <p>
+     * Identified read markers of this kind are useful to continuously read from the LOG. In the case of failure,
+     * the last read record can be recovered for the id and LOG reading can be resumed from there. Note, that some
+     * records might be read twice in that event depending on the guarantees made by a particular implementation.
+     */
+    public static ReadMarker fromIdentifierOrTime(String id, Instant timestamp) {
+        return new ReadMarker(id, timestamp);
+    }
+
+    /**
+     * Like #fromIdentifierOrTime(String id, Instant timestamp) but uses the current time point
+     * as the starting timestamp if the LOG has no record of the id.
+     */
+    public static ReadMarker fromIdentifierOrNow(String id) {
+        return new ReadMarker(id, Instant.EPOCH);
+    }
+
+    /**
      * Whether this read marker has a configured identifier
      */
     public boolean hasIdentifier() {
@@ -67,41 +102,6 @@ public class ReadMarker {
             return hasIdentifier() && identifier.equals(newMarker.identifier);
         }
         return !newMarker.hasStartTime();
-    }
-
-    /**
-     * Starts reading the LOG such that it will start with the first entry written after now.
-     */
-    public static ReadMarker fromNow() {
-        return new ReadMarker(null, null);
-    }
-
-    /**
-     * Starts reading the LOG from the given timestamp onward. The specified timestamp is included.
-     */
-    public static ReadMarker fromTime(Instant timestamp) {
-        return new ReadMarker(null, timestamp);
-    }
-
-    /**
-     * Starts reading the LOG from the last recorded point in the LOG for the given id.
-     * If the LOG has a record of such an id, it will use it as the starting point.
-     * If not, it will start from the given timestamp and set it as the first read record for the given id.
-     * <p>
-     * Identified read markers of this kind are useful to continuously read from the LOG. In the case of failure,
-     * the last read record can be recovered for the id and LOG reading can be resumed from there. Note, that some
-     * records might be read twice in that event depending on the guarantees made by a particular implementation.
-     */
-    public static ReadMarker fromIdentifierOrTime(String id, Instant timestamp) {
-        return new ReadMarker(id, timestamp);
-    }
-
-    /**
-     * Like #fromIdentifierOrTime(String id, Instant timestamp) but uses the current time point
-     * as the starting timestamp if the LOG has no record of the id.
-     */
-    public static ReadMarker fromIdentifierOrNow(String id) {
-        return new ReadMarker(id, Instant.EPOCH);
     }
 
 }

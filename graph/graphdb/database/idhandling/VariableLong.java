@@ -25,6 +25,11 @@ import grakn.core.graph.diskstorage.WriteBuffer;
 
 public class VariableLong {
 
+    private static final byte BIT_MASK = 127;
+    private static final byte STOP_MASK = -128;
+
+    //Move stop bit back to front => rewrite prefix variable encoding by custom writing first byte
+
     public static int unsignedByte(byte b) {
         return b < 0 ? b + 256 : b;
     }
@@ -33,11 +38,6 @@ public class VariableLong {
         Preconditions.checkArgument(value >= 0 && value < 256, "Value overflow: %s", value);
         return (byte) (value & 0xFF);
     }
-
-    //Move stop bit back to front => rewrite prefix variable encoding by custom writing first byte
-
-    private static final byte BIT_MASK = 127;
-    private static final byte STOP_MASK = -128;
 
     private static long readUnsigned(ScanBuffer in) {
         long value = 0;

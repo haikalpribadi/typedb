@@ -36,7 +36,7 @@ public class AttributeFragmentSet extends EquivalentFragmentSetImpl {
     private final Variable attribute;
     private final ImmutableSet<Label> attributeTypeLabels;
 
-    AttributeFragmentSet(VarProperty varProperty, Variable owner, Variable attribute, ImmutableSet<Label> attributeTypeLabels){
+    AttributeFragmentSet(VarProperty varProperty, Variable owner, Variable attribute, ImmutableSet<Label> attributeTypeLabels) {
         super(varProperty);
         this.owner = owner;
         this.attribute = attribute;

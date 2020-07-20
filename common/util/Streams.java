@@ -25,13 +25,12 @@ import java.util.stream.Stream;
  * Common utility methods used within Grakn.
  *
  * Some of these methods are Grakn-specific, others add important "missing" methods to Java/Guava classes.
- *
  */
 public class Streams {
 
     /**
      * @param optional the optional to change into a stream
-     * @param <T> the type in the optional
+     * @param <T>      the type in the optional
      * @return a stream of one item if the optional has an element, else an empty stream
      */
     public static <T> Stream<T> optionalToStream(Optional<T> optional) {
@@ -43,16 +42,16 @@ public class Streams {
      * WARNING: This consumes the stream rendering it unusable afterwards
      *
      * @param stream the Stream to check the count against
-     * @param size the expected number of elements in the stream
+     * @param size   the expected number of elements in the stream
      * @return true if the expected size is found
      */
-    public static boolean containsOnly(Stream stream, long size){
+    public static boolean containsOnly(Stream stream, long size) {
         long count = 0L;
         Iterator it = stream.iterator();
 
-        while(it.hasNext()){
+        while (it.hasNext()) {
             it.next();
-            if(++count > size) return false;
+            if (++count > size) return false;
         }
 
         return size == count;

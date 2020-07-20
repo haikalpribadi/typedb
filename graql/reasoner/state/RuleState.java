@@ -29,12 +29,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- *
  * <p>
  * Resolution state corresponding to a rule application.
  * </p>
- *
- *
  */
 public class RuleState extends AnswerPropagatorState<ResolvableQuery> {
 
@@ -52,16 +49,16 @@ public class RuleState extends AnswerPropagatorState<ResolvableQuery> {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return getClass().getSimpleName() + " to state @" + Integer.toHexString(getParentState().hashCode()) + "\n" +
                 rule.getRule().label() + "\n" +
                 "Unifier: " + getUnifier();
     }
 
     @Override
-    ResolutionState propagateAnswer(AnswerState state){
+    ResolutionState propagateAnswer(AnswerState state) {
         ConceptMap answer = consumeAnswer(state);
-        return !answer.isEmpty()? new AnswerState(answer, getUnifier(), getParentState(), rule) : null;
+        return !answer.isEmpty() ? new AnswerState(answer, getUnifier(), getParentState(), rule) : null;
     }
 
     @Override

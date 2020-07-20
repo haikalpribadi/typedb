@@ -41,8 +41,27 @@ import java.util.Set;
 public class JanusGraphLocalQueryOptimizerStrategy extends AbstractTraversalStrategy<TraversalStrategy.ProviderOptimizationStrategy> implements TraversalStrategy.ProviderOptimizationStrategy {
 
     private static final JanusGraphLocalQueryOptimizerStrategy INSTANCE = new JanusGraphLocalQueryOptimizerStrategy();
+    private static final Set<Class<? extends ProviderOptimizationStrategy>> PRIORS = Collections.singleton(AdjacentVertexFilterOptimizerStrategy.class);
 
     private JanusGraphLocalQueryOptimizerStrategy() {
+    }
+
+    private static void unfoldLocalTraversal(Traversal.Admin<?, ?> traversal,
+                                             LocalStep<?, ?> localStep, Traversal.Admin localTraversal,
+                                             MultiQueriable vertexStep, boolean useMultiQuery) {
+        if (localTraversal.asAdmin().getSteps().size() == 1) {
+            //Can replace the entire localStep by the vertex step in the outer traversal
+            vertexStep.setTraversal(traversal);
+            TraversalHelper.replaceStep(localStep, vertexStep, traversal);
+
+            if (useMultiQuery) {
+                vertexStep.setUseMultiQuery(true);
+            }
+        }
+    }
+
+    public static JanusGraphLocalQueryOptimizerStrategy instance() {
+        return INSTANCE;
     }
 
     @Override
@@ -183,28 +202,8 @@ public class JanusGraphLocalQueryOptimizerStrategy extends AbstractTraversalStra
         }
     }
 
-    private static void unfoldLocalTraversal(Traversal.Admin<?, ?> traversal,
-                                             LocalStep<?, ?> localStep, Traversal.Admin localTraversal,
-                                             MultiQueriable vertexStep, boolean useMultiQuery) {
-        if (localTraversal.asAdmin().getSteps().size() == 1) {
-            //Can replace the entire localStep by the vertex step in the outer traversal
-            vertexStep.setTraversal(traversal);
-            TraversalHelper.replaceStep(localStep, vertexStep, traversal);
-
-            if (useMultiQuery) {
-                vertexStep.setUseMultiQuery(true);
-            }
-        }
-    }
-
-    private static final Set<Class<? extends ProviderOptimizationStrategy>> PRIORS = Collections.singleton(AdjacentVertexFilterOptimizerStrategy.class);
-
     @Override
     public Set<Class<? extends ProviderOptimizationStrategy>> applyPrior() {
         return PRIORS;
-    }
-
-    public static JanusGraphLocalQueryOptimizerStrategy instance() {
-        return INSTANCE;
     }
 }

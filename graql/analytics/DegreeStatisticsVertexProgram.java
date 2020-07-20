@@ -33,7 +33,6 @@ import static grakn.core.graql.analytics.Utility.vertexHasSelectedTypeId;
 /**
  * The vertex program for computing the degree in statistics.
  * <p>
- *
  */
 
 public class DegreeStatisticsVertexProgram extends DegreeVertexProgram {
@@ -44,6 +43,32 @@ public class DegreeStatisticsVertexProgram extends DegreeVertexProgram {
 
     public DegreeStatisticsVertexProgram(Set<LabelId> ofLabelIDs) {
         super(ofLabelIDs);
+    }
+
+    static void degreeStatisticsStepResourceOwner(Vertex vertex, Messenger<Long> messenger, Set<LabelId> ofLabelIds) {
+        LabelId labelId = Utility.getVertexTypeId(vertex);
+        if (labelId.isValid() && !ofLabelIds.contains(labelId)) {
+            messenger.sendMessage(messageScopeShortcutIn, 1L);
+            messenger.sendMessage(messageScopeResourceOut, 1L);
+        }
+    }
+
+    static void degreeStatisticsStepResourceRelation(Vertex vertex, Messenger<Long> messenger, Set<LabelId> ofLabelIds) {
+        if (messenger.receiveMessages().hasNext()) {
+            if (vertex.label().equals(Schema.BaseType.RELATION.name())) {
+                messenger.sendMessage(messageScopeOut, 1L);
+            } else if (ofLabelIds.contains(Utility.getVertexTypeId(vertex))) {
+                vertex.property(DEGREE, getMessageCount(messenger));
+            }
+        }
+    }
+
+    static void degreeStatisticsStepResource(Vertex vertex, Messenger<Long> messenger,
+                                             Set<LabelId> ofLabelIds) {
+        if (vertexHasSelectedTypeId(vertex, ofLabelIds)) {
+            vertex.property(DEGREE, vertex.property(DEGREE).isPresent() ?
+                    getMessageCount(messenger) + (Long) vertex.value(DEGREE) : getMessageCount(messenger));
+        }
     }
 
     @Override
@@ -79,31 +104,5 @@ public class DegreeStatisticsVertexProgram extends DegreeVertexProgram {
     public boolean terminate(final Memory memory) {
         LOGGER.debug("Finished Degree Iteration {}", memory.getIteration());
         return memory.getIteration() == 2;
-    }
-
-    static void degreeStatisticsStepResourceOwner(Vertex vertex, Messenger<Long> messenger, Set<LabelId> ofLabelIds) {
-        LabelId labelId = Utility.getVertexTypeId(vertex);
-        if (labelId.isValid() && !ofLabelIds.contains(labelId)) {
-            messenger.sendMessage(messageScopeShortcutIn, 1L);
-            messenger.sendMessage(messageScopeResourceOut, 1L);
-        }
-    }
-
-    static void degreeStatisticsStepResourceRelation(Vertex vertex, Messenger<Long> messenger, Set<LabelId> ofLabelIds) {
-        if (messenger.receiveMessages().hasNext()) {
-            if (vertex.label().equals(Schema.BaseType.RELATION.name())) {
-                messenger.sendMessage(messageScopeOut, 1L);
-            } else if (ofLabelIds.contains(Utility.getVertexTypeId(vertex))) {
-                vertex.property(DEGREE, getMessageCount(messenger));
-            }
-        }
-    }
-
-    static void degreeStatisticsStepResource(Vertex vertex, Messenger<Long> messenger,
-                                             Set<LabelId> ofLabelIds) {
-        if (vertexHasSelectedTypeId(vertex, ofLabelIds)) {
-            vertex.property(DEGREE, vertex.property(DEGREE).isPresent() ?
-                    getMessageCount(messenger) + (Long) vertex.value(DEGREE) : getMessageCount(messenger));
-        }
     }
 }

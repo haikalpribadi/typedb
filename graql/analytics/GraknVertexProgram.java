@@ -54,6 +54,10 @@ public abstract class GraknVertexProgram<T> extends CommonOLAP implements Vertex
     static final MessageScope.Local<?> messageScopeResourceOut = MessageScope.Local.of(
             () -> __.outE(Schema.EdgeLabel.ATTRIBUTE.getLabel()));
 
+    static long getMessageCount(Messenger<Long> messenger) {
+        return IteratorUtils.reduce(messenger.receiveMessages(), 0L, (a, b) -> a + b);
+    }
+
     @Override
     public Set<MessageScope> getMessageScopes(Memory memory) {
         return messageScopeSetInAndOut;
@@ -107,9 +111,5 @@ public abstract class GraknVertexProgram<T> extends CommonOLAP implements Vertex
         } catch (CloneNotSupportedException e) {
             throw GraknAnalyticsException.unreachableStatement(e);
         }
-    }
-
-    static long getMessageCount(Messenger<Long> messenger) {
-        return IteratorUtils.reduce(messenger.receiveMessages(), 0L, (a, b) -> a + b);
     }
 }

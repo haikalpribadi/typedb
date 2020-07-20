@@ -21,14 +21,11 @@ package grakn.core.graql.reasoner.state;
 import grakn.core.concept.answer.ConceptMap;
 
 /**
- *
  * <p>
  * Base abstract class for resolution states.
  *
  * All resolution states have an ability to generate states - produce further resolvable states in the resolution tree.
  * </p>
- *
- *
  */
 public abstract class ResolutionState {
 
@@ -36,16 +33,16 @@ public abstract class ResolutionState {
     private final AnswerPropagatorState parentState;
     private final long creationTime;
 
-    ResolutionState(ConceptMap sub, AnswerPropagatorState parent){
+    ResolutionState(ConceptMap sub, AnswerPropagatorState parent) {
         this.sub = sub;
         this.parentState = parent;
         this.creationTime = System.currentTimeMillis();
     }
 
     @Override
-    public String toString(){ return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());}
+    public String toString() { return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());}
 
-    public long creationTime(){ return creationTime;}
+    public long creationTime() { return creationTime;}
 
     /**
      * @return new sub goal generated from this state
@@ -55,22 +52,22 @@ public abstract class ResolutionState {
     /**
      * @return substitution this state has
      */
-    public ConceptMap getSubstitution(){ return sub;}
+    public ConceptMap getSubstitution() { return sub;}
 
     /**
      * @return true if this resolution state is an answer state
      */
-    public boolean isAnswerState(){ return false;}
+    public boolean isAnswerState() { return false;}
 
     /**
      * @return true if this state is a top resolution state
      */
-    public boolean isTopState(){
+    public boolean isTopState() {
         return parentState == null;
     }
 
     /**
      * @return parent state of this state
      */
-    public AnswerPropagatorState getParentState(){ return parentState;}
+    public AnswerPropagatorState getParentState() { return parentState;}
 }

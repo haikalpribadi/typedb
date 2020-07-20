@@ -35,12 +35,12 @@ public class GraknQueryPlannerException extends GraknException {
         return new GraknQueryPlannerException("QueryPlanner node: " + node.toString() + " has no parent");
     }
 
+    public static GraknQueryPlannerException create(String error) {
+        return new GraknQueryPlannerException(error);
+    }
+
     @Override
     public String getName() {
         return this.getClass().getName();
-    }
-
-    public static GraknQueryPlannerException create(String error) {
-        return new GraknQueryPlannerException(error);
     }
 }

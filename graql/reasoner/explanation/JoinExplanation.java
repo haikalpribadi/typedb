@@ -28,10 +28,10 @@ import java.util.List;
  */
 public class JoinExplanation extends Explanation {
 
-    public JoinExplanation(List<ConceptMap> partialAnswers){
+    public JoinExplanation(List<ConceptMap> partialAnswers) {
         super(partialAnswers);
     }
 
     @Override
-    public boolean isJoinExplanation(){ return true;}
+    public boolean isJoinExplanation() { return true;}
 }

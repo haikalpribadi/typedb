@@ -86,17 +86,11 @@ public class SimpleQueryProfiler implements QueryProfiler, Iterable<SimpleQueryP
     }
 
     @Override
-    public void setResultSize(long size) {
-        Preconditions.checkArgument(size >= 0);
-        this.resultSize = size;
-    }
-
-    //RETRIEVAL METHODS
-
-    @Override
     public Iterator<SimpleQueryProfiler> iterator() {
         return nestedProfilers.iterator();
     }
+
+    //RETRIEVAL METHODS
 
     public <O> O getAnnotation(String key) {
         return (O) annotations.get(key);
@@ -112,6 +106,12 @@ public class SimpleQueryProfiler implements QueryProfiler, Iterable<SimpleQueryP
 
     public long getResultSize() {
         return resultSize;
+    }
+
+    @Override
+    public void setResultSize(long size) {
+        Preconditions.checkArgument(size >= 0);
+        this.resultSize = size;
     }
 
 }

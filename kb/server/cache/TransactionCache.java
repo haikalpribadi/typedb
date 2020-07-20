@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import grakn.common.util.Pair;
 import grakn.core.core.Schema;
 import grakn.core.kb.concept.api.Attribute;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.Concept;
 import grakn.core.kb.concept.api.ConceptId;
 import grakn.core.kb.concept.api.Label;
@@ -33,7 +34,6 @@ import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
-import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.keyspace.KeyspaceSchemaCache;
 
 import java.util.HashMap;
@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Caches TransactionOLTP specific data this includes:
@@ -164,7 +163,7 @@ public class TransactionCache {
             newRelations.remove(concept.asRelation());
         }
 
-        if (concept.isThing()){
+        if (concept.isThing()) {
             Thing instance = concept.asThing();
             if (instance.isInferred()) removeInferredInstance(instance);
         }
@@ -193,7 +192,7 @@ public class TransactionCache {
             schemaConceptCache.put(schemaConcept.label(), schemaConcept);
             labelCache.put(schemaConcept.label(), schemaConcept.labelId());
         }
-        if (concept.isAttribute()){
+        if (concept.isAttribute()) {
             Attribute<Object> attribute = concept.asAttribute();
             String index = Schema.generateAttributeIndex(attribute.type().label(), attribute.value().toString());
             attributeCache.put(index, attribute);
@@ -255,7 +254,7 @@ public class TransactionCache {
      *
      * @param thing The inferred instance to be cached.
      */
-    public void inferredInstance(Thing thing){
+    public void inferredInstance(Thing thing) {
         inferredConcepts.add(thing);
     }
 
@@ -264,7 +263,7 @@ public class TransactionCache {
      *
      * @param thing The inferred instance to be cached.
      */
-    public void removeInferredInstance(Thing thing){
+    public void removeInferredInstance(Thing thing) {
         inferredConcepts.remove(thing);
         inferredConceptsToPersist.remove(thing);
     }
@@ -330,7 +329,7 @@ public class TransactionCache {
         newAttributes.put(new Pair<>(label, index), conceptId);
     }
 
-    public void addModifiedKeyIndex(String keyIndex){
+    public void addModifiedKeyIndex(String keyIndex) {
         modifiedKeyIndices.add(keyIndex);
     }
 
@@ -355,7 +354,7 @@ public class TransactionCache {
         return modifiedRelationTypes;
     }
 
-    public Set<String> getModifiedKeyIndices(){ return modifiedKeyIndices;}
+    public Set<String> getModifiedKeyIndices() { return modifiedKeyIndices;}
 
     public Set<Rule> getModifiedRules() {
         return modifiedRules;

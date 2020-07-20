@@ -45,32 +45,32 @@ public class BooleanArraySerializer extends ArraySerializer implements Attribute
     @Override
     public boolean[] read(ScanBuffer buffer) {
         int length = getLength(buffer);
-        if (length<0) return null;
+        if (length < 0) return null;
         boolean[] result = new boolean[length];
         int b = 0;
         for (int i = 0; i < length; i++) {
-            int offset = i%8;
-            if (offset==0) {
-                b= 0xFF & buffer.getByte();
+            int offset = i % 8;
+            if (offset == 0) {
+                b = 0xFF & buffer.getByte();
             }
-            result[i]= BooleanSerializer.decode((byte)((b>>>(7-offset))&1));
+            result[i] = BooleanSerializer.decode((byte) ((b >>> (7 - offset)) & 1));
         }
         return result;
     }
 
     @Override
     public void write(WriteBuffer buffer, boolean[] attribute) {
-        writeLength(buffer,attribute);
-        if (attribute==null) return;
+        writeLength(buffer, attribute);
+        if (attribute == null) return;
         byte b = 0;
         int i = 0;
         for (; i < attribute.length; i++) {
-            b = (byte)( ((int)b<<1) | BooleanSerializer.encode(attribute[i]));
-            if ((i+1)%8 == 0) {
+            b = (byte) (((int) b << 1) | BooleanSerializer.encode(attribute[i]));
+            if ((i + 1) % 8 == 0) {
                 buffer.putByte(b);
-                b=0;
+                b = 0;
             }
         }
-        if (i%8!=0) buffer.putByte((byte)(b<<(8-(i%8))));
+        if (i % 8 != 0) buffer.putByte((byte) (b << (8 - (i % 8))));
     }
 }

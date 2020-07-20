@@ -96,10 +96,10 @@ public class StandardEdgeLabelMaker extends StandardRelationTypeMaker implements
     public EdgeLabel make() {
         TypeDefinitionMap definition = makeDefinition();
         Preconditions.checkArgument(unidirectionality == Direction.BOTH || !getMultiplicity().isUnique(unidirectionality.opposite()),
-                "Unidirectional labels cannot have restricted multiplicity at the other end");
+                                    "Unidirectional labels cannot have restricted multiplicity at the other end");
         Preconditions.checkArgument(unidirectionality == Direction.BOTH || !hasSortKey() ||
-                        !getMultiplicity().isUnique(unidirectionality),
-                "Unidirectional labels with restricted multiplicity cannot have a sort key");
+                                            !getMultiplicity().isUnique(unidirectionality),
+                                    "Unidirectional labels with restricted multiplicity cannot have a sort key");
         Preconditions.checkArgument(unidirectionality != Direction.IN || definition.getValue(INVISIBLE, Boolean.class));
 
         definition.setValue(UNIDIRECTIONAL, unidirectionality);

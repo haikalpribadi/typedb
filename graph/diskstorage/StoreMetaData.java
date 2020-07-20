@@ -30,11 +30,26 @@ import java.util.Map;
  */
 public interface StoreMetaData<T> {
 
+    StoreMetaData<Integer> TTL = TTLImpl.INSTANCE;
+    Container EMPTY = new Container(false);
+
     Class<? extends T> getDataType();
 
-    StoreMetaData<Integer> TTL = TTLImpl.INSTANCE;
+    /**
+     * Time-to-live for all data written to the store.  Values associated
+     * with this enum will be expressed in seconds.  The TTL is only required
+     * to be honored when the associated store is opened for the first time.
+     * Subsequent re-openings of an existing store need not check for or
+     * modify the existing TTL (though implementations are free to do so).
+     */
+    enum TTLImpl implements StoreMetaData<Integer> {
+        INSTANCE;
 
-    Container EMPTY = new Container(false);
+        @Override
+        public Class<? extends Integer> getDataType() {
+            return Integer.class;
+        }
+    }
 
     class Container {
 
@@ -69,22 +84,6 @@ public interface StoreMetaData<T> {
 
         public boolean isEmpty() {
             return md.isEmpty();
-        }
-    }
-
-    /**
-     * Time-to-live for all data written to the store.  Values associated
-     * with this enum will be expressed in seconds.  The TTL is only required
-     * to be honored when the associated store is opened for the first time.
-     * Subsequent re-openings of an existing store need not check for or
-     * modify the existing TTL (though implementations are free to do so).
-     */
-    enum TTLImpl implements StoreMetaData<Integer> {
-        INSTANCE;
-
-        @Override
-        public Class<? extends Integer> getDataType() {
-            return Integer.class;
         }
     }
 }

@@ -21,7 +21,6 @@ package grakn.core.graql.reasoner.cache;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.atom.predicate.IdPredicate;
 import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
-import grakn.core.kb.graql.executor.ExecutorFactory;
 import grakn.core.kb.graql.executor.TraversalExecutor;
 import grakn.core.kb.graql.planning.gremlin.TraversalPlanFactory;
 
@@ -29,7 +28,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- *
  * Base class for query caches for atomic queries.
  * Implements the acking behaviour for queries:
  *
@@ -41,7 +39,6 @@ import java.util.Set;
  *
  * @param <QE> cache entry query type
  * @param <SE> cache entry storage type
- *
  */
 public abstract class AtomicQueryCacheBase<
         QE,
@@ -57,12 +54,12 @@ public abstract class AtomicQueryCacheBase<
         super(traversalPlanFactory, traversalExecutor);
     }
 
-    public boolean isDBComplete(ReasonerAtomicQuery query){
+    public boolean isDBComplete(ReasonerAtomicQuery query) {
         return dbCompleteEntries.contains(queryToKey(query))
                 || dbCompleteQueries.contains(query);
     }
 
-    public boolean isComplete(ReasonerAtomicQuery query){
+    public boolean isComplete(ReasonerAtomicQuery query) {
         return completeEntries.contains(queryToKey(query))
                 || completeQueries.contains(query);
     }
@@ -76,7 +73,7 @@ public abstract class AtomicQueryCacheBase<
         }
     }
 
-    public void ackDBCompleteness(ReasonerAtomicQuery query){
+    public void ackDBCompleteness(ReasonerAtomicQuery query) {
         if (query.getAtom().getPredicates(IdPredicate.class).findFirst().isPresent()) {
             dbCompleteQueries.add(query);
         } else {
@@ -93,7 +90,7 @@ public abstract class AtomicQueryCacheBase<
         }
     }
 
-    private void unackDBCompleteness(ReasonerAtomicQuery query){
+    private void unackDBCompleteness(ReasonerAtomicQuery query) {
         if (query.getAtom().getPredicates(IdPredicate.class).findFirst().isPresent()) {
             dbCompleteQueries.remove(query);
         } else {
@@ -101,12 +98,12 @@ public abstract class AtomicQueryCacheBase<
         }
     }
 
-    void clearQueryCompleteness(){
+    void clearQueryCompleteness() {
         dbCompleteQueries.clear();
         completeQueries.clear();
     }
 
-    void clearCompleteness(){
+    void clearCompleteness() {
         dbCompleteQueries.clear();
         dbCompleteEntries.clear();
 
@@ -115,7 +112,7 @@ public abstract class AtomicQueryCacheBase<
     }
 
     @Override
-    public void clear(){
+    public void clear() {
         super.clear();
         clearCompleteness();
     }

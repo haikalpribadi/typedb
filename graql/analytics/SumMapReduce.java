@@ -30,7 +30,6 @@ import java.util.Set;
 /**
  * The MapReduce program for computing the sum of the given resource.
  * <p>
- *
  */
 
 public class SumMapReduce extends StatisticsMapReduce<Number> {
@@ -48,16 +47,16 @@ public class SumMapReduce extends StatisticsMapReduce<Number> {
         if (usingLong()) {
             if (resourceIsValid(vertex)) {
                 emitter.emit(NullObject.instance(),
-                        ((Long) vertex.value(Schema.VertexProperty.VALUE_LONG.name())) *
-                                ((Long) vertex.value(degreePropertyKey)));
+                             ((Long) vertex.value(Schema.VertexProperty.VALUE_LONG.name())) *
+                                     ((Long) vertex.value(degreePropertyKey)));
                 return;
             }
             emitter.emit(NullObject.instance(), 0L);
         } else {
             if (resourceIsValid(vertex)) {
                 emitter.emit(NullObject.instance(),
-                        ((Double) vertex.value(Schema.VertexProperty.VALUE_DOUBLE.name())) *
-                                ((Long) vertex.value(degreePropertyKey)));
+                             ((Double) vertex.value(Schema.VertexProperty.VALUE_DOUBLE.name())) *
+                                     ((Long) vertex.value(degreePropertyKey)));
                 return;
             }
             emitter.emit(NullObject.instance(), 0D);

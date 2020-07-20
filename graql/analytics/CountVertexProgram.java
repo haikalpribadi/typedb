@@ -29,7 +29,6 @@ import java.util.Set;
 /**
  * The vertex program for counting concepts.
  * <p>
- *
  */
 
 public class CountVertexProgram extends GraknVertexProgram<Long> {

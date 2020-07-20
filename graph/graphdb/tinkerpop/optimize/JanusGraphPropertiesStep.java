@@ -53,10 +53,13 @@ import java.util.Map;
 
 public class JanusGraphPropertiesStep<E> extends PropertiesStep<E> implements HasStepFolder<Element, E>, Profiling, MultiQueriable<Element, E> {
 
+    private final List<HasContainer> hasContainers;
+    private final List<OrderEntry> orders = new ArrayList<>();
     private boolean initialized = false;
     private boolean useMultiQuery = false;
     private Map<JanusGraphVertex, Iterable<? extends JanusGraphProperty>> multiQueryResults = null;
     private QueryProfiler queryProfiler = QueryProfiler.NO_OP;
+    private int limit;
 
     public JanusGraphPropertiesStep(PropertiesStep<E> originalStep) {
         super(originalStep.getTraversal(), originalStep.getReturnType(), originalStep.getPropertyKeys());
@@ -130,6 +133,10 @@ public class JanusGraphPropertiesStep<E> extends PropertiesStep<E> implements Ha
         return super.processNextStart();
     }
 
+    /*
+    ===== HOLDER =====
+     */
+
     @Override
     protected Iterator<E> flatMap(Traverser.Admin<Element> traverser) {
         if (useMultiQuery) { //it is guaranteed that all elements are vertices
@@ -167,15 +174,6 @@ public class JanusGraphPropertiesStep<E> extends PropertiesStep<E> implements Ha
         clone.initialized = false;
         return clone;
     }
-
-    /*
-    ===== HOLDER =====
-     */
-
-    private final List<HasContainer> hasContainers;
-    private int limit;
-    private final List<OrderEntry> orders = new ArrayList<>();
-
 
     @Override
     public void addAll(Iterable<HasContainer> has) {

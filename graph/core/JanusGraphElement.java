@@ -58,7 +58,7 @@ public interface JanusGraphElement extends Element, Idfiable, Removable {
      *
      * @return The unique identifier for this entity
      * @throws IllegalStateException if the entity does not (yet) have a unique identifier
-     * see #hasId
+     *                               see #hasId
      */
     @Override
     default Object id() {

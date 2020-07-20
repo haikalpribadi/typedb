@@ -53,6 +53,10 @@ public class SliceQuery extends BaseQuery implements BackendQuery<SliceQuery> {
         setLimit(query.getLimit());
     }
 
+    public static StaticBuffer pointRange(StaticBuffer point) {
+        return BufferUtil.nextBiggerBuffer(point);
+    }
+
     /**
      * The start of the slice is considered to be inclusive
      *
@@ -128,10 +132,6 @@ public class SliceQuery extends BaseQuery implements BackendQuery<SliceQuery> {
 
     public boolean contains(StaticBuffer buffer) {
         return sliceStart.compareTo(buffer) <= 0 && sliceEnd.compareTo(buffer) > 0;
-    }
-
-    public static StaticBuffer pointRange(StaticBuffer point) {
-        return BufferUtil.nextBiggerBuffer(point);
     }
 
     @Override

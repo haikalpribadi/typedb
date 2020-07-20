@@ -39,10 +39,13 @@ import java.util.Set;
 public interface ShardManager {
 
     void ackShardRequest(Label type, String txId);
+
     void ackCommit(Set<Label> labels, String txId);
+
     boolean requiresLock(String txId);
 
     Long getEphemeralShardCount(Label type);
+
     void updateEphemeralShardCount(Label type, Long count);
 
     @VisibleForTesting

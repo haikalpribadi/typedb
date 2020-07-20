@@ -79,7 +79,7 @@ public class BackendOperation {
             } else {
                 retryOperation = false;
             }
-        } while(retryOperation);
+        } while (retryOperation);
         throw new JanusGraphException("Could not successfully complete backend operation due to repeated temporary exceptions after " + totalWaitTime, lastException);
     }
 
@@ -121,19 +121,6 @@ public class BackendOperation {
         }, maxTime);
     }
 
-
-    public interface Transactional<R> {
-        R call(StoreTransaction txh) throws BackendException;
-    }
-
-    public interface TransactionalProvider {
-
-        StoreTransaction openTx() throws BackendException;
-
-        void close() throws BackendException;
-
-    }
-
     public static TransactionalProvider buildTxProvider(StoreManager storeManager, StandardBaseTransactionConfig txConfig) {
         return new TransactionalProvider() {
             @Override
@@ -146,5 +133,17 @@ public class BackendOperation {
                 //Do nothing, storeManager is closed explicitly by Backend
             }
         };
+    }
+
+    public interface Transactional<R> {
+        R call(StoreTransaction txh) throws BackendException;
+    }
+
+    public interface TransactionalProvider {
+
+        StoreTransaction openTx() throws BackendException;
+
+        void close() throws BackendException;
+
     }
 }

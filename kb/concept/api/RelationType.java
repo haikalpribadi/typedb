@@ -45,6 +45,7 @@ public interface RelationType extends Type {
      * see Relation
      */
     Relation create();
+
     Relation addRelationInferred();
 
     /**

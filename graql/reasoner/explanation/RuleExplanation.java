@@ -31,10 +31,11 @@ public class RuleExplanation extends Explanation {
 
     private final Rule rule;
 
-    public RuleExplanation(Rule rule){
+    public RuleExplanation(Rule rule) {
         this.rule = rule;
     }
-    public RuleExplanation(ConceptMap answer, Rule rule){
+
+    public RuleExplanation(ConceptMap answer, Rule rule) {
         // Only ever contains one answer, such that this explanation explains the rule body in it's entirety. This is in
         // line with the user expectation of seeing a pattern equivalent to the rule's `when` in this explanation's answer
         super(Collections.singletonList(answer));
@@ -42,7 +43,7 @@ public class RuleExplanation extends Explanation {
     }
 
     @Override
-    public boolean isRuleExplanation(){ return true;}
+    public boolean isRuleExplanation() { return true;}
 
     public Rule getRule() {
         return rule;

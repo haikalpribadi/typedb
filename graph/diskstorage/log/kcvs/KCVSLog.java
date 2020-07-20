@@ -185,17 +185,11 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
      */
     private final KeyColumnValueStore store;
     /**
-     * The read marker which indicates where to start reading from the LOG
-     */
-    private ReadMarker readMarker;
-
-    /**
      * The number of buckets into which each time slice is subdivided. Increasing the number of buckets load balances
      * the reads and writes to the LOG.
      */
     private final int numBuckets;
     private final boolean keyConsistentOperations;
-
     private final int sendBatchSize;
     private final Duration maxSendDelay;
     private final Duration maxWriteTime;
@@ -207,23 +201,11 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
      * Background thread which periodically writes out the queued up messages. TODO: consider batching messages across ALL logs
      */
     private final SendThread sendThread;
-
     private final int numReadThreads;
     private final int maxReadMsg;
     private final Duration readPollingInterval;
     private final Duration readLagTime;
     private final Duration maxReadTime;
-
-    /**
-     * Thread pool to read messages in the specified interval from the various keys in a time slice AND to process
-     * messages. So, both reading and processing messages is done in the same thread pool.
-     */
-    private ScheduledExecutorService readExecutor;
-    /**
-     * Individual jobs that pull messages from the keys that comprise one time slice
-     */
-    private MessagePuller[] msgPullers;
-
     /**
      * Counter used to write messages to different buckets in a round-robin fashion
      */
@@ -237,13 +219,26 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
      */
     private final List<MessageReader> readers;
     /**
-     * Whether this LOG is open (i.e. accepts writes)
-     */
-    private volatile boolean isOpen;
-    /**
      * Source of timestamps since UNIX Epoch; also provides our time resolution (e.g. microseconds)
      */
     private final TimestampProvider times;
+    /**
+     * The read marker which indicates where to start reading from the LOG
+     */
+    private ReadMarker readMarker;
+    /**
+     * Thread pool to read messages in the specified interval from the various keys in a time slice AND to process
+     * messages. So, both reading and processing messages is done in the same thread pool.
+     */
+    private ScheduledExecutorService readExecutor;
+    /**
+     * Individual jobs that pull messages from the keys that comprise one time slice
+     */
+    private MessagePuller[] msgPullers;
+    /**
+     * Whether this LOG is open (i.e. accepts writes)
+     */
+    private volatile boolean isOpen;
 
     public KCVSLog(String name, KCVSLogManager manager, KeyColumnValueStore store, Configuration config) {
         Preconditions.checkArgument(manager != null && name != null && store != null && config != null);
@@ -447,28 +442,6 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
     }
 
     /**
-     * Helper class to hold the message and its serialization for writing
-     */
-    private static class MessageEnvelope {
-
-        final FutureMessage<KCVSMessage> message;
-        final StaticBuffer key;
-        final Entry entry;
-
-        private MessageEnvelope(FutureMessage<KCVSMessage> message, StaticBuffer key, Entry entry) {
-            this.message = message;
-            this.key = key;
-            this.entry = entry;
-        }
-
-        @Override
-        public String toString() {
-            return "MessageEnvelope[message=" + message + ",key=" + key
-                    + ",entry=" + entry + "]";
-        }
-    }
-
-    /**
      * Sends a batch of messages by persisting them to the storage backend.
      */
     private void sendMessages(List<MessageEnvelope> msgEnvelopes) {
@@ -508,6 +481,144 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
                 msgEnvelope.message.failed(e);
             }
             throw e;
+        }
+    }
+
+    /**
+     * ###################################
+     * Message Reading
+     * ###################################
+     */
+
+    @Override
+    public synchronized void registerReader(ReadMarker readMarker, MessageReader... reader) {
+        Preconditions.checkArgument(reader != null && reader.length > 0, "Must specify at least one reader");
+        registerReaders(readMarker, Arrays.asList(reader));
+    }
+
+    @Override
+    public synchronized void registerReaders(ReadMarker readMarker, Iterable<MessageReader> readers) {
+        ResourceUnavailableException.verifyOpen(isOpen, "Log", name);
+        Preconditions.checkArgument(!Iterables.isEmpty(readers), "Must specify at least one reader");
+        Preconditions.checkArgument(readMarker != null, "Read marker cannot be null");
+        Preconditions.checkArgument(this.readMarker == null || this.readMarker.isCompatible(readMarker),
+                                    "Provided read marker is not compatible with existing read marker for previously registered readers");
+        if (this.readMarker == null) this.readMarker = readMarker;
+        boolean firstRegistration = this.readers.isEmpty();
+        for (MessageReader reader : readers) {
+            Preconditions.checkNotNull(reader);
+            if (!this.readers.contains(reader)) this.readers.add(reader);
+        }
+        if (firstRegistration && !this.readers.isEmpty()) {
+            //Custom rejection handler so that messages are processed in-thread when executor has been closed
+            readExecutor = new ScheduledThreadPoolExecutor(numReadThreads, (r, executor) -> r.run());
+            msgPullers = new MessagePuller[manager.readPartitionIds.length * numBuckets];
+            int pos = 0;
+            for (int partitionId : manager.readPartitionIds) {
+                for (int bucketId = 0; bucketId < numBuckets; bucketId++) {
+                    msgPullers[pos] = new MessagePuller(partitionId, bucketId);
+
+                    LOG.debug("Creating LOG read executor: initialDelay={} delay={} unit={}", INITIAL_READER_DELAY.toNanos(), readPollingInterval.toNanos(), TimeUnit.NANOSECONDS);
+                    readExecutor.scheduleWithFixedDelay(
+                            msgPullers[pos],
+                            INITIAL_READER_DELAY.toNanos(),
+                            readPollingInterval.toNanos(),
+                            TimeUnit.NANOSECONDS);
+                    pos++;
+                }
+            }
+            readExecutor.scheduleWithFixedDelay(
+                    new MessageReaderStateUpdater(),
+                    INITIAL_READER_DELAY.toNanos(),
+                    readPollingInterval.toNanos(),
+                    TimeUnit.NANOSECONDS);
+        }
+    }
+
+    @Override
+    public synchronized boolean unregisterReader(MessageReader reader) {
+        ResourceUnavailableException.verifyOpen(isOpen, "Log", name);
+        return this.readers.remove(reader);
+    }
+
+    /**
+     * ###################################
+     * Getting/setting Log Settings
+     * ###################################
+     */
+
+    private StaticBuffer getMarkerColumn(int partitionId, int bucketId) {
+        DataOutput out = manager.serializer.getDataOutput(1 + 4 + 4);
+        out.putByte(MARKER_PREFIX);
+        out.putInt(partitionId);
+        out.putInt(bucketId);
+        return out.getStaticBuffer();
+    }
+
+    private StaticBuffer getSettingKey(String identifier) {
+        DataOutput out = manager.serializer.getDataOutput(4 + 2 + identifier.length());
+        out.putInt(SYSTEM_PARTITION_ID);
+        out.writeObjectNotNull(identifier);
+        return out.getStaticBuffer();
+    }
+
+    private long readSetting(String identifier, StaticBuffer column, long defaultValue) {
+        StaticBuffer key = getSettingKey(identifier);
+        StaticBuffer value = BackendOperation.execute(new BackendOperation.Transactional<StaticBuffer>() {
+            @Override
+            public StaticBuffer call(StoreTransaction txh) throws BackendException {
+                return KCVSUtil.get(store, key, column, txh);
+            }
+
+            @Override
+            public String toString() {
+                return "readingLogSetting";
+            }
+        }, this, times, maxReadTime);
+        if (value == null) return defaultValue;
+        else {
+            Preconditions.checkArgument(value.length() == 8);
+            return value.getLong(0);
+        }
+    }
+
+    private void writeSetting(String identifier, StaticBuffer column, long value) {
+        StaticBuffer key = getSettingKey(identifier);
+        Entry add = StaticArrayEntry.of(column, BufferUtil.getLongBuffer(value));
+        Boolean status = BackendOperation.execute(new BackendOperation.Transactional<Boolean>() {
+            @Override
+            public Boolean call(StoreTransaction txh) throws BackendException {
+                store.mutate(key, ImmutableList.of(add), KeyColumnValueStore.NO_DELETIONS, txh);
+                return Boolean.TRUE;
+            }
+
+            @Override
+            public String toString() {
+                return "writingLogSetting";
+            }
+        }, this, times, maxWriteTime);
+        Preconditions.checkState(status);
+    }
+
+    /**
+     * Helper class to hold the message and its serialization for writing
+     */
+    private static class MessageEnvelope {
+
+        final FutureMessage<KCVSMessage> message;
+        final StaticBuffer key;
+        final Entry entry;
+
+        private MessageEnvelope(FutureMessage<KCVSMessage> message, StaticBuffer key, Entry entry) {
+            this.message = message;
+            this.key = key;
+            this.entry = entry;
+        }
+
+        @Override
+        public String toString() {
+            return "MessageEnvelope[message=" + message + ",key=" + key
+                    + ",entry=" + entry + "]";
         }
     }
 
@@ -592,63 +703,6 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
                 }
             }
         }
-    }
-
-    /**
-     * ###################################
-     * Message Reading
-     * ###################################
-     */
-
-    @Override
-    public synchronized void registerReader(ReadMarker readMarker, MessageReader... reader) {
-        Preconditions.checkArgument(reader != null && reader.length > 0, "Must specify at least one reader");
-        registerReaders(readMarker, Arrays.asList(reader));
-    }
-
-    @Override
-    public synchronized void registerReaders(ReadMarker readMarker, Iterable<MessageReader> readers) {
-        ResourceUnavailableException.verifyOpen(isOpen, "Log", name);
-        Preconditions.checkArgument(!Iterables.isEmpty(readers), "Must specify at least one reader");
-        Preconditions.checkArgument(readMarker != null, "Read marker cannot be null");
-        Preconditions.checkArgument(this.readMarker == null || this.readMarker.isCompatible(readMarker),
-                "Provided read marker is not compatible with existing read marker for previously registered readers");
-        if (this.readMarker == null) this.readMarker = readMarker;
-        boolean firstRegistration = this.readers.isEmpty();
-        for (MessageReader reader : readers) {
-            Preconditions.checkNotNull(reader);
-            if (!this.readers.contains(reader)) this.readers.add(reader);
-        }
-        if (firstRegistration && !this.readers.isEmpty()) {
-            //Custom rejection handler so that messages are processed in-thread when executor has been closed
-            readExecutor = new ScheduledThreadPoolExecutor(numReadThreads, (r, executor) -> r.run());
-            msgPullers = new MessagePuller[manager.readPartitionIds.length * numBuckets];
-            int pos = 0;
-            for (int partitionId : manager.readPartitionIds) {
-                for (int bucketId = 0; bucketId < numBuckets; bucketId++) {
-                    msgPullers[pos] = new MessagePuller(partitionId, bucketId);
-
-                    LOG.debug("Creating LOG read executor: initialDelay={} delay={} unit={}", INITIAL_READER_DELAY.toNanos(), readPollingInterval.toNanos(), TimeUnit.NANOSECONDS);
-                    readExecutor.scheduleWithFixedDelay(
-                            msgPullers[pos],
-                            INITIAL_READER_DELAY.toNanos(),
-                            readPollingInterval.toNanos(),
-                            TimeUnit.NANOSECONDS);
-                    pos++;
-                }
-            }
-            readExecutor.scheduleWithFixedDelay(
-                    new MessageReaderStateUpdater(),
-                    INITIAL_READER_DELAY.toNanos(),
-                    readPollingInterval.toNanos(),
-                    TimeUnit.NANOSECONDS);
-        }
-    }
-
-    @Override
-    public synchronized boolean unregisterReader(MessageReader reader) {
-        ResourceUnavailableException.verifyOpen(isOpen, "Log", name);
-        return this.readers.remove(reader);
     }
 
     private class MessageReaderStateUpdater implements Runnable {
@@ -780,7 +834,7 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
                     LOG.debug("Attempting to persist read marker with identifier {}", readMarker.getIdentifier());
                     writeSetting(readMarker.getIdentifier(), getMarkerColumn(partitionId, bucketId), times.getTime(messageTimeStart));
                     LOG.debug("Persisted read marker: identifier={} partitionId={} buckedId={} nextTimepoint={}",
-                            readMarker.getIdentifier(), partitionId, bucketId, messageTimeStart);
+                              readMarker.getIdentifier(), partitionId, bucketId, messageTimeStart);
                 } catch (Throwable e) {
                     LOG.error("Could not persist read marker [" + readMarker.getIdentifier() + "] on bucket [" + bucketId + "] + partition [" + partitionId + "]", e);
                 }
@@ -805,66 +859,6 @@ public class KCVSLog implements Log, BackendOperation.TransactionalProvider {
             };
         }
 
-    }
-
-    /**
-     * ###################################
-     * Getting/setting Log Settings
-     * ###################################
-     */
-
-    private StaticBuffer getMarkerColumn(int partitionId, int bucketId) {
-        DataOutput out = manager.serializer.getDataOutput(1 + 4 + 4);
-        out.putByte(MARKER_PREFIX);
-        out.putInt(partitionId);
-        out.putInt(bucketId);
-        return out.getStaticBuffer();
-    }
-
-
-    private StaticBuffer getSettingKey(String identifier) {
-        DataOutput out = manager.serializer.getDataOutput(4 + 2 + identifier.length());
-        out.putInt(SYSTEM_PARTITION_ID);
-        out.writeObjectNotNull(identifier);
-        return out.getStaticBuffer();
-    }
-
-    private long readSetting(String identifier, StaticBuffer column, long defaultValue) {
-        StaticBuffer key = getSettingKey(identifier);
-        StaticBuffer value = BackendOperation.execute(new BackendOperation.Transactional<StaticBuffer>() {
-            @Override
-            public StaticBuffer call(StoreTransaction txh) throws BackendException {
-                return KCVSUtil.get(store, key, column, txh);
-            }
-
-            @Override
-            public String toString() {
-                return "readingLogSetting";
-            }
-        }, this, times, maxReadTime);
-        if (value == null) return defaultValue;
-        else {
-            Preconditions.checkArgument(value.length() == 8);
-            return value.getLong(0);
-        }
-    }
-
-    private void writeSetting(String identifier, StaticBuffer column, long value) {
-        StaticBuffer key = getSettingKey(identifier);
-        Entry add = StaticArrayEntry.of(column, BufferUtil.getLongBuffer(value));
-        Boolean status = BackendOperation.execute(new BackendOperation.Transactional<Boolean>() {
-            @Override
-            public Boolean call(StoreTransaction txh) throws BackendException {
-                store.mutate(key, ImmutableList.of(add), KeyColumnValueStore.NO_DELETIONS, txh);
-                return Boolean.TRUE;
-            }
-
-            @Override
-            public String toString() {
-                return "writingLogSetting";
-            }
-        }, this, times, maxWriteTime);
-        Preconditions.checkState(status);
     }
 
 

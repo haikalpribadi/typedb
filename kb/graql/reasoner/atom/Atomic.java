@@ -25,8 +25,9 @@ import grakn.core.kb.graql.reasoner.query.ReasonerQuery;
 import graql.lang.pattern.Pattern;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
-import java.util.Set;
+
 import javax.annotation.CheckReturnValue;
+import java.util.Set;
 
 /**
  * Basic interface for logical atoms used in reasoning.
@@ -44,7 +45,7 @@ public interface Atomic {
 
     /**
      * @return the corresponding base pattern
-     * */
+     */
     @CheckReturnValue
     Statement getPattern();
 
@@ -72,33 +73,33 @@ public interface Atomic {
 
     /**
      * @return true if the atomic corresponds to a atom
-     * */
+     */
     @CheckReturnValue
-    default boolean isAtom(){ return false;}
+    default boolean isAtom() { return false;}
 
     /**
      * @return true if the atomic corresponds to a type atom
-     * */
+     */
     @CheckReturnValue
-    default boolean isCompatibleWithTypeAtom(){ return false;}
+    default boolean isCompatibleWithTypeAtom() { return false;}
 
     /**
      * @return true if the atomic corresponds to a relation atom
-     * */
+     */
     @CheckReturnValue
-    default boolean isRelationAtom(){return false;}
+    default boolean isRelationAtom() {return false;}
 
     /**
      * @return true if the atomic corresponds to a resource atom
      */
     @CheckReturnValue
-    default boolean isAttributeAtom(){ return false;}
+    default boolean isAttributeAtom() { return false;}
 
     /**
      * @return if atom contains properties considering only explicit type hierarchies
      */
     @CheckReturnValue
-    default boolean isDirect(){ return false;}
+    default boolean isDirect() { return false;}
 
     /**
      * @return true if obj alpha-equivalent
@@ -116,13 +117,13 @@ public interface Atomic {
      * @return true if obj compatible
      */
     @CheckReturnValue
-    default boolean isCompatibleWith(Object obj){return isAlphaEquivalent(obj);}
+    default boolean isCompatibleWith(Object obj) {return isAlphaEquivalent(obj);}
 
     @CheckReturnValue
-    default boolean typesRoleCompatibleWithMatchSemantics(Variable typedVar, Set<Type> parentTypes){ return true;}
+    default boolean typesRoleCompatibleWithMatchSemantics(Variable typedVar, Set<Type> parentTypes) { return true;}
 
     @CheckReturnValue
-    default boolean typesRoleCompatibleWithInsertSemantics(Variable typedVar, Set<Type> parentTypes){ return true;}
+    default boolean typesRoleCompatibleWithInsertSemantics(Variable typedVar, Set<Type> parentTypes) { return true;}
 
     /**
      * Determines whether the subsumption relation between this (A) and provided atom (B) holds,
@@ -158,7 +159,7 @@ public interface Atomic {
      * @return true if the atomic can form an atomic query
      */
     @CheckReturnValue
-    default boolean isSelectable(){ return false;}
+    default boolean isSelectable() { return false;}
 
     /**
      * @return the base pattern combined with possible predicate patterns
@@ -174,12 +175,13 @@ public interface Atomic {
 
     /**
      * infers types (type, role types) for the atom if applicable/possible
+     *
      * @return either this atom if nothing could be inferred or a fresh atom with inferred types
      */
     @CheckReturnValue
     Atomic inferTypes();
 
     @CheckReturnValue
-    default Atomic simplify(){ return this;}
+    default Atomic simplify() { return this;}
 
 }

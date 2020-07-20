@@ -30,8 +30,8 @@ import static org.apache.tinkerpop.gremlin.structure.T.id;
  * @param <E> The type of the element. Either VertexElement of EdgeElement
  */
 public abstract class AbstractElementImpl<E extends Element> implements AbstractElement<E> {
-    private E element;
     final ElementFactory elementFactory;
+    private E element;
 
     AbstractElementImpl(ElementFactory elementFactory, E element) {
         this.elementFactory = elementFactory;

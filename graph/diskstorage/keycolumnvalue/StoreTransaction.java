@@ -28,7 +28,6 @@ import grakn.core.graph.diskstorage.BaseTransactionConfigurable;
  * <p>
  * Note, that a StoreTransaction by itself does not provide any isolation or consistency guarantees (e.g. ACID).
  * Graph Transactions can only extend such guarantees if they are supported by the respective storage backend.
- *
  */
 public interface StoreTransaction extends BaseTransactionConfigurable {
 

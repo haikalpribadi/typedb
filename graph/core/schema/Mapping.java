@@ -36,15 +36,6 @@ public enum Mapping {
     TEXTSTRING,
     PREFIX_TREE;
 
-    /**
-     * Returns the mapping as a parameter so that it can be passed to JanusGraphManagement#addIndexKey(JanusGraphIndex, PropertyKey, Parameter[])
-     */
-    public Parameter asParameter() {
-        return ParameterType.MAPPING.getParameter(this);
-    }
-
-    //------------ USED INTERNALLY -----------
-
     public static Mapping getMapping(KeyInformation information) {
         Object value = ParameterType.MAPPING.findParameter(information.getParameters(), null);
         if (value == null) return DEFAULT;
@@ -57,10 +48,19 @@ public enum Mapping {
         }
     }
 
+    //------------ USED INTERNALLY -----------
+
     public static Mapping getMapping(String store, String key, KeyInformation.IndexRetriever information) {
         KeyInformation ki = information.get(store, key);
         Preconditions.checkNotNull(ki, "Could not find key information for: %s", key);
         return getMapping(ki);
+    }
+
+    /**
+     * Returns the mapping as a parameter so that it can be passed to JanusGraphManagement#addIndexKey(JanusGraphIndex, PropertyKey, Parameter[])
+     */
+    public Parameter asParameter() {
+        return ParameterType.MAPPING.getParameter(this);
     }
 
 

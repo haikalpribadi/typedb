@@ -24,7 +24,6 @@ import grakn.core.graph.graphdb.relations.RelationCache;
  * <p>
  * An entry consists of a column and value both of which are general java.nio.ByteBuffers.
  * The value may be null but the column may not.
- *
  */
 public interface Entry extends StaticBuffer, MetaAnnotated {
 

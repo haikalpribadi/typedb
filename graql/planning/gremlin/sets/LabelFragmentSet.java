@@ -35,10 +35,47 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * see EquivalentFragmentSets#label(VarProperty, Variable, ImmutableSet)
- *
  */
 public class LabelFragmentSet extends EquivalentFragmentSetImpl {
 
+    /**
+     * Optimise away any redundant LabelFragmentSets. A LabelFragmentSet is considered redundant if:
+     * <ol>
+     *   <li>It refers to a SchemaConcept that exists in the knowledge base
+     *   <li>It is not associated with a user-defined Variable
+     *   <li>The Variable it is associated with is not referred to in any other fragment
+     *   <li>The fragment set is not the only remaining fragment set</li>
+     * </ol>
+     */
+    static final FragmentSetOptimisation REDUNDANT_LABEL_ELIMINATION_OPTIMISATION = (fragmentSets, conceptManager) -> {
+
+        if (fragmentSets.size() <= 1) return false;
+
+        Iterable<LabelFragmentSet> labelFragments =
+                EquivalentFragmentSets.fragmentSetOfType(LabelFragmentSet.class, fragmentSets)::iterator;
+
+        for (LabelFragmentSet labelSet : labelFragments) {
+
+            boolean hasReturnedVarVar = labelSet.var().isReturned();
+            if (hasReturnedVarVar) continue;
+
+            boolean existsInGraph = labelSet.labels().stream().anyMatch(label -> conceptManager.getSchemaConcept(label) != null);
+            if (!existsInGraph) continue;
+
+            boolean varReferredToInOtherFragment = fragmentSets.stream()
+                    .filter(set -> !set.equals(labelSet))
+                    .flatMap(set -> set.fragments().stream())
+                    .map(Fragment::vars)
+                    .anyMatch(vars -> vars.contains(labelSet.var()));
+
+            if (!varReferredToInOtherFragment) {
+                fragmentSets.remove(labelSet);
+                return true;
+            }
+        }
+
+        return false;
+    };
     private final Variable var;
     private final ImmutableSet<Label> labels;
 
@@ -82,45 +119,6 @@ public class LabelFragmentSet extends EquivalentFragmentSetImpl {
 
         return new LabelFragmentSet(varProperty(), typeVar, ImmutableSet.copyOf(newLabels));
     }
-
-    /**
-     * Optimise away any redundant LabelFragmentSets. A LabelFragmentSet is considered redundant if:
-     * <ol>
-     *   <li>It refers to a SchemaConcept that exists in the knowledge base
-     *   <li>It is not associated with a user-defined Variable
-     *   <li>The Variable it is associated with is not referred to in any other fragment
-     *   <li>The fragment set is not the only remaining fragment set</li>
-     * </ol>
-     */
-    static final FragmentSetOptimisation REDUNDANT_LABEL_ELIMINATION_OPTIMISATION = (fragmentSets, conceptManager) -> {
-
-        if (fragmentSets.size() <= 1) return false;
-
-        Iterable<LabelFragmentSet> labelFragments =
-                EquivalentFragmentSets.fragmentSetOfType(LabelFragmentSet.class, fragmentSets)::iterator;
-
-        for (LabelFragmentSet labelSet : labelFragments) {
-
-            boolean hasReturnedVarVar = labelSet.var().isReturned();
-            if (hasReturnedVarVar) continue;
-
-            boolean existsInGraph = labelSet.labels().stream().anyMatch(label -> conceptManager.getSchemaConcept(label) != null);
-            if (!existsInGraph) continue;
-
-            boolean varReferredToInOtherFragment = fragmentSets.stream()
-                    .filter(set -> !set.equals(labelSet))
-                    .flatMap(set -> set.fragments().stream())
-                    .map(Fragment::vars)
-                    .anyMatch(vars -> vars.contains(labelSet.var()));
-
-            if (!varReferredToInOtherFragment) {
-                fragmentSets.remove(labelSet);
-                return true;
-            }
-        }
-
-        return false;
-    };
 
     @Override
     public boolean equals(Object o) {

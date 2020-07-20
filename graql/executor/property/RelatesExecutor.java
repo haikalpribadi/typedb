@@ -36,7 +36,7 @@ import java.util.Set;
 import static grakn.core.graql.planning.gremlin.sets.EquivalentFragmentSets.relates;
 import static grakn.core.graql.planning.gremlin.sets.EquivalentFragmentSets.sub;
 
-public class RelatesExecutor  implements PropertyExecutor.Definable {
+public class RelatesExecutor implements PropertyExecutor.Definable {
 
     private final Variable var;
     private final RelatesProperty property;

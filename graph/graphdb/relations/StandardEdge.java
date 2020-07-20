@@ -33,18 +33,16 @@ import java.util.Map;
 
 public class StandardEdge extends AbstractEdge implements StandardRelation, ReassignableRelation {
 
+    private static final Map<PropertyKey, Object> EMPTY_PROPERTIES = ImmutableMap.of();
+
+    //############## SAME CODE AS StandardProperty #############################
+    private byte lifecycle;
+    private long previousID = 0;
+    private volatile Map<PropertyKey, Object> properties = EMPTY_PROPERTIES;
     public StandardEdge(long id, EdgeLabel label, InternalVertex start, InternalVertex end, byte lifecycle) {
         super(id, label, start, end);
         this.lifecycle = lifecycle;
     }
-
-    //############## SAME CODE AS StandardProperty #############################
-
-    private static final Map<PropertyKey, Object> EMPTY_PROPERTIES = ImmutableMap.of();
-
-    private byte lifecycle;
-    private long previousID = 0;
-    private volatile Map<PropertyKey, Object> properties = EMPTY_PROPERTIES;
 
     @Override
     public long getPreviousID() {

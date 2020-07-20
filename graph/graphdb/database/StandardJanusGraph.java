@@ -125,192 +125,22 @@ public class StandardJanusGraph implements JanusGraph {
         TraversalStrategies.GlobalCache.registerStrategies(StandardJanusGraphTx.class, graphStrategies);
     }
 
+    //Caches
+    public final SliceQuery vertexExistenceQuery;
+    protected final StandardSerializer serializer;
     private final GraphDatabaseConfiguration config;
     private final Backend backend;
     private final IDManager idManager;
     private final VertexIDAssigner idAssigner;
     private final TimestampProvider timestampProvider;
-
     //Serializers
     private final IndexSerializer indexSerializer;
     private final EdgeSerializer edgeSerializer;
-    protected final StandardSerializer serializer;
-
-    //Caches
-    public final SliceQuery vertexExistenceQuery;
     private final RelationQueryCache queryCache;
     private final SchemaCache schemaCache;
-
-    private volatile boolean isOpen;
     private final AtomicLong txCounter; // used to generate unique transaction IDs
-
     private final Set<StandardJanusGraphTx> openTransactions;
-
-    public StandardJanusGraph(GraphDatabaseConfiguration configuration, Backend backend) {
-        this.config = configuration;
-        this.isOpen = true;
-        this.txCounter = new AtomicLong(0);
-        this.openTransactions = Collections.newSetFromMap(new ConcurrentHashMap<>(100, 0.75f, 1));
-
-        // Collaborators:
-        this.backend = backend;
-        this.idAssigner = new VertexIDAssigner(config.getConfiguration(), backend);
-        this.idManager = idAssigner.getIDManager();
-        this.timestampProvider = configuration.getTimestampProvider();
-
-
-        // Collaborators (Serializers)
-        this.serializer = new StandardSerializer();
-        StoreFeatures storeFeatures = backend.getStoreFeatures();
-        this.indexSerializer = new IndexSerializer(configuration.getConfiguration(), this.serializer, this.backend.getIndexInformation(), storeFeatures.isDistributed() && storeFeatures.isKeyOrdered());
-        this.edgeSerializer = new EdgeSerializer(this.serializer);
-
-        // The following query is used by VertexConstructors(inside JanusTransaction) to check whether a vertex associated to a specific ID actually exists in the DB (and it's not a ghost)
-        // Full explanation on why this query is used: https://github.com/thinkaurelius/titan/issues/214
-        this.vertexExistenceQuery = edgeSerializer.getQuery(BaseKey.VertexExists, Direction.OUT, new EdgeSerializer.TypedInterval[0]).setLimit(1);
-
-        // Collaborators (Caches)
-        this.queryCache = new RelationQueryCache(this.edgeSerializer);
-        this.schemaCache = new StandardSchemaCache(typeCacheRetrieval);
-    }
-
-    @Override
-    public String toString() {
-        return "StandardJanusGraph[" + backend.getStoreManager().getName() + "]";
-    }
-
-    public org.apache.commons.configuration.Configuration configuration() {
-        return getConfiguration().getConfigurationAtOpen();
-    }
-
-    @Override
-    public boolean isOpen() {
-        return isOpen;
-    }
-
-    @Override
-    public boolean isClosed() {
-        return !isOpen();
-    }
-
-    @Override
-    public synchronized void close() throws JanusGraphException {
-        if (!isOpen) return;
-
-        Map<JanusGraphTransaction, RuntimeException> txCloseExceptions = new HashMap<>();
-
-        try {
-            /* Assuming a couple of properties about openTransactions:
-             * 1. no concurrent modifications during graph shutdown
-             * 2. all contained localJanusTransaction are open
-             */
-            for (StandardJanusGraphTx otx : openTransactions) {
-                try {
-                    otx.rollback();
-                    otx.close();
-                } catch (RuntimeException e) {
-                    // Catch and store these exceptions, but proceed with the loop
-                    // Any remaining localJanusTransaction on the iterator should get a chance to close before we throw up
-                    LOG.warn("Unable to close transaction {}", otx, e);
-                    txCloseExceptions.put(otx, e);
-                }
-            }
-            idAssigner.close();
-            backend.close();
-        } finally {
-            isOpen = false;
-        }
-
-        // Throw an exception if at least one transaction failed to close
-        if (1 == txCloseExceptions.size()) {
-            // TP3's test suite requires that this be of type ISE
-            throw new IllegalStateException("Unable to close transaction", Iterables.getOnlyElement(txCloseExceptions.values()));
-        } else if (1 < txCloseExceptions.size()) {
-            throw new IllegalStateException(String.format("Unable to close %s transactions (see warnings in LOG output for details)",
-                    txCloseExceptions.size()));
-        }
-    }
-
-    // ################### Simple Getters #########################
-
-    public Graph.Features features() {
-        return JanusGraphFeatures.getFeatures(this, backend.getStoreFeatures());
-    }
-
-    public IndexSerializer getIndexSerializer() {
-        return indexSerializer;
-    }
-
-    public IDManager getIDManager() {
-        return idManager;
-    }
-
-    public EdgeSerializer getEdgeSerializer() {
-        return edgeSerializer;
-    }
-
-    public StandardSerializer getDataSerializer() {
-        return serializer;
-    }
-
-    public SchemaCache getSchemaCache() {
-        return schemaCache;
-    }
-
-    public GraphDatabaseConfiguration getConfiguration() {
-        return config;
-    }
-
-    @Override
-    public JanusGraphManagement openManagement() {
-        return new ManagementSystem(this, backend.getGlobalSystemConfig());
-    }
-
-    public Set<? extends JanusGraphTransaction> getOpenTransactions() {
-        return Sets.newHashSet(openTransactions);
-    }
-
-    // ################### TRANSACTIONS #########################
-
-    @Override
-    public JanusGraphTransaction newTransaction() {
-        return buildTransaction().start();
-    }
-
-    @Override
-    public StandardTransactionBuilder buildTransaction() {
-        return new StandardTransactionBuilder(getConfiguration(), this);
-    }
-
-    public StandardJanusGraphTx newThreadBoundTransaction() {
-        return buildTransaction().threadBound().start();
-    }
-
-    public StandardJanusGraphTx newTransaction(TransactionConfiguration configuration) {
-        if (!isOpen) {
-            throw new IllegalStateException("Graph has been shut down");
-        }
-        StandardJanusGraphTx tx = new StandardJanusGraphTx(this, configuration);
-        openTransactions.add(tx);
-        return tx;
-    }
-
-    // This in only used from StandardJanusGraphTx (that's why public when it's really a private method) for an awkward initialisation that should be fixed in the future
-    public BackendTransaction openBackendTransaction(StandardJanusGraphTx tx) {
-        try {
-            IndexSerializer.IndexInfoRetriever retriever = indexSerializer.getIndexInfoRetriever(tx);
-            return backend.beginTransaction(tx.getConfiguration(), retriever);
-        } catch (BackendException e) {
-            throw new JanusGraphException("Could not start new transaction", e);
-        }
-    }
-
-    public void closeTransaction(StandardJanusGraphTx tx) {
-        openTransactions.remove(tx);
-    }
-
-    // ################### READ #########################
-
+    private volatile boolean isOpen;
     private final SchemaCache.StoreRetrieval typeCacheRetrieval = new SchemaCache.StoreRetrieval() {
 
         @Override
@@ -358,9 +188,199 @@ public class StandardJanusGraph implements JanusGraph {
 
     };
 
+    public StandardJanusGraph(GraphDatabaseConfiguration configuration, Backend backend) {
+        this.config = configuration;
+        this.isOpen = true;
+        this.txCounter = new AtomicLong(0);
+        this.openTransactions = Collections.newSetFromMap(new ConcurrentHashMap<>(100, 0.75f, 1));
+
+        // Collaborators:
+        this.backend = backend;
+        this.idAssigner = new VertexIDAssigner(config.getConfiguration(), backend);
+        this.idManager = idAssigner.getIDManager();
+        this.timestampProvider = configuration.getTimestampProvider();
+
+
+        // Collaborators (Serializers)
+        this.serializer = new StandardSerializer();
+        StoreFeatures storeFeatures = backend.getStoreFeatures();
+        this.indexSerializer = new IndexSerializer(configuration.getConfiguration(), this.serializer, this.backend.getIndexInformation(), storeFeatures.isDistributed() && storeFeatures.isKeyOrdered());
+        this.edgeSerializer = new EdgeSerializer(this.serializer);
+
+        // The following query is used by VertexConstructors(inside JanusTransaction) to check whether a vertex associated to a specific ID actually exists in the DB (and it's not a ghost)
+        // Full explanation on why this query is used: https://github.com/thinkaurelius/titan/issues/214
+        this.vertexExistenceQuery = edgeSerializer.getQuery(BaseKey.VertexExists, Direction.OUT, new EdgeSerializer.TypedInterval[0]).setLimit(1);
+
+        // Collaborators (Caches)
+        this.queryCache = new RelationQueryCache(this.edgeSerializer);
+        this.schemaCache = new StandardSchemaCache(typeCacheRetrieval);
+    }
+
+    /**
+     * The TTL of a relation (edge or property) is the minimum of:
+     * 1) The TTL configured of the relation type (if exists)
+     * 2) The TTL configured for the label any of the relation end point vertices (if exists)
+     *
+     * @param rel relation to determine the TTL for
+     */
+    public static int getTTL(InternalRelation rel) {
+        InternalRelationType baseType = (InternalRelationType) rel.getType();
+        int ttl = 0;
+        Integer ettl = baseType.getTTL();
+        if (ettl > 0) ttl = ettl;
+        for (int i = 0; i < rel.getArity(); i++) {
+            int vttl = getTTL(rel.getVertex(i));
+            if (vttl > 0 && (vttl < ttl || ttl <= 0)) ttl = vttl;
+        }
+        return ttl;
+    }
+
+    public static int getTTL(InternalVertex v) {
+        if (IDManager.VertexIDType.UnmodifiableVertex.is(v.longId())) {
+            return ((InternalVertexLabel) v.vertexLabel()).getTTL();
+        } else return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "StandardJanusGraph[" + backend.getStoreManager().getName() + "]";
+    }
+
+    public org.apache.commons.configuration.Configuration configuration() {
+        return getConfiguration().getConfigurationAtOpen();
+    }
+
+    // ################### Simple Getters #########################
+
+    @Override
+    public boolean isOpen() {
+        return isOpen;
+    }
+
+    @Override
+    public boolean isClosed() {
+        return !isOpen();
+    }
+
+    @Override
+    public synchronized void close() throws JanusGraphException {
+        if (!isOpen) return;
+
+        Map<JanusGraphTransaction, RuntimeException> txCloseExceptions = new HashMap<>();
+
+        try {
+            /* Assuming a couple of properties about openTransactions:
+             * 1. no concurrent modifications during graph shutdown
+             * 2. all contained localJanusTransaction are open
+             */
+            for (StandardJanusGraphTx otx : openTransactions) {
+                try {
+                    otx.rollback();
+                    otx.close();
+                } catch (RuntimeException e) {
+                    // Catch and store these exceptions, but proceed with the loop
+                    // Any remaining localJanusTransaction on the iterator should get a chance to close before we throw up
+                    LOG.warn("Unable to close transaction {}", otx, e);
+                    txCloseExceptions.put(otx, e);
+                }
+            }
+            idAssigner.close();
+            backend.close();
+        } finally {
+            isOpen = false;
+        }
+
+        // Throw an exception if at least one transaction failed to close
+        if (1 == txCloseExceptions.size()) {
+            // TP3's test suite requires that this be of type ISE
+            throw new IllegalStateException("Unable to close transaction", Iterables.getOnlyElement(txCloseExceptions.values()));
+        } else if (1 < txCloseExceptions.size()) {
+            throw new IllegalStateException(String.format("Unable to close %s transactions (see warnings in LOG output for details)",
+                                                          txCloseExceptions.size()));
+        }
+    }
+
+    public Graph.Features features() {
+        return JanusGraphFeatures.getFeatures(this, backend.getStoreFeatures());
+    }
+
+    public IndexSerializer getIndexSerializer() {
+        return indexSerializer;
+    }
+
+    public IDManager getIDManager() {
+        return idManager;
+    }
+
+    public EdgeSerializer getEdgeSerializer() {
+        return edgeSerializer;
+    }
+
+    public StandardSerializer getDataSerializer() {
+        return serializer;
+    }
+
+    public SchemaCache getSchemaCache() {
+        return schemaCache;
+    }
+
+    // ################### TRANSACTIONS #########################
+
+    public GraphDatabaseConfiguration getConfiguration() {
+        return config;
+    }
+
+    @Override
+    public JanusGraphManagement openManagement() {
+        return new ManagementSystem(this, backend.getGlobalSystemConfig());
+    }
+
+    public Set<? extends JanusGraphTransaction> getOpenTransactions() {
+        return Sets.newHashSet(openTransactions);
+    }
+
+    @Override
+    public JanusGraphTransaction newTransaction() {
+        return buildTransaction().start();
+    }
+
+    @Override
+    public StandardTransactionBuilder buildTransaction() {
+        return new StandardTransactionBuilder(getConfiguration(), this);
+    }
+
+    public StandardJanusGraphTx newThreadBoundTransaction() {
+        return buildTransaction().threadBound().start();
+    }
+
+    // ################### READ #########################
+
+    public StandardJanusGraphTx newTransaction(TransactionConfiguration configuration) {
+        if (!isOpen) {
+            throw new IllegalStateException("Graph has been shut down");
+        }
+        StandardJanusGraphTx tx = new StandardJanusGraphTx(this, configuration);
+        openTransactions.add(tx);
+        return tx;
+    }
+
+    // This in only used from StandardJanusGraphTx (that's why public when it's really a private method) for an awkward initialisation that should be fixed in the future
+    public BackendTransaction openBackendTransaction(StandardJanusGraphTx tx) {
+        try {
+            IndexSerializer.IndexInfoRetriever retriever = indexSerializer.getIndexInfoRetriever(tx);
+            return backend.beginTransaction(tx.getConfiguration(), retriever);
+        } catch (BackendException e) {
+            throw new JanusGraphException("Could not start new transaction", e);
+        }
+    }
+
+    public void closeTransaction(StandardJanusGraphTx tx) {
+        openTransactions.remove(tx);
+    }
+
     public RecordIterator<Long> getVertexIDs(BackendTransaction tx) {
         Preconditions.checkArgument(backend.getStoreFeatures().hasOrderedScan() || backend.getStoreFeatures().hasUnorderedScan(),
-                "The configured storage backend does not support global graph operations - use Faunus instead");
+                                    "The configured storage backend does not support global graph operations - use Faunus instead");
 
         KeyIterator keyIterator;
         if (backend.getStoreFeatures().hasUnorderedScan()) {
@@ -393,6 +413,8 @@ public class StandardJanusGraph implements JanusGraph {
         };
     }
 
+    // ################### WRITE #########################
+
     public EntryList edgeQuery(long vid, SliceQuery query, BackendTransaction tx) {
         Preconditions.checkArgument(vid > 0);
         return tx.edgeStoreQuery(new KeySliceQuery(idManager.getKey(vid), query));
@@ -406,49 +428,12 @@ public class StandardJanusGraph implements JanusGraph {
         return resultList;
     }
 
-    // ################### WRITE #########################
-
     public void assignID(InternalRelation relation) {
         idAssigner.assignID(relation);
     }
 
     public void assignID(InternalVertex vertex, VertexLabel label) {
         idAssigner.assignID(vertex, label);
-    }
-
-    /**
-     * The TTL of a relation (edge or property) is the minimum of:
-     * 1) The TTL configured of the relation type (if exists)
-     * 2) The TTL configured for the label any of the relation end point vertices (if exists)
-     *
-     * @param rel relation to determine the TTL for
-     */
-    public static int getTTL(InternalRelation rel) {
-        InternalRelationType baseType = (InternalRelationType) rel.getType();
-        int ttl = 0;
-        Integer ettl = baseType.getTTL();
-        if (ettl > 0) ttl = ettl;
-        for (int i = 0; i < rel.getArity(); i++) {
-            int vttl = getTTL(rel.getVertex(i));
-            if (vttl > 0 && (vttl < ttl || ttl <= 0)) ttl = vttl;
-        }
-        return ttl;
-    }
-
-    public static int getTTL(InternalVertex v) {
-        if (IDManager.VertexIDType.UnmodifiableVertex.is(v.longId())) {
-            return ((InternalVertexLabel) v.vertexLabel()).getTTL();
-        } else return 0;
-    }
-
-    private static class ModificationSummary {
-        final boolean hasModifications;
-        final boolean has2iModifications;
-
-        private ModificationSummary(boolean hasModifications, boolean has2iModifications) {
-            this.hasModifications = hasModifications;
-            this.has2iModifications = has2iModifications;
-        }
     }
 
     private ModificationSummary prepareCommit(Collection<InternalRelation> addedRelations, Collection<InternalRelation> deletedRelations,
@@ -635,8 +620,8 @@ public class StandardJanusGraph implements JanusGraph {
                 //    This should not throw an exception since the mutations are just cached. If it does, it will be escalated since its critical
                 if (logTransaction) {
                     txLog.add(txLogHeader.serializePrimary(serializer,
-                            hasSecondaryPersistence ? LogTxStatus.PRIMARY_SUCCESS : LogTxStatus.COMPLETE_SUCCESS),
-                            txLogHeader.getLogKey(), mutator.getTxLogPersistor());
+                                                           hasSecondaryPersistence ? LogTxStatus.PRIMARY_SUCCESS : LogTxStatus.COMPLETE_SUCCESS),
+                              txLogHeader.getLogKey(), mutator.getTxLogPersistor());
                 }
 
                 try {
@@ -710,6 +695,16 @@ public class StandardJanusGraph implements JanusGraph {
             }
             if (e instanceof RuntimeException) throw (RuntimeException) e;
             else throw new JanusGraphException("Unexpected exception", e);
+        }
+    }
+
+    private static class ModificationSummary {
+        final boolean hasModifications;
+        final boolean has2iModifications;
+
+        private ModificationSummary(boolean hasModifications, boolean has2iModifications) {
+            this.hasModifications = hasModifications;
+            this.has2iModifications = has2iModifications;
         }
     }
 }

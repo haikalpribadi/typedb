@@ -29,7 +29,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#neq(VarProperty, Variable, Variable)
- *
  */
 class NeqFragmentSet extends EquivalentFragmentSetImpl {
 

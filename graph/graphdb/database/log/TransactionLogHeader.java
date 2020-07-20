@@ -56,6 +56,34 @@ public class TransactionLogHeader {
         logKey = HashingUtil.hashPrefixKey(HashingUtil.HashLength.SHORT, BufferUtil.getLongBuffer(transactionId));
     }
 
+    private static void logRelations(DataOutput out, Collection<InternalRelation> relations, StandardJanusGraphTx tx) {
+        VariableLong.writePositive(out, relations.size());
+        for (InternalRelation rel : relations) {
+            VariableLong.writePositive(out, rel.getVertex(0).longId());
+            grakn.core.graph.diskstorage.Entry entry = tx.getEdgeSerializer().writeRelation(rel, 0, tx);
+            BufferUtil.writeEntry(out, entry);
+        }
+    }
+
+    public static Entry parse(StaticBuffer buffer, Serializer serializer, TimestampProvider times) {
+        ReadBuffer read = buffer.asReadBuffer();
+        Instant txTimestamp = times.getTime(read.getLong());
+        TransactionLogHeader header = new TransactionLogHeader(VariableLong.readPositive(read), txTimestamp, times);
+        LogTxStatus status = serializer.readObjectNotNull(read, LogTxStatus.class);
+        EnumMap<LogTxMeta, Object> metadata = new EnumMap<>(LogTxMeta.class);
+        int metaSize = VariableLong.unsignedByte(read.getByte());
+        for (int i = 0; i < metaSize; i++) {
+            LogTxMeta meta = LogTxMeta.values()[VariableLong.unsignedByte(read.getByte())];
+            metadata.put(meta, serializer.readObjectNotNull(read, meta.dataType()));
+        }
+        if (read.hasRemaining()) {
+            StaticBuffer content = read.subrange(read.getPosition(), read.length() - read.getPosition());
+            return new Entry(header, content, status, metadata);
+        } else {
+            return new Entry(header, null, status, metadata);
+        }
+    }
+
     public long getId() {
         return transactionId;
     }
@@ -74,15 +102,6 @@ public class TransactionLogHeader {
         logRelations(out, addedRelations, tx);
         logRelations(out, deletedRelations, tx);
         return out.getStaticBuffer();
-    }
-
-    private static void logRelations(DataOutput out, Collection<InternalRelation> relations, StandardJanusGraphTx tx) {
-        VariableLong.writePositive(out, relations.size());
-        for (InternalRelation rel : relations) {
-            VariableLong.writePositive(out, rel.getVertex(0).longId());
-            grakn.core.graph.diskstorage.Entry entry = tx.getEdgeSerializer().writeRelation(rel, 0, tx);
-            BufferUtil.writeEntry(out, entry);
-        }
     }
 
     public StaticBuffer serializePrimary(Serializer serializer, LogTxStatus status) {
@@ -121,7 +140,6 @@ public class TransactionLogHeader {
         return serializeHeader(serializer, capacity, status, metaMap);
     }
 
-
     private DataOutput serializeHeader(Serializer serializer, int capacity, LogTxStatus status, EnumMap<LogTxMeta, Object> meta) {
         Preconditions.checkArgument(status != null && meta != null, "Invalid status or meta");
         DataOutput out = serializer.getDataOutput(capacity);
@@ -138,25 +156,6 @@ public class TransactionLogHeader {
         return out;
     }
 
-    public static Entry parse(StaticBuffer buffer, Serializer serializer, TimestampProvider times) {
-        ReadBuffer read = buffer.asReadBuffer();
-        Instant txTimestamp = times.getTime(read.getLong());
-        TransactionLogHeader header = new TransactionLogHeader(VariableLong.readPositive(read), txTimestamp, times);
-        LogTxStatus status = serializer.readObjectNotNull(read, LogTxStatus.class);
-        EnumMap<LogTxMeta, Object> metadata = new EnumMap<>(LogTxMeta.class);
-        int metaSize = VariableLong.unsignedByte(read.getByte());
-        for (int i = 0; i < metaSize; i++) {
-            LogTxMeta meta = LogTxMeta.values()[VariableLong.unsignedByte(read.getByte())];
-            metadata.put(meta, serializer.readObjectNotNull(read, meta.dataType()));
-        }
-        if (read.hasRemaining()) {
-            StaticBuffer content = read.subrange(read.getPosition(), read.length() - read.getPosition());
-            return new Entry(header, content, status, metadata);
-        } else {
-            return new Entry(header, null, status, metadata);
-        }
-    }
-
     public static class Entry {
         private final TransactionLogHeader header;
         private final StaticBuffer content;
@@ -171,6 +170,17 @@ public class TransactionLogHeader {
             this.content = content;
             this.status = status;
             this.metadata = metadata;
+        }
+
+        private static Collection<Modification> readModifications(Change state, ReadBuffer in, Serializer serializer) {
+            List<Modification> mods = Lists.newArrayList();
+            long size = VariableLong.readPositive(in);
+            for (int i = 0; i < size; i++) {
+                long vid = VariableLong.readPositive(in);
+                grakn.core.graph.diskstorage.Entry entry = BufferUtil.readEntry(in, serializer);
+                mods.add(new Modification(state, vid, entry));
+            }
+            return mods;
         }
 
         public TransactionLogHeader getHeader() {
@@ -205,17 +215,6 @@ public class TransactionLogHeader {
             ReadBuffer in = content.asReadBuffer();
             mods.addAll(readModifications(Change.ADDED, in, serializer));
             mods.addAll(readModifications(Change.REMOVED, in, serializer));
-            return mods;
-        }
-
-        private static Collection<Modification> readModifications(Change state, ReadBuffer in, Serializer serializer) {
-            List<Modification> mods = Lists.newArrayList();
-            long size = VariableLong.readPositive(in);
-            for (int i = 0; i < size; i++) {
-                long vid = VariableLong.readPositive(in);
-                grakn.core.graph.diskstorage.Entry entry = BufferUtil.readEntry(in, serializer);
-                mods.add(new Modification(state, vid, entry));
-            }
             return mods;
         }
 

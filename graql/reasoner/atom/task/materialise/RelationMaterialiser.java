@@ -22,7 +22,6 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.CacheCasting;
 import grakn.core.graql.reasoner.ReasoningContext;
@@ -57,7 +56,7 @@ public class RelationMaterialiser implements AtomMaterialiser<RelationAtom> {
             relation = substitution.get(varName).asRelation();
         } else {
             Relation foundRelation = findRelation(atom, substitution, ctx);
-            relation = foundRelation != null? foundRelation : relationType.addRelationInferred();
+            relation = foundRelation != null ? foundRelation : relationType.addRelationInferred();
         }
 
         // we make the relation conform to the required number and quantity of each role player

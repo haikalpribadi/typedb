@@ -22,7 +22,6 @@ import com.google.common.collect.SetMultimap;
 import grakn.core.common.util.LazyMergingStream;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.ReasoningContext;
-import grakn.core.graql.reasoner.ResolutionIterator;
 import grakn.core.graql.reasoner.atom.Atom;
 import grakn.core.graql.reasoner.explanation.DisjunctiveExplanation;
 import grakn.core.graql.reasoner.explanation.LookupExplanation;
@@ -117,13 +116,13 @@ public class DisjunctiveQuery extends ResolvableQuery {
     }
 
     @Override
-    public Stream<ConceptMap> traverse(){
+    public Stream<ConceptMap> traverse() {
         Stream<Stream<ConceptMap>> answerStreams = clauses.stream().map(clause ->
-                clause.traverse().map(ans -> {
-                    ConceptMap clauseAns = new ConceptMap(ans.map(), new LookupExplanation(), clause.getPattern(ans.map()));
-                    HashMap<Variable, Concept> bindingVarsSub = filterBindingVars(ans.map());
-                    return new ConceptMap(bindingVarsSub, new DisjunctiveExplanation(clauseAns), getPattern(bindingVarsSub));
-                }));
+                                                                                clause.traverse().map(ans -> {
+                                                                                    ConceptMap clauseAns = new ConceptMap(ans.map(), new LookupExplanation(), clause.getPattern(ans.map()));
+                                                                                    HashMap<Variable, Concept> bindingVarsSub = filterBindingVars(ans.map());
+                                                                                    return new ConceptMap(bindingVarsSub, new DisjunctiveExplanation(clauseAns), getPattern(bindingVarsSub));
+                                                                                }));
         LazyMergingStream<ConceptMap> mergedStreams = new LazyMergingStream<>(answerStreams);
         return mergedStreams.flatStream();
     }
@@ -168,7 +167,7 @@ public class DisjunctiveQuery extends ResolvableQuery {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return getPattern().toString();
     }
 

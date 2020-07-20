@@ -47,7 +47,7 @@ public class SparseWeightedGraph extends WeightedGraph {
         return new SparseWeightedGraph(ImmutableSet.copyOf(nodes), incomingEdges);
     }
 
-    public static  SparseWeightedGraph from(Iterable<Weighted<DirectedEdge>> edges) {
+    public static SparseWeightedGraph from(Iterable<Weighted<DirectedEdge>> edges) {
         final Set<Node> nodes = Sets.newHashSet();
         for (Weighted<DirectedEdge> edge : edges) {
             nodes.add(edge.val.source);

@@ -27,55 +27,48 @@ import java.nio.file.Paths;
  */
 public class ConfigKey<T> {
 
-    /**
-     * Parser for a ConfigKey.
-     * Describes how to #read(String) and #write(Object) properties.
-     *
-     * @param <T> The type of the property value
-     */
-    public interface KeyParser<T> {
-
-        T read(String string);
-
-        default String write(T value) {
-            return value.toString();
-        }
-    }
-
     // These are helpful parser to describe how to parse parameters of certain types.
     public static final KeyParser<String> STRING = string -> string;
     public static final KeyParser<Integer> INT = Integer::parseInt;
     public static final KeyParser<Long> LONG = Long::parseLong;
     public static final KeyParser<Boolean> BOOL = Boolean::parseBoolean;
     public static final KeyParser<Path> PATH = Paths::get;
-
     public static final ConfigKey<String> SERVER_HOST_NAME = key("server.host");
     public static final ConfigKey<Integer> GRPC_PORT = key("grpc.port", INT);
-
     public static final ConfigKey<String> STORAGE_HOSTNAME = key("storage.hostname");
     public static final ConfigKey<String> STORAGE_BACKEND = key("storage.backend");
     public static final ConfigKey<Integer> STORAGE_PORT = key("storage.port", INT);
     public static final ConfigKey<Integer> HADOOP_STORAGE_PORT = key("janusgraphmr.ioformat.conf.storage.port", INT);
     public static final ConfigKey<String> STORAGE_KEYSPACE = key("storage.cql.keyspace");
-
     public static final ConfigKey<Long> TYPE_SHARD_THRESHOLD = key("knowledge-base.type-shard-threshold", LONG);
     public static final ConfigKey<String> DATA_DIR = key("data-dir");
     public static final ConfigKey<String> LOG_DIR = key("log.dirs");
-
     /**
      * The name of the key, how it looks in the properties file
      */
     private final String name;
-
     /**
      * The parser used to read and write the property.
      */
     private final KeyParser<T> parser;
 
-
     public ConfigKey(String value, KeyParser<T> parser) {
         this.name = value;
         this.parser = parser;
+    }
+
+    /**
+     * Create a key for a string property
+     */
+    public static ConfigKey<String> key(String value) {
+        return key(value, STRING);
+    }
+
+    /**
+     * Create a key with the given parser
+     */
+    public static <T> ConfigKey<T> key(String value, KeyParser<T> parser) {
+        return new ConfigKey<>(value, parser);
     }
 
     public String name() {
@@ -93,19 +86,19 @@ public class ConfigKey<T> {
         return parser.write(value);
     }
 
-
     /**
-     * Create a key for a string property
+     * Parser for a ConfigKey.
+     * Describes how to #read(String) and #write(Object) properties.
+     *
+     * @param <T> The type of the property value
      */
-    public static ConfigKey<String> key(String value) {
-        return key(value, STRING);
-    }
+    public interface KeyParser<T> {
 
-    /**
-     * Create a key with the given parser
-     */
-    public static <T> ConfigKey<T> key(String value, KeyParser<T> parser) {
-        return new ConfigKey<>(value, parser);
+        T read(String string);
+
+        default String write(T value) {
+            return value.toString();
+        }
     }
 
 }

@@ -36,20 +36,20 @@ import java.util.stream.Collectors;
 
 public class CacheEdge extends AbstractEdge {
 
+    private final Entry data;
+
     public CacheEdge(long id, EdgeLabel label, InternalVertex start, InternalVertex end, Entry data) {
         super(id, label, start.it(), end.it());
         this.data = data;
     }
+
+    //############## Similar code as CacheProperty but be careful when copying #############################
 
     public Direction getVertexCentricDirection() {
         final RelationCache cache = data.getCache();
         Preconditions.checkNotNull(cache, "Cache is null");
         return cache.direction;
     }
-
-    //############## Similar code as CacheProperty but be careful when copying #############################
-
-    private final Entry data;
 
     @Override
     public InternalRelation it() {

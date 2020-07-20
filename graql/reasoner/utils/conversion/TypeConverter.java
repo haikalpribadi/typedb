@@ -27,7 +27,6 @@ import java.util.stream.Stream;
  * <p>
  * Basic SchemaConceptConverter implementation for conversion between compatible types.
  * </p>
- *
  */
 public class TypeConverter implements SchemaConceptConverter<Type> {
 

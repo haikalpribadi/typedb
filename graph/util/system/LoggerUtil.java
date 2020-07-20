@@ -23,6 +23,7 @@ public class LoggerUtil {
 
     /**
      * Encode newline characters and launder string to mitigate LOG forging vulnerability.
+     *
      * @param input
      * @return
      */

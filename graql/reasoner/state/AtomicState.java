@@ -23,7 +23,6 @@ import com.google.common.collect.Iterables;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.graql.reasoner.CacheCasting;
 import grakn.core.graql.reasoner.ReasoningContext;
-import grakn.core.graql.reasoner.atom.Atom;
 import grakn.core.graql.reasoner.cache.IndexedAnswerSet;
 import grakn.core.graql.reasoner.explanation.RuleExplanation;
 import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
@@ -33,7 +32,6 @@ import grakn.core.graql.reasoner.unifier.UnifierType;
 import grakn.core.graql.reasoner.utils.AnswerUtil;
 import grakn.core.kb.concept.api.Concept;
 import grakn.core.kb.concept.api.ConceptId;
-import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.graql.reasoner.cache.CacheEntry;
 import grakn.core.kb.graql.reasoner.cache.QueryCache;
 import grakn.core.kb.graql.reasoner.unifier.MultiUnifier;
@@ -49,14 +47,12 @@ import java.util.Set;
  */
 public class AtomicState extends AnswerPropagatorState<ReasonerAtomicQuery> {
 
+    final private HashMultimap<ConceptId, ConceptMap> materialised = HashMultimap.create();
+    private final ReasoningContext ctx;
     //TODO: remove it once we introduce multi answer states
     private MultiUnifier ruleUnifier = null;
-
     private MultiUnifier cacheUnifier = null;
     private CacheEntry<ReasonerAtomicQuery, IndexedAnswerSet> cacheEntry = null;
-    final private HashMultimap<ConceptId, ConceptMap> materialised = HashMultimap.create();
-
-    private final ReasoningContext ctx;
 
     public AtomicState(ReasonerAtomicQuery query,
                        ConceptMap sub,
@@ -69,7 +65,7 @@ public class AtomicState extends AnswerPropagatorState<ReasonerAtomicQuery> {
     }
 
     @Override
-    public String toString(){ return super.toString() + "\n" + getQuery() + "\n"; }
+    public String toString() { return super.toString() + "\n" + getQuery() + "\n"; }
 
     @Override
     Iterator<ResolutionState> generateChildStateIterator() {
@@ -111,7 +107,8 @@ public class AtomicState extends AnswerPropagatorState<ReasonerAtomicQuery> {
      * @return cache unifier if any
      */
     private MultiUnifier getCacheUnifier() {
-        if (cacheUnifier == null) this.cacheUnifier = CacheCasting.queryCacheCast(ctx.queryCache()).getCacheUnifier(getQuery());
+        if (cacheUnifier == null)
+            this.cacheUnifier = CacheCasting.queryCacheCast(ctx.queryCache()).getCacheUnifier(getQuery());
         return cacheUnifier;
     }
 
@@ -152,8 +149,8 @@ public class AtomicState extends AnswerPropagatorState<ReasonerAtomicQuery> {
 
         ReasonerAtomicQuery ruleHead = reasonerQueryFactory.atomic(rule.getHead(), baseAnswer);
         ConceptMap sub = ruleHead.getSubstitution();
-        if(materialised.get(rule.getRule().id()).contains(sub)
-            && getRuleUnifier(rule).isUnique()){
+        if (materialised.get(rule.getRule().id()).contains(sub)
+                && getRuleUnifier(rule).isUnique()) {
             return new ConceptMap();
         }
         materialised.put(rule.getRule().id(), sub);

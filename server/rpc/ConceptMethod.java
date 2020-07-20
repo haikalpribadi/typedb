@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public class ConceptMethod {
 
     public static void run(Concept concept, ConceptProto.Method.Req req,
-                                      SessionService.Iterators iterators, grakn.core.kb.server.Transaction tx, Consumer<Transaction.Res> responseSender) {
+                           SessionService.Iterators iterators, grakn.core.kb.server.Transaction tx, Consumer<Transaction.Res> responseSender) {
         ConceptHolder con = new ConceptHolder(concept, tx, iterators, responseSender, null);
         switch (req.getReqCase()) {
             // Concept methods
@@ -164,8 +164,7 @@ public class ConceptMethod {
     }
 
     public static void iter(Concept concept, ConceptProto.Method.Iter.Req req,
-                            SessionService.Iterators iterators, grakn.core.kb.server.Transaction tx, Consumer<Transaction.Res> responseSender, Transaction.Iter.Req.Options options)
-    {
+                            SessionService.Iterators iterators, grakn.core.kb.server.Transaction tx, Consumer<Transaction.Res> responseSender, Transaction.Iter.Req.Options options) {
         ConceptHolder con = new ConceptHolder(concept, tx, iterators, responseSender, options);
         switch (req.getReqCase()) {
             // SchemaConcept methods
@@ -255,6 +254,12 @@ public class ConceptMethod {
             this.options = options;
         }
 
+        private static SessionProto.Transaction.Res transactionRes(ConceptProto.Method.Res response) {
+            return SessionProto.Transaction.Res.newBuilder()
+                    .setConceptMethodRes(SessionProto.Transaction.ConceptMethod.Res.newBuilder()
+                                                 .setResponse(response)).build();
+        }
+
         private grakn.core.kb.concept.api.Concept convert(ConceptProto.Concept protoConcept) {
             return tx.getConcept(ConceptId.of(protoConcept.getId()));
         }
@@ -301,12 +306,6 @@ public class ConceptMethod {
 
         Attribute asAttribute() {
             return new Attribute();
-        }
-
-        private static SessionProto.Transaction.Res transactionRes(ConceptProto.Method.Res response) {
-            return SessionProto.Transaction.Res.newBuilder()
-                    .setConceptMethodRes(SessionProto.Transaction.ConceptMethod.Res.newBuilder()
-                                                 .setResponse(response)).build();
         }
 
         /**

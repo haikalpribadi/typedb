@@ -35,7 +35,7 @@ import java.io.IOException;
 public class KVUtil {
 
     public static EntryList getSlice(OrderedKeyValueStore store, StaticBuffer keyStart, StaticBuffer keyEnd, StoreTransaction txh) throws BackendException {
-        return convert(store.getSlice(new KVQuery(keyStart,keyEnd), txh));
+        return convert(store.getSlice(new KVQuery(keyStart, keyEnd), txh));
     }
 
     public static EntryList getSlice(OrderedKeyValueStore store, StaticBuffer keyStart, StaticBuffer keyEnd, int limit, StoreTransaction txh) throws BackendException {

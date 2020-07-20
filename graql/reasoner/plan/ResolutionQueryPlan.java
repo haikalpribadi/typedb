@@ -33,38 +33,67 @@ import java.util.stream.Collectors;
 
 
 /**
- *
  * <p>
  * Class defining the resolution plan for a given ReasonerQueryImpl at a query level.
  * The plan is constructed using the ResolutionPlan working at an atom level.
  * </p>
- *
- *
  */
 public class ResolutionQueryPlan {
 
     private final ImmutableList<ReasonerQueryImpl> queryPlan;
     private ReasonerQueryFactory reasonerQueryFactory;
 
-    public ResolutionQueryPlan(ReasonerQueryFactory reasonerQueryFactory, ReasonerQueryImpl query){
+    public ResolutionQueryPlan(ReasonerQueryFactory reasonerQueryFactory, ReasonerQueryImpl query) {
         this.reasonerQueryFactory = reasonerQueryFactory;
         this.queryPlan = queryPlan(query);
     }
 
+    private static List<ReasonerQueryImpl> prioritise(QueryCollectionBase queries) {
+        return queries.stream()
+                .sorted(Comparator.comparing(q -> !q.isAtomic()))
+                .sorted(Comparator.comparing(ReasonerQueryImpl::isRuleResolvable))
+                .sorted(Comparator.comparing(ReasonerQueryImpl::isBoundlesslyDisconnected))
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private static ImmutableList<ReasonerQueryImpl> refine(List<ReasonerQueryImpl> qs) {
+        return ImmutableList.copyOf(refinePlan(new QueryList(qs)).toCollection());
+    }
+
+    private static QueryList refinePlan(QueryList queries) {
+        QueryList plan = new QueryList();
+        Stack<ReasonerQueryImpl> queryStack = new Stack<>();
+
+        Lists.reverse(prioritise(queries)).forEach(queryStack::push);
+        while (!plan.containsAll(queries)) {
+            ReasonerQueryImpl query = queryStack.pop();
+
+            QuerySet candidates = queries.getCandidates(query, plan);
+
+            if (!candidates.isEmpty() || queries.size() - plan.size() == 1) {
+                plan.add(query);
+                Lists.reverse(prioritise(candidates)).forEach(queryStack::push);
+            }
+        }
+
+        return plan;
+    }
+
     @Override
-    public String toString(){
+    public String toString() {
         return queries().stream()
-                .map(sq -> sq.toString() + (sq.isRuleResolvable()? "*" : ""))
+                .map(sq -> sq.toString() + (sq.isRuleResolvable() ? "*" : ""))
                 .collect(Collectors.joining("\n"));
     }
 
-    public List<ReasonerQueryImpl> queries(){ return queryPlan;}
+    public List<ReasonerQueryImpl> queries() { return queryPlan;}
 
     /**
      * compute the query resolution plan - list of queries ordered by their cost as computed by the graql traversal planner
+     *
      * @return list of prioritised queries
      */
-    private ImmutableList<ReasonerQueryImpl> queryPlan(ReasonerQueryImpl query){
+    private ImmutableList<ReasonerQueryImpl> queryPlan(ReasonerQueryImpl query) {
         ResolutionPlan resolutionPlan = query.resolutionPlan();
 
         ImmutableList<Atom> plan = resolutionPlan.plan();
@@ -87,38 +116,7 @@ public class ResolutionQueryPlan {
         }
 
         boolean refine = plan.size() != queries.size() && !query.requiresSchema();
-        return refine? refine(queries) : ImmutableList.copyOf(queries);
-    }
-
-    private static List<ReasonerQueryImpl> prioritise(QueryCollectionBase queries){
-        return queries.stream()
-                .sorted(Comparator.comparing(q -> !q.isAtomic()))
-                .sorted(Comparator.comparing(ReasonerQueryImpl::isRuleResolvable))
-                .sorted(Comparator.comparing(ReasonerQueryImpl::isBoundlesslyDisconnected))
-                .collect(Collectors.toCollection(LinkedList::new));
-    }
-
-    private static ImmutableList<ReasonerQueryImpl> refine(List<ReasonerQueryImpl> qs){
-        return ImmutableList.copyOf(refinePlan(new QueryList(qs)).toCollection());
-    }
-
-    private static QueryList refinePlan(QueryList queries){
-        QueryList plan = new QueryList();
-        Stack<ReasonerQueryImpl> queryStack = new Stack<>();
-
-        Lists.reverse(prioritise(queries)).forEach(queryStack::push);
-        while(!plan.containsAll(queries)) {
-            ReasonerQueryImpl query = queryStack.pop();
-
-            QuerySet candidates = queries.getCandidates(query, plan);
-
-            if (!candidates.isEmpty() || queries.size() - plan.size() == 1){
-                plan.add(query);
-                Lists.reverse(prioritise(candidates)).forEach(queryStack::push);
-            }
-        }
-
-        return plan;
+        return refine ? refine(queries) : ImmutableList.copyOf(queries);
     }
 
 }

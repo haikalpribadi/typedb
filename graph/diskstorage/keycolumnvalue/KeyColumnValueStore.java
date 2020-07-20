@@ -49,7 +49,7 @@ public interface KeyColumnValueStore {
      * @param txh   Transaction
      * @return List of entries up to a maximum of "limit" entries
      * @throws BackendException when columnEnd &lt; columnStart
-     * see KeySliceQuery
+     *                          see KeySliceQuery
      */
     EntryList getSlice(KeySliceQuery query, StoreTransaction txh) throws BackendException;
 

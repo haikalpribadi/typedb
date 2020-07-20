@@ -18,8 +18,6 @@
 
 package grakn.core.server.session;
 
-import grakn.core.concept.answer.ConceptMap;
-import grakn.core.concept.answer.Explanation;
 import grakn.core.concept.manager.ConceptListenerImpl;
 import grakn.core.concept.manager.ConceptManagerImpl;
 import grakn.core.concept.manager.ConceptNotificationChannelImpl;
@@ -51,8 +49,6 @@ import grakn.core.keyspace.StatisticsDeltaImpl;
 import grakn.core.server.cache.ExplanationCacheImpl;
 import org.apache.tinkerpop.gremlin.hadoop.structure.HadoopGraph;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -64,8 +60,8 @@ public class TransactionProviderImpl implements TransactionProvider {
     private final KeyspaceSchemaCache keyspaceSchemaCache;
     private final KeyspaceStatistics keyspaceStatistics;
     private final AttributeManager attributeManager;
-    private ReadWriteLock graphLock;
     private final long typeShardThreshold;
+    private ReadWriteLock graphLock;
 
     public TransactionProviderImpl(StandardJanusGraph graph, HadoopGraph hadoopGraph,
                                    KeyspaceSchemaCache keyspaceSchemaCache, KeyspaceStatistics keyspaceStatistics,
@@ -115,7 +111,7 @@ public class TransactionProviderImpl implements TransactionProvider {
         TransactionImpl tx = new TransactionImpl(
                 session, janusGraphTransaction, conceptManager,
                 janusTraversalSourceProvider, transactionCache, queryCache,
-                ruleCache,  explanationCache, statisticsDelta,
+                ruleCache, explanationCache, statisticsDelta,
                 executorFactory, reasonerQueryFactory,
                 graphLock, typeShardThreshold
         );

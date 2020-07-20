@@ -21,7 +21,7 @@ import grakn.core.common.config.Config;
 import grakn.core.common.config.ConfigKey;
 import grakn.core.common.config.SystemProperty;
 import grakn.core.daemon.exception.GraknDaemonException;
-import grakn.core.server.Grakn;
+import grakn.core.server.GraknServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,16 +63,26 @@ public class Server {
         this.graknProperties = Config.read(graknPropertiesPath);
     }
 
+    private static boolean isServerReady(String host, int port) {
+        try {
+            Socket s = new Socket(host, port);
+            s.close();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
     /**
      * @return the main class for Grakn Server. In KGMS, this method will be overridden to return a different class.
      */
     private Class getServerMainClass() {
-        return Grakn.class;
+        return GraknServer.class;
     }
 
     public void startIfNotRunning(List<String> args) {
         boolean isProcessRunning = executor.isProcessRunning(SERVER_PIDFILE);
-        boolean isGraknProcess = executor.isAGraknProcess(SERVER_PIDFILE, Grakn.class.getName());
+        boolean isGraknProcess = executor.isAGraknProcess(SERVER_PIDFILE, GraknServer.class.getName());
 
         if (isProcessRunning && isGraknProcess) {
             System.out.println(DISPLAY_NAME + " is already running");
@@ -86,7 +96,7 @@ public class Server {
     }
 
     public void status() {
-        executor.processStatus(SERVER_PIDFILE, DISPLAY_NAME, Grakn.class.getName());
+        executor.processStatus(SERVER_PIDFILE, DISPLAY_NAME, GraknServer.class.getName());
     }
 
     public void clean() {
@@ -171,15 +181,5 @@ public class Server {
     private String getServerClassPath() {
         return graknHome.resolve("server").resolve("services").resolve("lib").toString() + File.separator + "*"
                 + File.pathSeparator + graknHome.resolve("server").resolve("conf");
-    }
-
-    private static boolean isServerReady(String host, int port) {
-        try {
-            Socket s = new Socket(host, port);
-            s.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 }

@@ -76,12 +76,12 @@ import static java.util.stream.Collectors.toList;
  */
 public class QueryExecutorImpl implements QueryExecutor {
 
+    private static final Logger LOG = LoggerFactory.getLogger(QueryExecutorImpl.class);
+    private final boolean infer;
+    private final PropertyExecutorFactory propertyExecutorFactory;
     private ConceptManager conceptManager;
     private ExplanationCache explanationCache;
-    private final boolean infer;
     private ReasonerQueryFactory reasonerQueryFactory;
-    private final PropertyExecutorFactory propertyExecutorFactory;
-    private static final Logger LOG = LoggerFactory.getLogger(QueryExecutorImpl.class);
 
     QueryExecutorImpl(ConceptManager conceptManager, ReasonerQueryFactory reasonerQueryFactory, ExplanationCache explanationCache, boolean infer) {
         this.conceptManager = conceptManager;
@@ -89,6 +89,18 @@ public class QueryExecutorImpl implements QueryExecutor {
         this.infer = infer;
         this.reasonerQueryFactory = reasonerQueryFactory;
         propertyExecutorFactory = new PropertyExecutorFactoryImpl();
+    }
+
+    private static <T extends Answer> List<AnswerGroup<T>> get(Stream<ConceptMap> answers, Variable groupVar,
+                                                               Function<Stream<ConceptMap>, List<T>> aggregate) {
+        Collector<ConceptMap, ?, List<T>> groupAggregate =
+                collectingAndThen(toList(), list -> aggregate.apply(list.stream()));
+
+        List<AnswerGroup<T>> answerGroups = new ArrayList<>();
+        answers.collect(groupingBy(answer -> answer.get(groupVar), groupAggregate))
+                .forEach((key, values) -> answerGroups.add(new AnswerGroup<>(key, values)));
+
+        return answerGroups;
     }
 
     @Override
@@ -175,7 +187,6 @@ public class QueryExecutorImpl implements QueryExecutor {
         }
     }
 
-
     @Override
     public Stream<ConceptMap> insert(GraqlInsert query, boolean explain) {
         Collection<Statement> statements = query.statements().stream()
@@ -210,7 +221,6 @@ public class QueryExecutorImpl implements QueryExecutor {
 
         return answerStream;
     }
-
 
     @Override
     public Void delete(GraqlDelete query) {
@@ -323,20 +333,8 @@ public class QueryExecutorImpl implements QueryExecutor {
     @Override
     public Stream<AnswerGroup<Numeric>> get(GraqlGet.Group.Aggregate query) {
         return get(get(query.group().query()), query.group().var(),
-                answers -> AggregateExecutor.aggregate(answers, query.method(), query.var())
+                   answers -> AggregateExecutor.aggregate(answers, query.method(), query.var())
         ).stream();
-    }
-
-    private static <T extends Answer> List<AnswerGroup<T>> get(Stream<ConceptMap> answers, Variable groupVar,
-                                                               Function<Stream<ConceptMap>, List<T>> aggregate) {
-        Collector<ConceptMap, ?, List<T>> groupAggregate =
-                collectingAndThen(toList(), list -> aggregate.apply(list.stream()));
-
-        List<AnswerGroup<T>> answerGroups = new ArrayList<>();
-        answers.collect(groupingBy(answer -> answer.get(groupVar), groupAggregate))
-                .forEach((key, values) -> answerGroups.add(new AnswerGroup<>(key, values)));
-
-        return answerGroups;
     }
 
     @SuppressWarnings("unchecked") // All attribute values are comparable value types

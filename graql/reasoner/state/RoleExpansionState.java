@@ -46,13 +46,6 @@ class RoleExpansionState extends ResolutionState {
                 .iterator();
     }
 
-    @Override
-    public ResolutionState generateChildState() {
-        if (!answerStateIterator.hasNext()) return null;
-        AnswerState state = answerStateIterator.next();
-        return getParentState() != null ? getParentState().propagateAnswer(state) : state;
-    }
-
     /**
      * @param toExpand set of variables for which Role hierarchy should be expanded
      * @return stream of answers with expanded role hierarchy
@@ -76,5 +69,12 @@ class RoleExpansionState extends ResolutionState {
                 .map(mappingList -> new ConceptMap(
                         mappingList.stream().collect(Collectors.toMap(AbstractMap.SimpleImmutableEntry::getKey, AbstractMap.SimpleImmutableEntry::getValue)), answer.explanation(), answer.getPattern()))
                 .map(ans -> new ConceptMap(ans.map(), answer.explanation(), answer.getPattern()));
+    }
+
+    @Override
+    public ResolutionState generateChildState() {
+        if (!answerStateIterator.hasNext()) return null;
+        AnswerState state = answerStateIterator.next();
+        return getParentState() != null ? getParentState().propagateAnswer(state) : state;
     }
 }

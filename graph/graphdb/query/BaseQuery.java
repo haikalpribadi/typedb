@@ -32,17 +32,17 @@ public class BaseQuery implements Query {
         this.limit = limit;
     }
 
+    @Override
+    public int getLimit() {
+        return limit;
+    }
+
     /**
      * Sets the limit of the query if it wasn't specified in the constructor
      */
     public BaseQuery setLimit(int limit) {
         this.limit = limit;
         return this;
-    }
-
-    @Override
-    public int getLimit() {
-        return limit;
     }
 
     @Override

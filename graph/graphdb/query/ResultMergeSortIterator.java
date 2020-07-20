@@ -48,6 +48,10 @@ public class ResultMergeSortIterator<R> implements Iterator<R> {
         next = nextInternal();
     }
 
+    public static <R> Iterable<R> mergeSort(Iterable<R> first, Iterable<R> second, Comparator<R> comparator, boolean filterDuplicates) {
+        return () -> new ResultMergeSortIterator<>(first.iterator(), second.iterator(), comparator, filterDuplicates);
+    }
+
     @Override
     public boolean hasNext() {
         return next != null;
@@ -97,10 +101,6 @@ public class ResultMergeSortIterator<R> implements Iterator<R> {
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
-    }
-
-    public static <R> Iterable<R> mergeSort(Iterable<R> first, Iterable<R> second, Comparator<R> comparator, boolean filterDuplicates) {
-        return () -> new ResultMergeSortIterator<>(first.iterator(), second.iterator(), comparator, filterDuplicates);
     }
 
 

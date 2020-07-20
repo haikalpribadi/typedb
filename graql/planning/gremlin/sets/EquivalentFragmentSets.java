@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 
 /**
  * Factory class for producing instances of EquivalentFragmentSet.
- *
  */
 public class EquivalentFragmentSets {
 
@@ -49,8 +48,8 @@ public class EquivalentFragmentSets {
     /**
      * An EquivalentFragmentSet that indicates a variable is a type whose instances play a role.
      *
-     * @param type a type variable label
-     * @param role a role variable label
+     * @param type     a type variable label
+     * @param role     a role variable label
      * @param required whether the plays must be constrained to be "required"
      */
     public static EquivalentFragmentSet plays(VarProperty varProperty, Variable type, Variable role, boolean required) {
@@ -59,6 +58,7 @@ public class EquivalentFragmentSets {
 
     /**
      * An EquivalentFragmentSet that indicates a variable that is a Thing having an ownership of an Attribute instance
+     *
      * @param varProperty
      * @param owner
      * @param attribute
@@ -73,8 +73,7 @@ public class EquivalentFragmentSets {
      * Describes the edge connecting a Relation to a role-player.
      * <p>
      * Can be constrained with information about the possible Roles or RelationTypes.
-     *
-         */
+     */
     public static EquivalentFragmentSet rolePlayer(VarProperty varProperty, Variable relation, Variable edge, Variable rolePlayer, @Nullable Variable role, @Nullable ImmutableSet<Label> roleLabels, @Nullable ImmutableSet<Label> relTypeLabels) {
         return new RolePlayerFragmentSet(varProperty, relation, edge, rolePlayer, role, roleLabels, relTypeLabels);
     }
@@ -92,7 +91,6 @@ public class EquivalentFragmentSets {
 
     /**
      * An EquivalentFragmentSet that indicates a variable is a sub-type of another variable.
-     *
      */
     public static EquivalentFragmentSet sub(VarProperty varProperty, Variable subType, Variable superType) {
         return new SubFragmentSet(varProperty, subType, superType, false);
@@ -196,7 +194,8 @@ public class EquivalentFragmentSets {
         return fragmentSets.stream().filter(clazz::isInstance).map(clazz::cast);
     }
 
-    static @Nullable LabelFragmentSet labelOf(Variable type, Collection<EquivalentFragmentSet> fragmentSets) {
+    static @Nullable
+    LabelFragmentSet labelOf(Variable type, Collection<EquivalentFragmentSet> fragmentSets) {
         return fragmentSetOfType(LabelFragmentSet.class, fragmentSets)
                 .filter(labelFragmentSet -> labelFragmentSet.var().equals(type))
                 .findAny()

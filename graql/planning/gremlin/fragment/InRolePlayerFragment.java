@@ -41,7 +41,6 @@ import static grakn.core.core.Schema.EdgeProperty.ROLE_LABEL_ID;
  * the relation.
  * <p>
  * Part of a EquivalentFragmentSet, along with OutRolePlayerFragment.
- *
  */
 class InRolePlayerFragment extends AbstractRolePlayerFragment {
 
@@ -140,6 +139,6 @@ class InRolePlayerFragment extends AbstractRolePlayerFragment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(varProperty, start, end, edge, role, roleLabels,relationTypeLabels);
+        return Objects.hash(varProperty, start, end, edge, role, roleLabels, relationTypeLabels);
     }
 }

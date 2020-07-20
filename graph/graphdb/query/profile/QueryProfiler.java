@@ -68,16 +68,6 @@ public interface QueryProfiler {
         }
     };
 
-    QueryProfiler addNested(String groupName);
-
-    QueryProfiler setAnnotation(String key, Object value);
-
-    void startTimer();
-
-    void stopTimer();
-
-    void setResultSize(long size);
-
     static <Q extends Query, R extends Collection> R profile(QueryProfiler profiler, Q query, Function<Q, R> queryExecutor) {
         return profile(profiler, query, false, queryExecutor);
     }
@@ -118,4 +108,14 @@ public interface QueryProfiler {
         sub.startTimer();
         return sub;
     }
+
+    QueryProfiler addNested(String groupName);
+
+    QueryProfiler setAnnotation(String key, Object value);
+
+    void startTimer();
+
+    void stopTimer();
+
+    void setResultSize(long size);
 }

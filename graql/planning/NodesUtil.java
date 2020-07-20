@@ -132,8 +132,8 @@ public class NodesUtil {
 
         node.getFragmentsWithoutDependency().addAll(node.getFragmentsWithDependencyVisited());
         subplan.addAll(node.getFragmentsWithoutDependency().stream()
-                .sorted(Comparator.comparingDouble(Fragment::fragmentCost))
-                .collect(Collectors.toList()));
+                               .sorted(Comparator.comparingDouble(Fragment::fragmentCost))
+                               .collect(Collectors.toList()));
 
         node.getFragmentsWithoutDependency().clear();
         node.getFragmentsWithDependencyVisited().clear();
@@ -157,6 +157,7 @@ public class NodesUtil {
     /**
      * We propagate across ISA edges any labels that might be found on one side of the ISA to
      * the node on the other side of the ISA (moving the label from the label fragment to the instance node)
+     *
      * @param parentToChild a mapping that represents the Query as a Tree (after the arborescence step)
      */
     static void propagateLabels(Map<Node, Set<Node>> parentToChild) {
@@ -182,7 +183,7 @@ public class NodesUtil {
                     filter(entry -> entry.getValue().contains(node))
                     .map(Map.Entry::getKey)
                     .findFirst()
-                    .orElseThrow(() ->  GraknQueryPlannerException.unrootedPlanningNode(node));
+                    .orElseThrow(() -> GraknQueryPlannerException.unrootedPlanningNode(node));
 
             Set<Fragment> parentFragments = parent.getFragmentsWithoutDependency();
             LabelFragment parentLabelFragment = parentFragments.stream()
@@ -221,7 +222,7 @@ public class NodesUtil {
      * @param label type label for which the inferred count should be estimated
      * @return estimated number of inferred instances of a given type
      */
-    public static long estimateInferredTypeCount(Label label, ConceptManager conceptManager, KeyspaceStatistics keyspaceStatistics){
+    public static long estimateInferredTypeCount(Label label, ConceptManager conceptManager, KeyspaceStatistics keyspaceStatistics) {
         //TODO find a lighter estimate/way to cache it efficiently
         SchemaConcept initialType = conceptManager.getSchemaConcept(label);
         if (initialType == null || !initialType.thenRules().findFirst().isPresent()) return 0;
@@ -230,20 +231,20 @@ public class NodesUtil {
         Set<SchemaConcept> visitedTypes = new HashSet<>();
         Stack<SchemaConcept> types = new Stack<>();
         types.push(initialType);
-        while(!types.isEmpty()) {
+        while (!types.isEmpty()) {
             SchemaConcept type = types.pop();
             //estimate count by assuming connectivity determined by the least populated type
             Set<Type> dependants = type.thenRules()
                     .map(rule ->
-                            rule.whenTypes()
-                                    .map(t -> t.subs().max(Comparator.comparing(t2 -> keyspaceStatistics.count(conceptManager, t2.label()))))
-                                    .flatMap(Streams::optionalToStream)
-                                    .min(Comparator.comparing(t -> keyspaceStatistics.count(conceptManager, t.label())))
+                                 rule.whenTypes()
+                                         .map(t -> t.subs().max(Comparator.comparing(t2 -> keyspaceStatistics.count(conceptManager, t2.label()))))
+                                         .flatMap(Streams::optionalToStream)
+                                         .min(Comparator.comparing(t -> keyspaceStatistics.count(conceptManager, t.label())))
                     )
                     .flatMap(Streams::optionalToStream)
                     .collect(toSet());
 
-            if (!visitedTypes.contains(type) && !dependants.isEmpty()){
+            if (!visitedTypes.contains(type) && !dependants.isEmpty()) {
                 dependants.stream()
                         .filter(at -> !visitedTypes.contains(at))
                         .filter(at -> !types.contains(at))

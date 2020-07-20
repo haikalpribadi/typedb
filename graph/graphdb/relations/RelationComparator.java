@@ -52,6 +52,25 @@ public class RelationComparator implements Comparator<InternalRelation> {
         this.tx = v.tx();
     }
 
+    private static int compareValues(Object v1, Object v2, Order order) {
+        return compareValues(v1, v2) * (order == Order.DESC ? -1 : 1);
+    }
+
+    private static int compareValues(Object v1, Object v2) {
+        if (v1 == null || v2 == null) {
+            if (v1 != null) {
+                return -1;
+            } else if (v2 != null) {
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            Preconditions.checkArgument(v1 instanceof Comparable && v2 instanceof Comparable, "Encountered invalid values");
+            return ((Comparable) v1).compareTo(v2);
+        }
+    }
+
     @Override
     public int compare(InternalRelation r1, InternalRelation r2) {
         if (r1.equals(r2)) return 0;
@@ -116,7 +135,7 @@ public class RelationComparator implements Comparator<InternalRelation> {
         } else {
             Preconditions.checkArgument(r1.isEdge() && r2.isEdge());
             int vertexCompare = AbstractElement.compare(r1.getVertex(EdgeDirection.position(dir1.opposite())),
-                    r2.getVertex(EdgeDirection.position(dir1.opposite())));
+                                                        r2.getVertex(EdgeDirection.position(dir1.opposite())));
             if (vertexCompare != 0) return vertexCompare;
         }
         // Breakout: if type&direction are the same, and the end points of the relation are the same and the type is constrained, the relations must be the same
@@ -124,25 +143,6 @@ public class RelationComparator implements Comparator<InternalRelation> {
 
         // 7)compare relation ids
         return AbstractElement.compare(r1, r2);
-    }
-
-    private static int compareValues(Object v1, Object v2, Order order) {
-        return compareValues(v1, v2) * (order == Order.DESC ? -1 : 1);
-    }
-
-    private static int compareValues(Object v1, Object v2) {
-        if (v1 == null || v2 == null) {
-            if (v1 != null) {
-                return -1;
-            } else if (v2 != null) {
-                return 1;
-            } else {
-                return 0;
-            }
-        } else {
-            Preconditions.checkArgument(v1 instanceof Comparable && v2 instanceof Comparable, "Encountered invalid values");
-            return ((Comparable) v1).compareTo(v2);
-        }
     }
 
     private int compareOnKey(JanusGraphRelation r1, JanusGraphRelation r2, long typeId, Order order) {

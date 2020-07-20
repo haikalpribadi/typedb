@@ -32,6 +32,7 @@ public class ConnectiveJanusGraphP extends P<Object> {
     public ConnectiveJanusGraphP(ConnectiveJanusPredicate biPredicate, List<Object> value) {
         super(biPredicate, value);
     }
+
     @Override
     public String toString() {
         return toString((ConnectiveJanusPredicate) this.biPredicate, this.originalValue).toString();
@@ -51,9 +52,9 @@ public class ConnectiveJanusGraphP extends P<Object> {
         if (connectivePredicate.size() == 1) {
             return toString(connectivePredicate.get(0), values.get(0));
         }
-        if (predicate instanceof AndJanusPredicate){
+        if (predicate instanceof AndJanusPredicate) {
             toReturn.append("and(");
-        } else if (predicate instanceof OrJanusPredicate){
+        } else if (predicate instanceof OrJanusPredicate) {
             toReturn.append("or(");
         } else {
             throw new IllegalArgumentException("JanusGraph does not support the given predicate: " + predicate);

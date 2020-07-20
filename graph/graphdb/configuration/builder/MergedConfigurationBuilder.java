@@ -72,7 +72,7 @@ public class MergedConfigurationBuilder {
     }
 
     // This used to be way more fancy in the original Janus, but for Grakn usecase it doesnt need to be fancy for now
-    private static String uniqueGraphId(){
+    private static String uniqueGraphId() {
         return String.valueOf(instanceCounter.incrementAndGet());
     }
 
@@ -82,9 +82,9 @@ public class MergedConfigurationBuilder {
         //Default LOG configuration for system and tx LOG
         //TRANSACTION LOG: send_delay=0, ttl=2days and backend=default
         Preconditions.checkArgument(combinedConfig.get(LOG_BACKEND, TRANSACTION_LOG).equals(LOG_BACKEND.getDefaultValue()),
-                "Must use default LOG backend for transaction LOG");
+                                    "Must use default LOG backend for transaction LOG");
         Preconditions.checkArgument(!combinedConfig.has(LOG_SEND_DELAY, TRANSACTION_LOG) ||
-                combinedConfig.get(LOG_SEND_DELAY, TRANSACTION_LOG).isZero(), "Send delay must be 0 for transaction LOG.");
+                                            combinedConfig.get(LOG_SEND_DELAY, TRANSACTION_LOG).isZero(), "Send delay must be 0 for transaction LOG.");
         overwrite.set(LOG_SEND_DELAY, Duration.ZERO, TRANSACTION_LOG);
         if (!combinedConfig.has(LOG_STORE_TTL, TRANSACTION_LOG) && TTLKCVSManager.supportsAnyTTL(storeFeatures)) {
             overwrite.set(LOG_STORE_TTL, TRANSACTION_LOG_DEFAULT_TTL, TRANSACTION_LOG);
@@ -95,15 +95,15 @@ public class MergedConfigurationBuilder {
 
         //SYSTEM MANAGEMENT LOG: backend=default and send_delay=0 and key_consistent=true and fixed-partitions=true
         Preconditions.checkArgument(combinedConfig.get(LOG_BACKEND, MANAGEMENT_LOG).equals(LOG_BACKEND.getDefaultValue()),
-                "Must use default LOG backend for system LOG");
+                                    "Must use default LOG backend for system LOG");
         Preconditions.checkArgument(!combinedConfig.has(LOG_SEND_DELAY, MANAGEMENT_LOG) ||
-                combinedConfig.get(LOG_SEND_DELAY, MANAGEMENT_LOG).isZero(), "Send delay must be 0 for system LOG.");
+                                            combinedConfig.get(LOG_SEND_DELAY, MANAGEMENT_LOG).isZero(), "Send delay must be 0 for system LOG.");
         overwrite.set(LOG_SEND_DELAY, Duration.ZERO, MANAGEMENT_LOG);
         Preconditions.checkArgument(!combinedConfig.has(LOG_KEY_CONSISTENT, MANAGEMENT_LOG) ||
-                combinedConfig.get(LOG_KEY_CONSISTENT, MANAGEMENT_LOG), "Management LOG must be configured to be key-consistent");
+                                            combinedConfig.get(LOG_KEY_CONSISTENT, MANAGEMENT_LOG), "Management LOG must be configured to be key-consistent");
         overwrite.set(LOG_KEY_CONSISTENT, true, MANAGEMENT_LOG);
         Preconditions.checkArgument(!combinedConfig.has(LOG_FIXED_PARTITION, MANAGEMENT_LOG)
-                || combinedConfig.get(LOG_FIXED_PARTITION, MANAGEMENT_LOG), "Fixed partitions must be enabled for management LOG");
+                                            || combinedConfig.get(LOG_FIXED_PARTITION, MANAGEMENT_LOG), "Fixed partitions must be enabled for management LOG");
         overwrite.set(LOG_FIXED_PARTITION, true, MANAGEMENT_LOG);
     }
 

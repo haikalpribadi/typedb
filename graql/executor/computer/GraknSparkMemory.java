@@ -46,7 +46,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * This is a modified version of Spark Memory.
  * We change its behaviour so it can work with our own graph computer.
  * </p>
- *
  */
 public class GraknSparkMemory implements Memory.Admin, Serializable {
 
@@ -76,7 +75,7 @@ public class GraknSparkMemory implements Memory.Admin, Serializable {
             this.sparkMemory.put(
                     memoryComputeKey.getKey(),
                     sparkContext.accumulator(ObjectWritable.empty(), memoryComputeKey.getKey(),
-                            new MemoryAccumulator<>(memoryComputeKey)));
+                                             new MemoryAccumulator<>(memoryComputeKey)));
         }
         this.broadcast = sparkContext.broadcast(Collections.emptyMap());
     }
@@ -102,23 +101,23 @@ public class GraknSparkMemory implements Memory.Admin, Serializable {
     }
 
     @Override
-    public void setIteration(final int iteration) {
-        this.iteration.set(iteration);
-    }
-
-    @Override
     public int getIteration() {
         return this.iteration.get();
     }
 
     @Override
-    public void setRuntime(final long runTime) {
-        this.runtime.set(runTime);
+    public void setIteration(final int iteration) {
+        this.iteration.set(iteration);
     }
 
     @Override
     public long getRuntime() {
         return this.runtime.get();
+    }
+
+    @Override
+    public void setRuntime(final long runTime) {
+        this.runtime.set(runTime);
     }
 
     @Override

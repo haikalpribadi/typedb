@@ -28,8 +28,6 @@ import grakn.core.graph.core.JanusGraphElement;
  */
 public interface Condition<E extends JanusGraphElement> {
 
-    enum Type {AND, OR, NOT, LITERAL}
-
     Type getType();
 
     Iterable<Condition<E>> getChildren();
@@ -45,5 +43,7 @@ public interface Condition<E extends JanusGraphElement> {
     boolean equals(Object other);
 
     String toString();
+
+    enum Type {AND, OR, NOT, LITERAL}
 
 }

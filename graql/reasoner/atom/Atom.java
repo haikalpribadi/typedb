@@ -50,11 +50,12 @@ import graql.lang.property.IsaProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -65,9 +66,8 @@ public abstract class Atom extends AtomicBase {
 
     private final ReasoningContext ctx;
     private final AtomValidator<Atom> validator = new BasicAtomValidator();
-    private Set<InferenceRule> applicableRules = null;
-
     private final Label typeLabel;
+    private Set<InferenceRule> applicableRules = null;
 
     /**
      * NB: NULL typeLabel signals that the we don't know the specific non-meta type of this atom.
@@ -78,7 +78,7 @@ public abstract class Atom extends AtomicBase {
         this.ctx = ctx;
     }
 
-    public ReasoningContext context(){ return ctx;}
+    public ReasoningContext context() { return ctx;}
 
     /**
      * @return type id of the corresponding type if any
@@ -148,7 +148,7 @@ public abstract class Atom extends AtomicBase {
     /**
      * @return true if the query corresponding to this atom has a unique (single) answer if any
      */
-    public boolean hasUniqueAnswer(){ return isGround();}
+    public boolean hasUniqueAnswer() { return isGround();}
 
     /**
      * @return true if this atom is bounded - via substitution/specific resource or schema
@@ -295,8 +295,7 @@ public abstract class Atom extends AtomicBase {
     }
 
     /**
-     *
-     * @param var variable of interest
+     * @param var  variable of interest
      * @param type the class of Predicate to return
      * @param <T>  the type of Predicate to return
      * @return stream of all predicates (public and inner) relevant to this atom and variable
@@ -351,16 +350,18 @@ public abstract class Atom extends AtomicBase {
      */
     public ImmutableList<Type> getPossibleTypes() {
         SchemaConcept type = getSchemaConcept();
-        return (type != null && type.isType())?
+        return (type != null && type.isType()) ?
                 ImmutableList.of(type.asType()) :
-                ImmutableList.of();}
+                ImmutableList.of();
+    }
 
     /**
      * @param sub partial substitution
      * @return list of possible atoms obtained by applying type inference
      */
     public List<Atom> atomOptions(ConceptMap sub) {
-        return Lists.newArrayList(inferTypes(sub));}
+        return Lists.newArrayList(inferTypes(sub));
+    }
 
     /**
      * @param type to be added to this Atom
@@ -439,7 +440,7 @@ public abstract class Atom extends AtomicBase {
      * that needs to be applied on A(P) to find the subset belonging to A(C).
      *
      * @param childAtom child atom
-     * @param unifier    parent->child unifier
+     * @param unifier   parent->child unifier
      * @return semantic difference between this and child defined in terms of this variables
      */
     public abstract SemanticDifference computeSemanticDifference(Atom childAtom, Unifier unifier);

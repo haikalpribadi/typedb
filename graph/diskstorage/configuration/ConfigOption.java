@@ -26,38 +26,10 @@ import java.util.function.Predicate;
 
 public class ConfigOption<O> extends ConfigElement {
 
-    public enum Type {
-        /**
-         * Once the database has been opened, these configuration options cannot
-         * be changed for the entire life of the database
-         */
-        FIXED,
-        /**
-         * These options can only be changed for the entire database cluster at
-         * once when all instances are shut down
-         */
-        GLOBAL_OFFLINE,
-        /**
-         * These options can only be changed globally across the entire database
-         * cluster
-         */
-        GLOBAL,
-        /**
-         * These options are global but can be overwritten by a local
-         * configuration file
-         */
-        MASKABLE,
-        /**
-         * These options can ONLY be provided through a local configuration file
-         */
-        LOCAL
-    }
-
     private final Type type;
     private final Class<O> datatype;
     private final O defaultValue;
     private final Predicate<O> verificationFct;
-
     public ConfigOption(ConfigNamespace parent, String name, String description, Type type, O defaultValue) {
         this(parent, name, description, type, defaultValue, disallowEmpty());
     }
@@ -87,6 +59,23 @@ public class ConfigOption<O> extends ConfigElement {
         this.datatype = dataType;
         this.defaultValue = defaultValue;
         this.verificationFct = verificationFct;
+    }
+
+    private static <O> Predicate<O> disallowEmpty() {
+        return o -> {
+            if (o == null) {
+                return false;
+            }
+            if (o instanceof String) {
+                return StringUtils.isNotBlank((String) o);
+            }
+            return (!o.getClass().isArray() || (Array.getLength(o) != 0 && Array.get(o, 0) != null))
+                    && (!(o instanceof Collection) || (!((Collection) o).isEmpty() && ((Collection) o).iterator().next() != null));
+        };
+    }
+
+    public static Predicate<Integer> positiveInt() {
+        return num -> num != null && num > 0;
     }
 
     public Type getType() {
@@ -130,6 +119,9 @@ public class ConfigOption<O> extends ConfigElement {
         }
     }
 
+
+    //########### HELPER METHODS ##################
+
     public O verify(Object input) {
         Preconditions.checkNotNull(input);
         Preconditions.checkArgument(datatype.isInstance(input), "Invalid class for configuration value [%s]. Expected [%s] but given [%s]", this.toString(), datatype, input.getClass());
@@ -138,23 +130,30 @@ public class ConfigOption<O> extends ConfigElement {
         return result;
     }
 
-
-    //########### HELPER METHODS ##################
-
-    private static <O> Predicate<O> disallowEmpty() {
-        return o -> {
-            if (o == null) {
-                return false;
-            }
-            if (o instanceof String) {
-                return StringUtils.isNotBlank((String) o);
-            }
-            return (!o.getClass().isArray() || (Array.getLength(o) != 0 && Array.get(o, 0) != null))
-                    && (!(o instanceof Collection) || (!((Collection) o).isEmpty() && ((Collection) o).iterator().next() != null));
-        };
-    }
-
-    public static Predicate<Integer> positiveInt() {
-        return num -> num != null && num > 0;
+    public enum Type {
+        /**
+         * Once the database has been opened, these configuration options cannot
+         * be changed for the entire life of the database
+         */
+        FIXED,
+        /**
+         * These options can only be changed for the entire database cluster at
+         * once when all instances are shut down
+         */
+        GLOBAL_OFFLINE,
+        /**
+         * These options can only be changed globally across the entire database
+         * cluster
+         */
+        GLOBAL,
+        /**
+         * These options are global but can be overwritten by a local
+         * configuration file
+         */
+        MASKABLE,
+        /**
+         * These options can ONLY be provided through a local configuration file
+         */
+        LOCAL
     }
 }

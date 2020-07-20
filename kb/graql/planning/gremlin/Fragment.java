@@ -132,9 +132,9 @@ public interface Fragment {
      * Estimate the "cost" of a starting point for each type of fixed cost fragment
      * These are cost heuristic proxies using statistics
      *
-     * @return
      * @param conceptManager
      * @param keyspaceStatistics
+     * @return
      */
     double estimatedCostAsStartingPoint(ConceptManager conceptManager, KeyspaceStatistics keyspaceStatistics);
 

@@ -43,6 +43,10 @@ public class JanusGraphFeatures implements Graph.Features {
         this.graph = graph;
     }
 
+    public static JanusGraphFeatures getFeatures(StandardJanusGraph graph, StoreFeatures storageFeatures) {
+        return new JanusGraphFeatures(graph, storageFeatures);
+    }
+
     @Override
     public GraphFeatures graph() {
         return graphFeatures;
@@ -61,10 +65,6 @@ public class JanusGraphFeatures implements Graph.Features {
     @Override
     public String toString() {
         return StringFactory.featureString(this);
-    }
-
-    public static JanusGraphFeatures getFeatures(StandardJanusGraph graph, StoreFeatures storageFeatures) {
-        return new JanusGraphFeatures(graph, storageFeatures);
     }
 
     private static class JanusGraphDataTypeFeatures implements DataTypeFeatures {
@@ -154,6 +154,43 @@ public class JanusGraphFeatures implements Graph.Features {
 
     }
 
+    private static class JanusGraphEdgeFeatures implements EdgeFeatures {
+        @Override
+        public EdgePropertyFeatures properties() {
+            return new JanusGraphEdgePropertyFeatures();
+        }
+
+        @Override
+        public boolean supportsCustomIds() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsUserSuppliedIds() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsNumericIds() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsAnyIds() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsUuidIds() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsStringIds() {
+            return false;
+        }
+    }
+
     private class JanusGraphVertexFeatures implements VertexFeatures {
 
         @Override
@@ -201,43 +238,6 @@ public class JanusGraphFeatures implements Graph.Features {
 
         @Override
         public boolean supportsCustomIds() {
-            return false;
-        }
-    }
-
-    private static class JanusGraphEdgeFeatures implements EdgeFeatures {
-        @Override
-        public EdgePropertyFeatures properties() {
-            return new JanusGraphEdgePropertyFeatures();
-        }
-
-        @Override
-        public boolean supportsCustomIds() {
-            return true;
-        }
-
-        @Override
-        public boolean supportsUserSuppliedIds() {
-            return false;
-        }
-
-        @Override
-        public boolean supportsNumericIds() {
-            return false;
-        }
-
-        @Override
-        public boolean supportsAnyIds() {
-            return false;
-        }
-
-        @Override
-        public boolean supportsUuidIds() {
-            return false;
-        }
-
-        @Override
-        public boolean supportsStringIds() {
             return false;
         }
     }

@@ -163,7 +163,7 @@ public abstract class SchemaConceptImpl<T extends SchemaConcept> extends Concept
      */
     private Stream<T> nextSubLevel(T root) {
         return Stream.concat(Stream.of(root),
-                SchemaConceptImpl.<T>from(root).cachedDirectSubTypes.get().stream().flatMap(this::nextSubLevel));
+                             SchemaConceptImpl.<T>from(root).cachedDirectSubTypes.get().stream().flatMap(this::nextSubLevel));
     }
 
     /**

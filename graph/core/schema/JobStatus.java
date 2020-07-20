@@ -20,11 +20,8 @@ package grakn.core.graph.core.schema;
 
 public class JobStatus {
 
-    public enum State { UNKNOWN, RUNNING, DONE, FAILED }
-
     private final State state;
     private final long numProcessed;
-
     public JobStatus(State state, long numProcessed) {
         this.state = state;
         this.numProcessed = numProcessed;
@@ -35,19 +32,21 @@ public class JobStatus {
     }
 
     public boolean isDone() {
-        return state== State.DONE || state== State.UNKNOWN;
+        return state == State.DONE || state == State.UNKNOWN;
     }
 
     public boolean hasFailed() {
-        return state== State.FAILED;
+        return state == State.FAILED;
     }
 
     public boolean isRunning() {
-        return state== State.RUNNING;
+        return state == State.RUNNING;
     }
 
     public long getNumProcessed() {
         return numProcessed;
     }
+
+    public enum State {UNKNOWN, RUNNING, DONE, FAILED}
 
 }

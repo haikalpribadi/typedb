@@ -36,7 +36,7 @@ public interface SemanticProcessor<T extends Atom> {
      * that needs to be applied on A(P) to find the subset belonging to A(C).
      *
      * @param childAtom child atom
-     * @param unifier    parent->child unifier
+     * @param unifier   parent->child unifier
      * @return semantic difference between this and child defined in terms of this variables
      */
     SemanticDifference computeSemanticDifference(T parentAtom, Atom childAtom, Unifier unifier, ReasoningContext ctx);

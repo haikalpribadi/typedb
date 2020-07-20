@@ -29,7 +29,7 @@ import java.util.Map;
  * Convert Attribute Values obtained from Graql and stored in Properties, and convert
  * them to native java data instances
  */
-public abstract class AttributeValueConverter<SOURCE, TARGET>{
+public abstract class AttributeValueConverter<SOURCE, TARGET> {
 
     private static Map<AttributeType.ValueType<?>, AttributeValueConverter<?, ?>> converters = ImmutableMap.<AttributeType.ValueType<?>, AttributeValueConverter<?, ?>>builder()
             .put(AttributeType.ValueType.BOOLEAN, new IdentityConverter<Boolean, Boolean>())
@@ -43,7 +43,7 @@ public abstract class AttributeValueConverter<SOURCE, TARGET>{
 
     public static <SOURCE, TARGET> AttributeValueConverter<SOURCE, TARGET> of(AttributeType.ValueType<TARGET> valueType) {
         AttributeValueConverter<?, ?> converter = converters.get(valueType);
-        if (converter == null){
+        if (converter == null) {
             throw new UnsupportedOperationException("Unsupported ValueType: " + valueType.toString());
         }
         return (AttributeValueConverter<SOURCE, TARGET>) converter;
@@ -60,9 +60,9 @@ public abstract class AttributeValueConverter<SOURCE, TARGET>{
 
         @Override
         public LocalDateTime convert(Object value) {
-            if (value instanceof LocalDateTime){
+            if (value instanceof LocalDateTime) {
                 return (LocalDateTime) value;
-            } else if (value instanceof LocalDate){
+            } else if (value instanceof LocalDate) {
                 return ((LocalDate) value).atStartOfDay();
             }
             //NB: we are not able to parse ZonedDateTime correctly so leaving that for now
@@ -87,7 +87,7 @@ public abstract class AttributeValueConverter<SOURCE, TARGET>{
     public static class IntegerConverter extends AttributeValueConverter<Number, Integer> {
         @Override
         public Integer convert(Number value) {
-            if ( value.floatValue() % 1 == 0) return value.intValue();
+            if (value.floatValue() % 1 == 0) return value.intValue();
             throw new ClassCastException();
         }
     }
@@ -95,7 +95,7 @@ public abstract class AttributeValueConverter<SOURCE, TARGET>{
     public static class LongConverter extends AttributeValueConverter<Number, Long> {
         @Override
         public Long convert(Number value) {
-            if ( value.floatValue() % 1 == 0) return value.longValue();
+            if (value.floatValue() % 1 == 0) return value.longValue();
             throw new ClassCastException();
         }
     }

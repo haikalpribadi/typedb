@@ -54,17 +54,17 @@ public class Fragments {
     }
 
     public static Fragment inRolePlayer(VarProperty varProperty,
-                                            Variable rolePlayer, Variable edge, Variable relation, @Nullable Variable role,
-                                            @Nullable ImmutableSet<Label> roleLabels,
-                                            @Nullable ImmutableSet<Label> relationTypeLabels) {
+                                        Variable rolePlayer, Variable edge, Variable relation, @Nullable Variable role,
+                                        @Nullable ImmutableSet<Label> roleLabels,
+                                        @Nullable ImmutableSet<Label> relationTypeLabels) {
         return new InRolePlayerFragment(
                 varProperty, rolePlayer, relation, edge, role, roleLabels, relationTypeLabels);
     }
 
     public static Fragment outRolePlayer(VarProperty varProperty,
-                                             Variable relation, Variable edge, Variable rolePlayer, @Nullable Variable role,
-                                             @Nullable ImmutableSet<Label> roleLabels,
-                                             @Nullable ImmutableSet<Label> relationTypeLabels) {
+                                         Variable relation, Variable edge, Variable rolePlayer, @Nullable Variable role,
+                                         @Nullable ImmutableSet<Label> roleLabels,
+                                         @Nullable ImmutableSet<Label> relationTypeLabels) {
         return new OutRolePlayerFragment(
                 varProperty, relation, rolePlayer, edge, role, roleLabels, relationTypeLabels);
     }
@@ -154,6 +154,7 @@ public class Fragments {
 
     /**
      * Default unlimiteid depth sub-edge traversal
+     *
      * @param traversal
      * @param <T>
      * @return
@@ -180,6 +181,7 @@ public class Fragments {
 
     /**
      * Default unlimited-depth sub-edge traversal
+     *
      * @param traversal
      * @param <T>
      * @return
@@ -187,6 +189,7 @@ public class Fragments {
     static <T> GraphTraversal<T, Vertex> inSubs(GraphTraversal<T, Vertex> traversal) {
         return inSubs(traversal, TRAVERSE_ALL_SUB_EDGES);
     }
+
     /**
      * @param traversal
      * @param subTraversalDepth: the number of `sub` edges to follow. -1 (= TRAVERSE_ALL_SUB_EDGES) applies no limit, 0 follows no edges, 1 (= TRAVERSE_ONE_SUB_EDGE) follows 1 edge etc.

@@ -31,20 +31,30 @@ import java.util.Set;
 
 /**
  * The vertex program for computing connected components.
- *
  */
 
 public class ConnectedComponentsVertexProgram extends GraknVertexProgram<String> {
 
-    private static final int MAX_ITERATION = 100;
-
     public static final String CLUSTER_LABEL = "connectedComponentVertexProgram.clusterLabel";
+    private static final int MAX_ITERATION = 100;
     private static final String VOTE_TO_HALT = "connectedComponentVertexProgram.voteToHalt";
 
     private static final Set<MemoryComputeKey> MEMORY_COMPUTE_KEYS =
             Collections.singleton(MemoryComputeKey.of(VOTE_TO_HALT, Operator.and, false, true));
 
     public ConnectedComponentsVertexProgram() {
+    }
+
+    private static void updateClusterLabel(Vertex vertex, Messenger<String> messenger, Memory memory) {
+        String currentMax = vertex.value(CLUSTER_LABEL);
+        String max = IteratorUtils.reduce(messenger.receiveMessages(), currentMax,
+                                          (a, b) -> a.compareTo(b) > 0 ? a : b);
+        if (max.compareTo(currentMax) > 0) {
+            vertex.property(CLUSTER_LABEL, max);
+            messenger.sendMessage(messageScopeIn, max);
+            messenger.sendMessage(messageScopeOut, max);
+            memory.add(VOTE_TO_HALT, false);
+        }
     }
 
     @Override
@@ -72,18 +82,6 @@ public class ConnectedComponentsVertexProgram extends GraknVertexProgram<String>
             messenger.sendMessage(messageScopeOut, id);
         } else {
             updateClusterLabel(vertex, messenger, memory);
-        }
-    }
-
-    private static void updateClusterLabel(Vertex vertex, Messenger<String> messenger, Memory memory) {
-        String currentMax = vertex.value(CLUSTER_LABEL);
-        String max = IteratorUtils.reduce(messenger.receiveMessages(), currentMax,
-                (a, b) -> a.compareTo(b) > 0 ? a : b);
-        if (max.compareTo(currentMax) > 0) {
-            vertex.property(CLUSTER_LABEL, max);
-            messenger.sendMessage(messageScopeIn, max);
-            messenger.sendMessage(messageScopeOut, max);
-            memory.add(VOTE_TO_HALT, false);
         }
     }
 

@@ -45,16 +45,13 @@ import static grakn.core.graql.analytics.KCoreVertexProgram.updateEntityAndAttri
  * <p>
  * https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#k-Cores
  * </p>
- *
  */
 
 public class CorenessVertexProgram extends GraknVertexProgram<String> {
 
+    public static final String CORENESS = "corenessVertexProgram.coreness";
     private static final int MAX_ITERATION = 200;
     private static final String EMPTY_MESSAGE = "";
-
-    public static final String CORENESS = "corenessVertexProgram.coreness";
-
     private static final String PERSIST_CORENESS = "corenessVertexProgram.persistCoreness";
 
     private static final Set<MemoryComputeKey> MEMORY_COMPUTE_KEYS = newHashSet(

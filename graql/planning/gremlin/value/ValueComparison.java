@@ -160,11 +160,6 @@ public abstract class ValueComparison<T, U> extends ValueOperation<T, U> {
             super(comparator, value);
         }
 
-        @Override
-        public java.lang.String valueSerialised() {
-            return AttributeSerialiser.STRING.serialise(value());
-        }
-
         private static Map<Graql.Token.Comparator, Function<java.lang.String, P<java.lang.String>>> stringPredicates() {
             Map<Graql.Token.Comparator, Function<java.lang.String, P<java.lang.String>>> predicates = new HashMap<>();
 
@@ -173,6 +168,11 @@ public abstract class ValueComparison<T, U> extends ValueOperation<T, U> {
             predicates.put(Graql.Token.Comparator.LIKE, regexPredicate());
 
             return Collections.unmodifiableMap(predicates);
+        }
+
+        @Override
+        public java.lang.String valueSerialised() {
+            return AttributeSerialiser.STRING.serialise(value());
         }
 
         @Override
@@ -190,12 +190,11 @@ public abstract class ValueComparison<T, U> extends ValueOperation<T, U> {
 
     public static class Variable extends ValueComparison<Statement, java.lang.String> {
 
-        private final java.lang.String gremlinVariable;
-
         private static final Map<Graql.Token.Comparator, Function<java.lang.String, P<java.lang.String>>> PREDICATES_VAR = varPredicates();
         private static final java.lang.String[] VALUE_PROPERTIES = AttributeType.ValueType.values().stream()
                 .map(Schema.VertexProperty::ofValueType).distinct()
                 .map(Enum::name).toArray(java.lang.String[]::new);
+        private final java.lang.String gremlinVariable;
 
         Variable(Graql.Token.Comparator comparator, Statement value) {
             super(comparator, value);
@@ -212,7 +211,7 @@ public abstract class ValueComparison<T, U> extends ValueOperation<T, U> {
         }
 
         @Override
-        public  java.lang.String valueSerialised() {
+        public java.lang.String valueSerialised() {
             return null;
         }
 

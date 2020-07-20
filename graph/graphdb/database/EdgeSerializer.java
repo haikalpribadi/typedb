@@ -72,6 +72,26 @@ public class EdgeSerializer implements RelationReader {
         this.serializer = serializer;
     }
 
+    private static DirectionID getDirID(Direction dir, RelationCategory rt) {
+        switch (rt) {
+            case PROPERTY:
+                return DirectionID.PROPERTY_DIR;
+            case EDGE:
+                switch (dir) {
+                    case OUT:
+                        return DirectionID.EDGE_OUT_DIR;
+
+                    case IN:
+                        return DirectionID.EDGE_IN_DIR;
+
+                    default:
+                        throw new IllegalArgumentException("Invalid direction: " + dir);
+                }
+            default:
+                throw new IllegalArgumentException("Invalid relation type: " + rt);
+        }
+    }
+
     public RelationCache readRelation(Entry data, boolean parseHeaderOnly, TypeInspector tx) {
         RelationCache map = data.getCache();
         if (map == null || !(parseHeaderOnly || map.hasProperties())) {
@@ -204,26 +224,6 @@ public class EdgeSerializer implements RelationReader {
         }
     }
 
-    private static DirectionID getDirID(Direction dir, RelationCategory rt) {
-        switch (rt) {
-            case PROPERTY:
-                return DirectionID.PROPERTY_DIR;
-            case EDGE:
-                switch (dir) {
-                    case OUT:
-                        return DirectionID.EDGE_OUT_DIR;
-
-                    case IN:
-                        return DirectionID.EDGE_IN_DIR;
-
-                    default:
-                        throw new IllegalArgumentException("Invalid direction: " + dir);
-                }
-            default:
-                throw new IllegalArgumentException("Invalid relation type: " + rt);
-        }
-    }
-
     public Entry writeRelation(InternalRelation relation, int position, TypeInspector tx) {
         return writeRelation(relation, (InternalRelationType) relation.getType(), position, tx);
     }
@@ -313,22 +313,8 @@ public class EdgeSerializer implements RelationReader {
         }
 
         return new StaticArrayEntry(type.getSortOrder() == Order.DESC ?
-                out.getStaticBufferFlipBytes(keyStartPos, keyEndPos) :
-                out.getStaticBuffer(), valuePosition);
-    }
-
-    private enum InlineType {
-
-        KEY, SIGNATURE, NORMAL;
-
-        public boolean writeInlineKey() {
-            return this == NORMAL;
-        }
-
-        public boolean writeByteOrdered() {
-            return this == KEY;
-        }
-
+                                            out.getStaticBufferFlipBytes(keyStartPos, keyEndPos) :
+                                            out.getStaticBuffer(), valuePosition);
     }
 
     private void writeInlineTypes(long[] keyIds, InternalRelation relation, DataOutput out, TypeInspector tx, InlineType inlineType) {
@@ -455,6 +441,20 @@ public class EdgeSerializer implements RelationReader {
             }
         }
         return new SliceQuery(sliceStart, sliceEnd);
+    }
+
+    private enum InlineType {
+
+        KEY, SIGNATURE, NORMAL;
+
+        public boolean writeInlineKey() {
+            return this == NORMAL;
+        }
+
+        public boolean writeByteOrdered() {
+            return this == KEY;
+        }
+
     }
 
     public static class TypedInterval {

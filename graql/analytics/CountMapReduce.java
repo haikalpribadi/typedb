@@ -25,8 +25,12 @@ import java.io.Serializable;
 import java.util.Iterator;
 
 /**
+<<<<<<< HEAD
  * The MapReduce program for counting the number of instances excluding attributes
  *
+=======
+ * The MapReduce program for counting the number of instances excluding attributes and implicit relations
+>>>>>>> Optimised imports and source code
  */
 
 public class CountMapReduce extends GraknMapReduce<Long> {

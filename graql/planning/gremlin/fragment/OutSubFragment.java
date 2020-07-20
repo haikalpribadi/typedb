@@ -36,7 +36,6 @@ import java.util.Objects;
 
 /**
  * Fragment for following out sub edges, potentially limited to some number of `sub` edges
- *
  */
 
 public class OutSubFragment extends EdgeFragment {

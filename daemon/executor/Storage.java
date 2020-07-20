@@ -74,11 +74,9 @@ public class Storage {
     private static final String COMMITLOG_DIR_CONFIG_KEY = "commitlog_directory";
     private static final String STORAGE_CONFIG_PATH = "server/services/cassandra/";
     private static final String STORAGE_CONFIG_NAME = "cassandra.yaml";
-
-
-    private Executor daemonExecutor;
     private final Path graknHome;
     private final Config graknProperties;
+    private Executor daemonExecutor;
 
     public Storage(Executor processExecutor, Path graknHome, Path graknPropertiesPath) {
         this.graknHome = graknHome;

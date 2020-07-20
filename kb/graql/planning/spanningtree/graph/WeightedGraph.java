@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ *
  */
 public abstract class WeightedGraph {
     public abstract Collection<Node> getNodes();

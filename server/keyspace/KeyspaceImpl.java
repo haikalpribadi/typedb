@@ -45,6 +45,10 @@ public class KeyspaceImpl implements Serializable, Comparable<KeyspaceImpl>, Key
         this.name = name;
     }
 
+    private static boolean isValidName(String name) {
+        return Pattern.matches("[a-z_][a-z_0-9]*", name) && name.length() <= MAX_LENGTH;
+    }
+
     @Override
     @CheckReturnValue
     public String name() {
@@ -77,9 +81,5 @@ public class KeyspaceImpl implements Serializable, Comparable<KeyspaceImpl>, Key
     public int compareTo(KeyspaceImpl o) {
         if (equals(o)) return 0;
         return name().compareTo(o.name());
-    }
-
-    private static boolean isValidName(String name) {
-        return Pattern.matches("[a-z_][a-z_0-9]*", name) && name.length() <= MAX_LENGTH;
     }
 }

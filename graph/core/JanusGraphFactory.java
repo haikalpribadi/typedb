@@ -110,6 +110,14 @@ public class JanusGraphFactory {
         return new Builder();
     }
 
+    @VisibleForTesting
+    public static KeyColumnValueStoreManager getStoreManager(Configuration configuration) {
+        try {
+            return new CQLStoreManager(configuration);
+        } catch (PermanentBackendException e) {
+            throw new IllegalArgumentException("Could not instantiate StoreManager class: " + e);
+        }
+    }
 
     public static class Builder {
 
@@ -132,16 +140,6 @@ public class JanusGraphFactory {
          */
         public StandardJanusGraph open() {
             return JanusGraphFactory.open(writeConfiguration);
-        }
-    }
-
-
-    @VisibleForTesting
-    public static KeyColumnValueStoreManager getStoreManager(Configuration configuration) {
-        try {
-            return new CQLStoreManager(configuration);
-        } catch (PermanentBackendException e) {
-            throw new IllegalArgumentException("Could not instantiate StoreManager class: " + e);
         }
     }
 

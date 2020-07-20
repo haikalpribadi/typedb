@@ -174,7 +174,6 @@ public interface StoreFeatures {
     Configuration getLocalKeyConsistentTxConfig();
 
 
-
     /**
      * Whether calls to this manager and its stores may be safely interrupted
      * without leaving the underlying system in an inconsistent state.

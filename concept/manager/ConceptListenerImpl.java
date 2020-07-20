@@ -23,6 +23,7 @@ import grakn.core.concept.impl.ThingImpl;
 import grakn.core.core.Schema;
 import grakn.core.kb.concept.api.Attribute;
 import grakn.core.kb.concept.api.AttributeType;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.Concept;
 import grakn.core.kb.concept.api.Entity;
 import grakn.core.kb.concept.api.EntityType;
@@ -35,7 +36,6 @@ import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
 import grakn.core.kb.concept.manager.ConceptListener;
-import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.graql.reasoner.cache.QueryCache;
 import grakn.core.kb.graql.reasoner.cache.RuleCache;
 import grakn.core.kb.keyspace.AttributeManager;
@@ -80,7 +80,7 @@ public class ConceptListenerImpl implements ConceptListener {
         statistics.decrement(type);
         queryCache.ackDeletion(type);
         conceptDeleted(thing);
-        if(thing.isAttribute()) attributeDeleted(thing.asAttribute());
+        if (thing.isAttribute()) attributeDeleted(thing.asAttribute());
     }
 
     // Using a supplier instead of the concept avoids fetching the wrapping concept
@@ -105,7 +105,7 @@ public class ConceptListenerImpl implements ConceptListener {
     /**
      * Sync the transaction caches to reflect the new concept that has been created
      *
-     * @param thing new instance that was created
+     * @param thing      new instance that was created
      * @param isInferred - flag that telling if that instance is inferred, saves a slow
      *                   read from the vertex properties
      */
@@ -205,6 +205,7 @@ public class ConceptListenerImpl implements ConceptListener {
     public void labelRemoved(SchemaConcept schemaConcept) {
         transactionCache.remove(schemaConcept);
     }
+
     @Override
     public void labelAdded(SchemaConcept schemaConcept) {
         transactionCache.cacheConcept(schemaConcept);
@@ -241,7 +242,7 @@ public class ConceptListenerImpl implements ConceptListener {
 
     @Override
     public void castingDeleted(Casting casting) {
-       transactionCache.deleteCasting(casting);
+        transactionCache.deleteCasting(casting);
     }
 
     @Override

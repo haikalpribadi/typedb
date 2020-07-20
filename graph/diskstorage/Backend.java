@@ -77,7 +77,6 @@ import static grakn.core.graph.graphdb.configuration.GraphDatabaseConfiguration.
  */
 public class Backend {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Backend.class);
     /**
      * These are the names for the edge store and property index databases, respectively.
      * The edge store contains all edges and properties. The property index contains an
@@ -89,9 +88,8 @@ public class Backend {
     public static final String EDGESTORE_NAME = "edgestore";
     public static final String INDEXSTORE_NAME = "graphindex";
     public static final String IDSTORE_NAME = "janusgraph_ids";
-
     public static final String SYSTEM_TX_LOG_NAME = "txlog";
-
+    private static final Logger LOG = LoggerFactory.getLogger(Backend.class);
     // The sum of the following 2 fields should be 1
     private static final double EDGESTORE_CACHE_PERCENT = 0.8;
     private static final double INDEXSTORE_CACHE_PERCENT = 0.2;
@@ -167,6 +165,11 @@ public class Backend {
         }
     }
 
+    private static String getUserLogName(String identifier) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(identifier));
+        return USER_LOG_PREFIX + identifier;
+    }
+
     private long computeCacheSizeBytes() {
         long cacheSizeBytes;
         double cacheSize = config.get(DB_CACHE_SIZE);
@@ -211,11 +214,6 @@ public class Backend {
         return userLogManager.openLog(getUserLogName(identifier));
     }
 
-    private static String getUserLogName(String identifier) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(identifier));
-        return USER_LOG_PREFIX + identifier;
-    }
-
     public KCVSConfiguration getGlobalSystemConfig() {
         return systemConfig;
     }
@@ -226,7 +224,7 @@ public class Backend {
             Preconditions.checkArgument(StringUtils.isNotBlank(index), "Invalid index name [%s]", index);
             LOG.debug("Configuring index [{}]", index);
             IndexProvider provider = getIndexProviderClass(config.restrictTo(index), config.get(INDEX_BACKEND, index),
-                    StandardIndexProvider.getAllProviderClasses());
+                                                           StandardIndexProvider.getAllProviderClasses());
             builder.put(index, provider);
         }
         return builder.build();

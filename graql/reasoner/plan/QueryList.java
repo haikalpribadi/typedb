@@ -27,21 +27,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
  * <p>
  * Helper class for lists of ReasonerQueryImpl queries with equality comparison ReasonerQueryEquivalence.
  * </p>
- *
- *
  */
 class QueryList extends QueryCollection<List<ReasonerQueryImpl>, List<Equivalence.Wrapper<ReasonerQueryImpl>>> {
 
-    QueryList(){
+    QueryList() {
         this.collection = new ArrayList<>();
         this.wrappedCollection = new ArrayList<>();
     }
 
-    QueryList(Collection<ReasonerQueryImpl> queries){
+    QueryList(Collection<ReasonerQueryImpl> queries) {
         this.collection = new ArrayList<>(queries);
         this.wrappedCollection = queries.stream().map(q -> equality().wrap(q)).collect(Collectors.toList());
     }

@@ -129,6 +129,7 @@ public interface AttributeType<D> extends Type {
     Attribute<D> create(D value);
 
     Attribute<D> putAttributeInferred(D value);
+
     /**
      * Creates a RelationType which allows this type and a resource type to be linked in a strictly one-to-one mapping.
      *
@@ -216,9 +217,11 @@ public interface AttributeType<D> extends Type {
 
     /**
      * Return the number of things that own this attribute (not including uncomitted ownerships)
+     *
      * @return
      */
     long ownershipCount();
+
     void writeOwnershipCount(long count);
 
     //------------------------------------- Other ---------------------------------
@@ -245,15 +248,23 @@ public interface AttributeType<D> extends Type {
      * @param <D> The value type.
      */
     abstract class ValueType<D> {
-        public static final ValueType<Boolean> BOOLEAN = new ValueType<Boolean>(Boolean.class){
+        public static final ValueType<Boolean> BOOLEAN = new ValueType<Boolean>(Boolean.class) {
             @Override
             public Set<ValueType<?>> comparableValueTypes() { return Collections.singleton(ValueType.BOOLEAN); }
         };
-        public static final ValueType<LocalDateTime> DATETIME = new ValueType<LocalDateTime>(LocalDateTime.class){
+        public static final ValueType<LocalDateTime> DATETIME = new ValueType<LocalDateTime>(LocalDateTime.class) {
             @Override
             public Set<ValueType<?>> comparableValueTypes() { return Collections.singleton(ValueType.DATETIME); }
         };
-        public static final ValueType<Double> DOUBLE = new ValueType<Double>(Double.class){
+        public static final ValueType<Float> FLOAT = new ValueType<Float>(Float.class) {
+            @Override
+            public Set<ValueType<?>> comparableValueTypes() { return new HashSet<>(); }
+        };
+        public static final ValueType<Integer> INTEGER = new ValueType<Integer>(Integer.class) {
+            @Override
+            public Set<ValueType<?>> comparableValueTypes() { return new HashSet<>(); }
+        };
+        public static final ValueType<Long> LONG = new ValueType<Long>(Long.class) {
             @Override
             public Set<ValueType<?>> comparableValueTypes() {
                 return set(ValueType.DOUBLE,
@@ -262,16 +273,7 @@ public interface AttributeType<D> extends Type {
                            ValueType.LONG);
             }
         };
-
-        public static final ValueType<Float> FLOAT = new ValueType<Float>(Float.class){
-            @Override
-            public Set<ValueType<?>> comparableValueTypes() { return new HashSet<>(); }
-        };
-        public static final ValueType<Integer> INTEGER = new ValueType<Integer>(Integer.class){
-            @Override
-            public Set<ValueType<?>> comparableValueTypes() { return new HashSet<>(); }
-        };
-        public static final ValueType<Long> LONG = new ValueType<Long>(Long.class){
+        public static final ValueType<Double> DOUBLE = new ValueType<Double>(Double.class) {
             @Override
             public Set<ValueType<?>> comparableValueTypes() {
                 return set(ValueType.DOUBLE,
@@ -280,7 +282,7 @@ public interface AttributeType<D> extends Type {
                            ValueType.LONG);
             }
         };
-        public static final ValueType<String> STRING = new ValueType<String>(String.class){
+        public static final ValueType<String> STRING = new ValueType<String>(String.class) {
             @Override
             public Set<ValueType<?>> comparableValueTypes() { return Collections.singleton(ValueType.STRING); }
         };
@@ -291,6 +293,22 @@ public interface AttributeType<D> extends Type {
 
         private ValueType(Class<D> dataClass) {
             this.dataClass = dataClass;
+        }
+
+        @CheckReturnValue
+        public static List<ValueType<?>> values() {
+            return values;
+        }
+
+        @SuppressWarnings("unchecked")
+        @CheckReturnValue
+        public static <D> ValueType<D> of(Class<D> name) {
+            for (ValueType<?> dc : ValueType.values()) {
+                if (dc.dataClass.equals(name)) {
+                    return (ValueType<D>) dc;
+                }
+            }
+            return null;
         }
 
         @CheckReturnValue
@@ -309,23 +327,7 @@ public interface AttributeType<D> extends Type {
         }
 
         @CheckReturnValue
-        public static List<ValueType<?>> values() {
-            return values;
-        }
-
-        @CheckReturnValue
         public abstract Set<ValueType<?>> comparableValueTypes();
-
-        @SuppressWarnings("unchecked")
-        @CheckReturnValue
-        public static <D> ValueType<D> of(Class<D> name) {
-            for (ValueType<?> dc : ValueType.values()) {
-                if (dc.dataClass.equals(name)) {
-                    return (ValueType<D>) dc;
-                }
-            }
-            return null;
-        }
 
         @Override
         public boolean equals(Object o) {
@@ -341,7 +343,7 @@ public interface AttributeType<D> extends Type {
         public int hashCode() {
             int h = 1;
             h *= 1000003;
-            h ^=  dataClass.hashCode();
+            h ^= dataClass.hashCode();
             return h;
         }
     }

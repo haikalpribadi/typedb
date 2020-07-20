@@ -38,6 +38,7 @@ public class HasFragmentSet extends EquivalentFragmentSetImpl {
         this.ownerTypeVar = ownerTypeVar;
         this.attributeTypeVar = attributeTypeVar;
     }
+
     @Override
     public Set<Fragment> fragments() {
         return ImmutableSet.of(

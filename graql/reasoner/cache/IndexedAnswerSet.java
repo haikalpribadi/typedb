@@ -32,26 +32,26 @@ import java.util.stream.Stream;
 /**
  * Query answer set indexed with partial substitutions (partial answers).
  */
-public class IndexedAnswerSet implements AnswerSet{
+public class IndexedAnswerSet implements AnswerSet {
 
     private final HashMultimap<ConceptMap, ConceptMap> indexedAnswers = HashMultimap.create();
 
     //indices are really var sets
     private final Index index;
 
-    private IndexedAnswerSet(Index index){
+    private IndexedAnswerSet(Index index) {
         this.index = index;
     }
 
-    public static IndexedAnswerSet create(Index index){
+    public static IndexedAnswerSet create(Index index) {
         return new IndexedAnswerSet(index);
     }
 
-    public static IndexedAnswerSet create(ConceptMap answer, Index index){
+    public static IndexedAnswerSet create(ConceptMap answer, Index index) {
         return create(Sets.newHashSet(answer), index);
     }
 
-    public static IndexedAnswerSet create(Set<ConceptMap> answers, Index index){
+    public static IndexedAnswerSet create(Set<ConceptMap> answers, Index index) {
         IndexedAnswerSet answerSet = new IndexedAnswerSet(index);
         answerSet.addAll(answers);
         return answerSet;
@@ -91,12 +91,12 @@ public class IndexedAnswerSet implements AnswerSet{
     @Override
     public void clear() { indexedAnswers.clear(); }
 
-    public Multiset<ConceptMap> keys(){ return indexedAnswers.keys();}
+    public Multiset<ConceptMap> keys() { return indexedAnswers.keys();}
 
     @Override
     public Set<ConceptMap> get(ConceptMap sub) {
         Index ind = Index.of(sub.vars());
-        if (ind.equals(index)){
+        if (ind.equals(index)) {
             return indexedAnswers.get(sub);
         }
         throw new IllegalStateException("Illegal index: " + sub + " indices: " + index);
@@ -115,7 +115,7 @@ public class IndexedAnswerSet implements AnswerSet{
     }
 
     //add answer with specific index
-    public boolean add(ConceptMap answer, ConceptMap answerIndex){
+    public boolean add(ConceptMap answer, ConceptMap answerIndex) {
         Index ind = Index.of(answerIndex.vars());
         if (ind.equals(index)) {
             return indexedAnswers.put(answerIndex, answer);

@@ -49,8 +49,8 @@ import java.util.stream.Stream;
  */
 public abstract class ResolvableQuery implements ReasonerQuery {
 
-    private final ReasoningContext ctx;
     protected final TraversalExecutor traversalExecutor;
+    private final ReasoningContext ctx;
 
     ResolvableQuery(TraversalExecutor traversalExecutor, ReasoningContext ctx) {
         this.traversalExecutor = traversalExecutor;
@@ -159,7 +159,7 @@ public abstract class ResolvableQuery implements ReasonerQuery {
      * @return stream of resolved answers
      */
     @CheckReturnValue
-    public Stream<ConceptMap> resolve(Set<ReasonerAtomicQuery> subGoals, boolean infer){
+    public Stream<ConceptMap> resolve(Set<ReasonerAtomicQuery> subGoals, boolean infer) {
         boolean doNotResolve = !infer || (isPositive() && !isRuleResolvable());
         if (doNotResolve) {
             return traverse();
@@ -170,6 +170,7 @@ public abstract class ResolvableQuery implements ReasonerQuery {
 
     /**
      * Directly traverse data without inference in answer to this query
+     *
      * @return stream of traversed answers
      */
     @CheckReturnValue

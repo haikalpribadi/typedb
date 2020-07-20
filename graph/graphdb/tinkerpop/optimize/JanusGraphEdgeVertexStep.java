@@ -43,9 +43,9 @@ import java.util.Set;
  */
 public class JanusGraphEdgeVertexStep extends EdgeVertexStep implements Profiling {
 
+    private final int txVertexCacheSize;
     private boolean initialized = false;
     private QueryProfiler queryProfiler = QueryProfiler.NO_OP;
-    private final int txVertexCacheSize;
 
     public JanusGraphEdgeVertexStep(EdgeVertexStep originalStep, int txVertexCacheSize) {
         super(originalStep.getTraversal(), originalStep.getDirection());

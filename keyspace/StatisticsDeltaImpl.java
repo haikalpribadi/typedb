@@ -111,6 +111,7 @@ public class StatisticsDeltaImpl implements StatisticsDelta {
 
     /**
      * Special case decrement for attribute deduplication
+     *
      * @param label
      */
     @Override

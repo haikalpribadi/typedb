@@ -25,7 +25,7 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 
 import static grakn.core.common.exception.ErrorMessage.INVALID_DIRECTION;
 
-public class GraknElementException  extends GraknException {
+public class GraknElementException extends GraknException {
 
     GraknElementException(String error) {
         super(error);
@@ -35,15 +35,9 @@ public class GraknElementException  extends GraknException {
         super(error, e);
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
-
     public static GraknElementException create(String error) {
         return new GraknElementException(error);
     }
-
 
     /**
      * Thrown when attempting to traverse an edge in an invalid direction
@@ -59,12 +53,16 @@ public class GraknElementException  extends GraknException {
         return create(String.format("Cannot build a concept from element {%s} due to it being deleted.", element));
     }
 
-
     /**
      * Thrown when attempting to mutate a property which is immutable
      */
     public static GraknElementException immutableProperty(Object oldValue, Object newValue, Enum vertexProperty) {
         return create(ErrorMessage.IMMUTABLE_VALUE.getMessage(oldValue, newValue, vertexProperty.name()));
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
     }
 
 }

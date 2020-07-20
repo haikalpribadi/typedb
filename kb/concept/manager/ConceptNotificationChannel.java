@@ -20,7 +20,7 @@ package grakn.core.kb.concept.manager;
 
 import grakn.core.kb.concept.api.Attribute;
 import grakn.core.kb.concept.api.AttributeType;
-import grakn.core.kb.concept.api.Concept;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.Entity;
 import grakn.core.kb.concept.api.EntityType;
 import grakn.core.kb.concept.api.Relation;
@@ -30,10 +30,8 @@ import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
-import grakn.core.kb.concept.api.Casting;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * This was created to help resolve the circular dependency between: RuleCache -> ConceptManager -> ConceptObserver --(loop)-->
@@ -48,6 +46,7 @@ public interface ConceptNotificationChannel {
     void subscribe(ConceptListener conceptListener);
 
     void thingDeleted(Thing thing);
+
     void castingDeleted(Casting casting);
 
     void schemaConceptDeleted(SchemaConcept schemaConcept);
@@ -55,22 +54,30 @@ public interface ConceptNotificationChannel {
     void hasAttributeRemoved(Thing owner, Attribute<?> owned, boolean isInferred);
 
     void roleUndefined(Role role);
+
     void relationRoleUnrelated(RelationType relationType, Role role, List<Casting> conceptsPlayingRole);
 
     <D> void attributeCreated(Attribute<D> attribute, D value, boolean isInferred);
+
     void relationCreated(Relation relation, boolean isInferred);
+
     void entityCreated(Entity entity, boolean isInferred);
+
     void hasAttributeCreated(Thing owner, Attribute attribute, boolean isInferred);
+
     void rolePlayerCreated(Casting casting);
 
     void ruleCreated(Rule rule);
+
     void roleCreated(Role role);
+
     void relationTypeCreated(RelationType relationType);
 
     /*
     TODO this pair of methods might be combinable somehow
     */
     void labelRemoved(SchemaConcept schemaConcept);
+
     void labelAdded(SchemaConcept schemaConcept);
 
     void conceptSetAbstract(Type type, boolean isAbstract);

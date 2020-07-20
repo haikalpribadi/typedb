@@ -39,10 +39,9 @@ import java.util.stream.Stream;
  * This class forms the basis of assuring the graph follows the Grakn object model.
  */
 public abstract class ConceptImpl implements Concept, ConceptVertex {
-    private final VertexElement vertexElement;
     final ConceptManager conceptManager;
     final ConceptNotificationChannel conceptNotificationChannel;
-
+    private final VertexElement vertexElement;
     private final ConceptCache<Shard> currentShard;
     private final ConceptCache<Long> shardCount;
     private final ConceptCache<ConceptId> conceptId;
@@ -68,7 +67,6 @@ public abstract class ConceptImpl implements Concept, ConceptVertex {
 
     /**
      * Deletes the concept.
-     *
      */
     @Override
     public void delete() {

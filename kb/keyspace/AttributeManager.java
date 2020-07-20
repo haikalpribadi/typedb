@@ -42,10 +42,15 @@ import java.util.Set;
 public interface AttributeManager {
 
     Cache<String, ConceptId> attributesCommitted();
+
     void ackAttributeInsert(String index, String txId);
+
     void ackAttributeDelete(String index, String txId);
+
     void ackCommit(Set<String> indices, String txId);
+
     boolean requiresLock(String txId);
+
     boolean isAttributeEphemeral(String index);
 
     @VisibleForTesting

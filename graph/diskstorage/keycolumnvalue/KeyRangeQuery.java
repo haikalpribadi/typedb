@@ -96,10 +96,10 @@ public class KeyRangeQuery extends SliceQuery {
     @Override
     public String toString() {
         return String.format("KeyRangeQuery(start: %s, end: %s, columns:[start: %s, end: %s], limit=%d)",
-                keyStart,
-                keyEnd,
-                getSliceStart(),
-                getSliceEnd(),
-                getLimit());
+                             keyStart,
+                             keyEnd,
+                             getSliceStart(),
+                             getSliceEnd(),
+                             getLimit());
     }
 }

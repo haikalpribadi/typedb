@@ -51,6 +51,7 @@ public interface Type extends SchemaConcept {
      * @return The Type itself.
      */
     Type play(Role role, boolean required);
+
     Type plays(Role role);
 
     /**
@@ -78,14 +79,19 @@ public interface Type extends SchemaConcept {
 
 
     Stream<AttributeType<?>> has();
+
     Stream<AttributeType<?>> hasWithoutKeys();
+
     Stream<AttributeType<?>> directHas();
+
     /**
      * @return The AttributeTypes which this Type is linked with as a key.
      */
     @CheckReturnValue
     Stream<AttributeType<?>> keys();
+
     Stream<AttributeType<?>> directHasWithoutKeys();
+
     Stream<AttributeType<?>> directKeys();
 
 
@@ -159,12 +165,14 @@ public interface Type extends SchemaConcept {
 
     /**
      * Retrieve the number of instances that is saved as a property on this concept
+     *
      * @return
      */
     Long getCount();
 
     /**
      * Store the number of instances that is saved as a property on this concept
+     *
      * @return
      */
     void writeCount(Long count);

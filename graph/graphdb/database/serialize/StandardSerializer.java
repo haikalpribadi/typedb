@@ -152,6 +152,18 @@ public class StandardSerializer implements AttributeHandler, Serializer {
         registerClassInternal(69, GraphCacheEvictionAction.class, new EnumSerializer<>(GraphCacheEvictionAction.class));
     }
 
+    private static Class normalizeDataType(Class datatype) {
+        Class superClass = datatype.getSuperclass();
+        if (null != superClass && superClass.isEnum()) return superClass;
+        if (Instant.class.equals(datatype)) return Instant.class;
+        return datatype;
+    }
+
+    private static <V> OrderPreservingSerializer<V> ensureOrderPreserving(AttributeSerializer<V> serializer, Class<V> type) {
+        Preconditions.checkArgument(serializer instanceof OrderPreservingSerializer, "Registered serializer for datatype does not support order: %s", type);
+        return (OrderPreservingSerializer) serializer;
+    }
+
     private synchronized <V> void registerClassInternal(int registrationNo, Class<? extends V> datatype, AttributeSerializer<V> serializer) {
         Preconditions.checkArgument(registrationNo > 0); //must be bigger than 0 since 0 is used to indicate null values
         Preconditions.checkNotNull(datatype);
@@ -161,13 +173,6 @@ public class StandardSerializer implements AttributeHandler, Serializer {
         registrations.put(registrationNo, datatype);
         if (serializer instanceof SerializerInjected) ((SerializerInjected) serializer).setSerializer(this);
         handlers.put(datatype, serializer);
-    }
-
-    private static Class normalizeDataType(Class datatype) {
-        Class superClass = datatype.getSuperclass();
-        if (null != superClass && superClass.isEnum()) return superClass;
-        if (Instant.class.equals(datatype)) return Instant.class;
-        return datatype;
     }
 
     @Override
@@ -213,11 +218,6 @@ public class StandardSerializer implements AttributeHandler, Serializer {
     @Override
     public boolean isOrderPreservingDatatype(Class<?> datatype) {
         return (getSerializer(datatype) instanceof OrderPreservingSerializer);
-    }
-
-    private static <V> OrderPreservingSerializer<V> ensureOrderPreserving(AttributeSerializer<V> serializer, Class<V> type) {
-        Preconditions.checkArgument(serializer instanceof OrderPreservingSerializer, "Registered serializer for datatype does not support order: %s", type);
-        return (OrderPreservingSerializer) serializer;
     }
 
     private boolean supportsNullSerialization(Class type) {

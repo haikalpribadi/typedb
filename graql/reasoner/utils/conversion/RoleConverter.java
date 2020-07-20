@@ -26,7 +26,6 @@ import java.util.stream.Stream;
  * <p>
  * Implementation of SchemaConceptConverter allowing for conversion of role types to compatible types.
  * </p>
- *
  */
 public class RoleConverter implements SchemaConceptConverter<Role> {
 

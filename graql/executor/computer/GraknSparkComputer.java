@@ -96,31 +96,77 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GraknSparkComputer.class);
-
-    private final org.apache.commons.configuration.Configuration sparkConfiguration;
-    private boolean workersSet = false;
-    private final ThreadFactory threadFactoryBoss =
-            new BasicThreadFactory.Builder().namingPattern(GraknSparkComputer.class.getSimpleName() + "-boss").build();
-
     private static final Set<String> KEYS_PASSED_IN_JVM_SYSTEM_PROPERTIES = new HashSet<>(Arrays.asList(
             KryoShimServiceLoader.KRYO_SHIM_SERVICE,
             IoRegistry.IO_REGISTRY));
 
-    private final ExecutorService computerService = Executors.newSingleThreadExecutor(threadFactoryBoss);
-
     static {
         TraversalStrategies.GlobalCache.registerStrategies(GraknSparkComputer.class,
-                TraversalStrategies.GlobalCache.getStrategies(GraphComputer.class).clone().addStrategies(
-                        SparkSingleIterationStrategy.instance(),
-                        SparkInterceptorStrategy.instance()));
+                                                           TraversalStrategies.GlobalCache.getStrategies(GraphComputer.class).clone().addStrategies(
+                                                                   SparkSingleIterationStrategy.instance(),
+                                                                   SparkInterceptorStrategy.instance()));
     }
 
+    private final org.apache.commons.configuration.Configuration sparkConfiguration;
+    private final ThreadFactory threadFactoryBoss =
+            new BasicThreadFactory.Builder().namingPattern(GraknSparkComputer.class.getSimpleName() + "-boss").build();
+    private final ExecutorService computerService = Executors.newSingleThreadExecutor(threadFactoryBoss);
+    private boolean workersSet = false;
     private String jobGroupId = null;
 
     public GraknSparkComputer(HadoopGraph hadoopGraph) {
         super(hadoopGraph);
         this.sparkConfiguration = new HadoopConfiguration();
         ConfigurationUtils.copy(this.hadoopGraph.configuration(), this.sparkConfiguration);
+    }
+
+    private static void updateConfigKeys(org.apache.commons.configuration.Configuration sparkConfiguration) {
+        Set<String> wrongKeys = new HashSet<>();
+        sparkConfiguration.getKeys().forEachRemaining(wrongKeys::add);
+        wrongKeys.forEach(key -> {
+            if (key.startsWith("janusmr")) {
+                String newKey = "janusgraphmr" + key.substring(7);
+                sparkConfiguration.setProperty(newKey, sparkConfiguration.getString(key));
+            }
+        });
+    }
+
+    /**
+     * When using a persistent context the running Context's configuration will override a passed
+     * in configuration. Spark allows us to override these inherited properties via
+     * SparkContext.setLocalProperty
+     */
+    private static void updateLocalConfiguration(JavaSparkContext sparkContext, Configuration configuration) {
+        /*
+         * While we could enumerate over the entire SparkConfiguration and copy into the Thread
+         * Local properties of the Spark Context this could cause adverse effects with future
+         * versions of Spark. Since the api for setting multiple local properties at once is
+         * restricted as private, we will only set those properties we know can effect SparkGraphComputer
+         * Execution rather than applying the entire configuration.
+         */
+
+        String[] validPropertyNames = {
+                "spark.job.description",
+                "spark.jobGroup.id",
+                "spark.job.interruptOnCancel",
+                "spark.scheduler.pool"
+        };
+
+        for (String propertyName : validPropertyNames) {
+            String propertyValue = configuration.get(propertyName);
+            if (propertyValue != null) {
+                LOGGER.info("Setting Thread Local SparkContext Property - "
+                                    + propertyName + " : " + propertyValue);
+                sparkContext.setLocalProperty(propertyName, configuration.get(propertyName));
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        FileConfiguration configuration = new PropertiesConfiguration(args[0]);
+        new GraknSparkComputer(HadoopGraph.open(configuration))
+                .program(VertexProgram.createVertexProgram(HadoopGraph.open(configuration), configuration))
+                .submit().get();
     }
 
     @Override
@@ -148,6 +194,8 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
                 .runWithBackgroundThread(exec -> submitWithExecutor(), "SparkSubmitter");
     }
 
+    /////////////////
+
     public void cancelJobs() {
         if (jobGroupId != null) {
             Spark.getContext().cancelJobGroup(jobGroupId);
@@ -162,7 +210,7 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
 
         // Use different output locations
         this.sparkConfiguration.setProperty(Constants.GREMLIN_HADOOP_OUTPUT_LOCATION,
-                this.sparkConfiguration.getString(Constants.GREMLIN_HADOOP_OUTPUT_LOCATION) + "/" + jobGroupId);
+                                            this.sparkConfiguration.getString(Constants.GREMLIN_HADOOP_OUTPUT_LOCATION) + "/" + jobGroupId);
 
         updateConfigKeys(sparkConfiguration);
 
@@ -186,9 +234,9 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
             });
             if (params.length() > 0) {
                 this.sparkConfiguration.setProperty(SparkLauncher.EXECUTOR_EXTRA_JAVA_OPTIONS,
-                        (this.sparkConfiguration.getString(SparkLauncher.EXECUTOR_EXTRA_JAVA_OPTIONS, "") + params.toString()).trim());
+                                                    (this.sparkConfiguration.getString(SparkLauncher.EXECUTOR_EXTRA_JAVA_OPTIONS, "") + params.toString()).trim());
                 this.sparkConfiguration.setProperty(SparkLauncher.DRIVER_EXTRA_JAVA_OPTIONS,
-                        (this.sparkConfiguration.getString(SparkLauncher.DRIVER_EXTRA_JAVA_OPTIONS, "") + params.toString()).trim());
+                                                    (this.sparkConfiguration.getString(SparkLauncher.DRIVER_EXTRA_JAVA_OPTIONS, "") + params.toString()).trim());
             }
             KryoShimServiceLoader.applyConfiguration(this.sparkConfiguration);
             //////////////////////////////////////////////////
@@ -204,7 +252,7 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
                 }
             }
             graphComputerConfiguration.setProperty(Constants.GREMLIN_HADOOP_GRAPH_WRITER_HAS_EDGES,
-                    this.persist.equals(GraphComputer.Persist.EDGES));
+                                                   this.persist.equals(GraphComputer.Persist.EDGES));
 
             Configuration hadoopConfiguration = ConfUtil.makeHadoopConfiguration(graphComputerConfiguration);
 
@@ -231,11 +279,11 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
                 if (null != inputLocation) {
                     try {
                         graphComputerConfiguration.setProperty(Constants.MAPREDUCE_INPUT_FILEINPUTFORMAT_INPUTDIR,
-                                FileSystem.get(hadoopConfiguration).getFileStatus(new Path(inputLocation)).getPath()
-                                        .toString());
+                                                               FileSystem.get(hadoopConfiguration).getFileStatus(new Path(inputLocation)).getPath()
+                                                                       .toString());
                         hadoopConfiguration.set(Constants.MAPREDUCE_INPUT_FILEINPUTFORMAT_INPUTDIR,
-                                FileSystem.get(hadoopConfiguration).getFileStatus(new Path(inputLocation)).getPath()
-                                        .toString());
+                                                FileSystem.get(hadoopConfiguration).getFileStatus(new Path(inputLocation)).getPath()
+                                                        .toString());
                     } catch (IOException e) {
                         throw new IllegalStateException(e.getMessage(), e);
                     }
@@ -295,8 +343,8 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
             // the Spark application name will always be set by SparkContextStorage,
             // thus, INFO the name to make it easier to debug
             logger.debug(Constants.GREMLIN_HADOOP_SPARK_JOB_PREFIX +
-                    (null == this.vertexProgram ? "No VertexProgram" :
-                            this.vertexProgram) + "[" + this.mapReducers + "]");
+                                 (null == this.vertexProgram ? "No VertexProgram" :
+                                         this.vertexProgram) + "[" + this.mapReducers + "]");
 
             // add the project jars to the cluster
             this.loadJars(hadoopConfiguration, sparkContext);
@@ -316,12 +364,12 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
             // else partition it with HashPartitioner
             if (loadedGraphRDD.partitioner().isPresent()) {
                 this.logger.debug("Using the existing partitioner associated with the loaded graphRDD: " +
-                        loadedGraphRDD.partitioner().get());
+                                          loadedGraphRDD.partitioner().get());
             } else {
                 if (!skipPartitioner) {
                     Partitioner partitioner =
                             new HashPartitioner(this.workersSet ?
-                                    this.workers : loadedGraphRDD.partitions().size());
+                                                        this.workers : loadedGraphRDD.partitions().size());
                     logger.debug("Partitioning the loaded graphRDD: " + partitioner);
                     loadedGraphRDD = loadedGraphRDD.partitionBy(partitioner);
                     partitioned = true;
@@ -331,7 +379,7 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
                     Preconditions.checkState(skipPartitioner == !loadedGraphRDD.partitioner().isPresent());
 
                     logger.debug("Partitioning has been skipped for the loaded graphRDD via " +
-                            Constants.GREMLIN_SPARK_SKIP_PARTITIONER);
+                                         Constants.GREMLIN_SPARK_SKIP_PARTITIONER);
                 }
             }
             // if the loaded graphRDD was already partitioned previous,
@@ -518,60 +566,9 @@ public final class GraknSparkComputer extends AbstractHadoopGraphComputer {
         return result;
     }
 
-    private static void updateConfigKeys(org.apache.commons.configuration.Configuration sparkConfiguration) {
-        Set<String> wrongKeys = new HashSet<>();
-        sparkConfiguration.getKeys().forEachRemaining(wrongKeys::add);
-        wrongKeys.forEach(key -> {
-            if (key.startsWith("janusmr")) {
-                String newKey = "janusgraphmr" + key.substring(7);
-                sparkConfiguration.setProperty(newKey, sparkConfiguration.getString(key));
-            }
-        });
-    }
-
-    /////////////////
-
     @Override
     protected void loadJar(final Configuration hadoopConfiguration, final File file, final Object... params) {
         JavaSparkContext sparkContext = (JavaSparkContext) params[0];
         sparkContext.addJar(file.getAbsolutePath());
-    }
-
-    /**
-     * When using a persistent context the running Context's configuration will override a passed
-     * in configuration. Spark allows us to override these inherited properties via
-     * SparkContext.setLocalProperty
-     */
-    private static void updateLocalConfiguration(JavaSparkContext sparkContext, Configuration configuration) {
-        /*
-         * While we could enumerate over the entire SparkConfiguration and copy into the Thread
-         * Local properties of the Spark Context this could cause adverse effects with future
-         * versions of Spark. Since the api for setting multiple local properties at once is
-         * restricted as private, we will only set those properties we know can effect SparkGraphComputer
-         * Execution rather than applying the entire configuration.
-         */
-
-        String[] validPropertyNames = {
-                "spark.job.description",
-                "spark.jobGroup.id",
-                "spark.job.interruptOnCancel",
-                "spark.scheduler.pool"
-        };
-
-        for (String propertyName : validPropertyNames) {
-            String propertyValue = configuration.get(propertyName);
-            if (propertyValue != null) {
-                LOGGER.info("Setting Thread Local SparkContext Property - "
-                        + propertyName + " : " + propertyValue);
-                sparkContext.setLocalProperty(propertyName, configuration.get(propertyName));
-            }
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        FileConfiguration configuration = new PropertiesConfiguration(args[0]);
-        new GraknSparkComputer(HadoopGraph.open(configuration))
-                .program(VertexProgram.createVertexProgram(HadoopGraph.open(configuration), configuration))
-                .submit().get();
     }
 }

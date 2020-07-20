@@ -24,9 +24,8 @@ import grakn.core.graph.graphdb.database.serialize.OrderPreservingSerializer;
 
 public class LongSerializer implements OrderPreservingSerializer<Long> {
 
-    private static final long serialVersionUID = -8438674418838450877L;
-
     public static final LongSerializer INSTANCE = new LongSerializer();
+    private static final long serialVersionUID = -8438674418838450877L;
 
     @Override
     public Long read(ScanBuffer buffer) {

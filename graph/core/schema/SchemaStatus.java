@@ -19,7 +19,6 @@ package grakn.core.graph.core.schema;
 
 /**
  * Designates the status of a Index in a graph.
- *
  */
 public enum SchemaStatus {
 
@@ -45,9 +44,11 @@ public enum SchemaStatus {
 
 
     public boolean isStable() {
-        switch(this) {
-            case INSTALLED: return false;
-            default: return true;
+        switch (this) {
+            case INSTALLED:
+                return false;
+            default:
+                return true;
         }
     }
 

@@ -51,11 +51,6 @@ public class GraknServerException extends GraknException {
         return new GraknServerException("Statement expected to be unreachable: " + message, cause);
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
-
     public static GraknServerException create(String error) {
         return new GraknServerException(error);
     }
@@ -70,5 +65,10 @@ public class GraknServerException extends GraknException {
 
     public static GraknServerException transactionClosedOnDifferentThread() {
         return create(ErrorMessage.TRANSACTION_CLOSED_ON_DIFFERENT_THREAD.getMessage());
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
     }
 }

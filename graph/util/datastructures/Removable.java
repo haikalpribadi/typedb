@@ -19,7 +19,6 @@ package grakn.core.graph.util.datastructures;
 
 /**
  * Interface to decorate elements that can be removed
- *
  */
 public interface Removable {
 

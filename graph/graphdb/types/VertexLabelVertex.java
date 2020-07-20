@@ -24,6 +24,8 @@ import grakn.core.graph.graphdb.types.vertices.JanusGraphSchemaVertex;
 
 public class VertexLabelVertex extends JanusGraphSchemaVertex implements InternalVertexLabel {
 
+    private Integer ttl = null;
+
     public VertexLabelVertex(StandardJanusGraphTx tx, long id, byte lifecycle) {
         super(tx, id, lifecycle);
     }
@@ -42,8 +44,6 @@ public class VertexLabelVertex extends JanusGraphSchemaVertex implements Interna
     public boolean hasDefaultConfiguration() {
         return !isPartitioned() && !isStatic();
     }
-
-    private Integer ttl = null;
 
     @Override
     public int getTTL() {

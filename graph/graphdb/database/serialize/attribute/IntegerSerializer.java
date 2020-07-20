@@ -30,13 +30,13 @@ public class IntegerSerializer implements OrderPreservingSerializer<Integer> {
     @Override
     public Integer read(ScanBuffer buffer) {
         final long l = VariableLong.read(buffer);
-        Preconditions.checkArgument(l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE,"Invalid serialization [%s]", l);
-        return (int)l;
+        Preconditions.checkArgument(l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE, "Invalid serialization [%s]", l);
+        return (int) l;
     }
 
     @Override
     public void write(WriteBuffer out, Integer attribute) {
-        VariableLong.write(out,attribute);
+        VariableLong.write(out, attribute);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class IntegerSerializer implements OrderPreservingSerializer<Integer> {
             Preconditions.checkArgument(!Double.isNaN(d) && Math.round(d) == d, "Not a valid integer: " + value);
             final long l = ((Number) value).longValue();
             Preconditions.checkArgument(l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE,
-                "Value too large for integer: " + value);
+                                        "Value too large for integer: " + value);
             return (int) l;
         } else if (value instanceof String) {
             return Integer.parseInt((String) value);

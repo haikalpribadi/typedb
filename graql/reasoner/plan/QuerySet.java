@@ -27,21 +27,18 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * <p>
  * Helper class for sets of ReasonerQueryImpl queries with equality comparison ReasonerQueryEquivalence.
  * </p>
- *
- *
  */
 public class QuerySet extends QueryCollection<Set<ReasonerQueryImpl>, Set<Equivalence.Wrapper<ReasonerQueryImpl>>> {
 
-    private QuerySet(Collection<ReasonerQueryImpl> queries){
+    private QuerySet(Collection<ReasonerQueryImpl> queries) {
         this.collection = new HashSet<>(queries);
         this.wrappedCollection = queries.stream().map(q -> equality().wrap(q)).collect(Collectors.toSet());
     }
 
-    public static QuerySet create(Collection<Equivalence.Wrapper<ReasonerQueryImpl>> queries){
+    public static QuerySet create(Collection<Equivalence.Wrapper<ReasonerQueryImpl>> queries) {
         return new QuerySet(queries.stream().map(Equivalence.Wrapper::get).collect(Collectors.toSet()));
     }
 }

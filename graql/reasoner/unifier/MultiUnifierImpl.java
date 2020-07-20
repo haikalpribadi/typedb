@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
  * <p>
  * Implementation of the MultiUnifier interface.
  *
@@ -46,37 +45,37 @@ import java.util.stream.Stream;
  * Unifier doesn't exist: unifier is an empty set.
  *
  * </p>
- *
- *
  */
 public class MultiUnifierImpl implements MultiUnifier {
 
     private final ImmutableSet<Unifier> multiUnifier;
 
-    public MultiUnifierImpl(Set<Unifier> us){
+    public MultiUnifierImpl(Set<Unifier> us) {
         this.multiUnifier = ImmutableSet.copyOf(us);
     }
-    public MultiUnifierImpl(Unifier u){
+
+    public MultiUnifierImpl(Unifier u) {
         this.multiUnifier = ImmutableSet.of(u);
     }
 
     /**
      * identity multiunifier: single trivial unifier
      */
-    public MultiUnifierImpl(){ this.multiUnifier = ImmutableSet.of(new UnifierImpl()); }
+    public MultiUnifierImpl() { this.multiUnifier = ImmutableSet.of(new UnifierImpl()); }
 
     @SafeVarargs
-    public MultiUnifierImpl(ImmutableMultimap<Variable, Variable>... maps){
+    public MultiUnifierImpl(ImmutableMultimap<Variable, Variable>... maps) {
         this.multiUnifier = ImmutableSet.<Unifier>builder()
                 .addAll(Stream.of(maps).map(UnifierImpl::new).iterator())
                 .build();
     }
 
-    public static MultiUnifierImpl trivial(){ return new MultiUnifierImpl();}
-    public static MultiUnifierImpl nonExistent(){ return new MultiUnifierImpl(new HashSet<>());}
+    public static MultiUnifierImpl trivial() { return new MultiUnifierImpl();}
+
+    public static MultiUnifierImpl nonExistent() { return new MultiUnifierImpl(new HashSet<>());}
 
     @Override
-    public boolean equals(Object obj){
+    public boolean equals(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         MultiUnifierImpl u2 = (MultiUnifierImpl) obj;
@@ -84,12 +83,12 @@ public class MultiUnifierImpl implements MultiUnifier {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return multiUnifier.hashCode();
     }
 
     @Override
-    public String toString(){ return multiUnifier.toString(); }
+    public String toString() { return multiUnifier.toString(); }
 
     @Override
     public Stream<Unifier> stream() {
@@ -110,7 +109,7 @@ public class MultiUnifierImpl implements MultiUnifier {
     @Override
     public Unifier getAny() {
         UnmodifiableIterator<Unifier> iterator = multiUnifier.iterator();
-        if (!iterator.hasNext()){
+        if (!iterator.hasNext()) {
             throw ReasonerException.nonExistentUnifier();
         }
         return iterator.next();

@@ -25,6 +25,14 @@ public class CharacterSerializer implements OrderPreservingSerializer<Character>
 
     private final ShortSerializer ss = new ShortSerializer();
 
+    public static short char2short(char c) {
+        return (short) (((int) c) + Short.MIN_VALUE);
+    }
+
+    public static char short2char(short s) {
+        return (char) (((int) s) - Short.MIN_VALUE);
+    }
+
     @Override
     public Character read(ScanBuffer buffer) {
         final short s = ss.read(buffer);
@@ -43,15 +51,7 @@ public class CharacterSerializer implements OrderPreservingSerializer<Character>
 
     @Override
     public void writeByteOrder(WriteBuffer buffer, Character attribute) {
-        write(buffer,attribute);
-    }
-
-    public static short char2short(char c) {
-        return (short) (((int) c) + Short.MIN_VALUE);
-    }
-
-    public static char short2char(short s) {
-        return (char) (((int) s) - Short.MIN_VALUE);
+        write(buffer, attribute);
     }
 
     @Override

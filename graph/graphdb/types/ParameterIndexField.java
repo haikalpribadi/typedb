@@ -31,6 +31,10 @@ public class ParameterIndexField extends IndexField {
         this.parameters = Preconditions.checkNotNull(parameters);
     }
 
+    public static ParameterIndexField of(PropertyKey key, Parameter... parameters) {
+        return new ParameterIndexField(key, parameters);
+    }
+
     public SchemaStatus getStatus() {
         SchemaStatus status = ParameterType.STATUS.findParameter(parameters, null);
         return Preconditions.checkNotNull(status, "Field [%s] did not have a status", this);
@@ -38,10 +42,6 @@ public class ParameterIndexField extends IndexField {
 
     public Parameter[] getParameters() {
         return parameters;
-    }
-
-    public static ParameterIndexField of(PropertyKey key, Parameter... parameters) {
-        return new ParameterIndexField(key, parameters);
     }
 
 

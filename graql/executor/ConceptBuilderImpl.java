@@ -74,16 +74,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ConceptBuilderImpl implements ConceptBuilder {
 
+    private static final BuilderParam<Type> TYPE = BuilderParam.of(Graql.Token.Property.ISA);
+    private static final BuilderParam<SchemaConcept> SUPER_CONCEPT = BuilderParam.of(Graql.Token.Property.SUB);
+    private static final BuilderParam<Label> LABEL = BuilderParam.of(Graql.Token.Property.TYPE);
+    private static final BuilderParam<ConceptId> ID = BuilderParam.of(Graql.Token.Property.ID);
+    private static final BuilderParam<Object> VALUE = BuilderParam.of(Graql.Token.Property.VALUE);
+    private static final BuilderParam<AttributeType.ValueType<?>> VALUE_TYPE = BuilderParam.of(Graql.Token.Property.VALUE_TYPE);
+    private static final BuilderParam<Pattern> WHEN = BuilderParam.of(Graql.Token.Property.WHEN);
+    private static final BuilderParam<Pattern> THEN = BuilderParam.of(Graql.Token.Property.THEN);
+    private static final BuilderParam<Unit> IS_ROLE = BuilderParam.of("role"); // TODO: replace this with a value registered in an enum
+    private static final BuilderParam<Unit> IS_RULE = BuilderParam.of("rule"); // TODO: replace this with a value registered in an enum
     private final ConceptManager conceptManager;
     private final WriteExecutor writeExecutor;
-
     private final Variable var;
-
     /**
      * A map of parameters that have been specified for this concept.
      */
     private final Map<BuilderParam<?>, Object> preProvidedParams = new HashMap<>();
-
     /**
      * A set of parameters that were used for building the concept. Modified while executing #build().
      * This set starts empty. Every time #use(BuilderParam) or #useOrDefault(BuilderParam, Object)
@@ -111,6 +118,37 @@ public class ConceptBuilderImpl implements ConceptBuilder {
      * </pre>
      */
     private final Set<BuilderParam<?>> usedParams = new HashSet<>();
+
+    private ConceptBuilderImpl(ConceptManager conceptManager, WriteExecutor writeExecutor, Variable var) {
+        this.conceptManager = conceptManager;
+        this.writeExecutor = writeExecutor;
+        this.var = var;
+    }
+
+    static ConceptBuilder of(ConceptManager conceptManager, WriteExecutor writeExecutor, Variable var) {
+        return new ConceptBuilderImpl(conceptManager, writeExecutor, var);
+    }
+
+    /**
+     * Make the second argument the super of the first argument
+     *
+     * @throws GraqlSemanticException if the types are different, or setting the super to be a meta-type
+     */
+    static void setSuper(SchemaConcept subConcept, SchemaConcept superConcept) {
+        if (superConcept.isEntityType()) {
+            subConcept.asEntityType().sup(superConcept.asEntityType());
+        } else if (superConcept.isRelationType()) {
+            subConcept.asRelationType().sup(superConcept.asRelationType());
+        } else if (superConcept.isRole()) {
+            subConcept.asRole().sup(superConcept.asRole());
+        } else if (superConcept.isAttributeType()) {
+            subConcept.asAttributeType().sup(superConcept.asAttributeType());
+        } else if (superConcept.isRule()) {
+            subConcept.asRule().sup(superConcept.asRule());
+        } else {
+            throw GraknConceptException.invalidSuperType(subConcept.label(), superConcept);
+        }
+    }
 
     @Override
     public ConceptBuilder isa(Type type) {
@@ -162,9 +200,6 @@ public class ConceptBuilderImpl implements ConceptBuilder {
         return set(THEN, then);
     }
 
-    static ConceptBuilder of(ConceptManager conceptManager, WriteExecutor writeExecutor, Variable var) {
-        return new ConceptBuilderImpl(conceptManager, writeExecutor, var);
-    }
     /**
      * Build the Concept and return it, using the properties given.
      *
@@ -268,23 +303,6 @@ public class ConceptBuilderImpl implements ConceptBuilder {
         });
 
         return concept;
-    }
-
-    private static final BuilderParam<Type> TYPE = BuilderParam.of(Graql.Token.Property.ISA);
-    private static final BuilderParam<SchemaConcept> SUPER_CONCEPT = BuilderParam.of(Graql.Token.Property.SUB);
-    private static final BuilderParam<Label> LABEL = BuilderParam.of(Graql.Token.Property.TYPE);
-    private static final BuilderParam<ConceptId> ID = BuilderParam.of(Graql.Token.Property.ID);
-    private static final BuilderParam<Object> VALUE = BuilderParam.of(Graql.Token.Property.VALUE);
-    private static final BuilderParam<AttributeType.ValueType<?>> VALUE_TYPE = BuilderParam.of(Graql.Token.Property.VALUE_TYPE);
-    private static final BuilderParam<Pattern> WHEN = BuilderParam.of(Graql.Token.Property.WHEN);
-    private static final BuilderParam<Pattern> THEN = BuilderParam.of(Graql.Token.Property.THEN);
-    private static final BuilderParam<Unit> IS_ROLE = BuilderParam.of("role"); // TODO: replace this with a value registered in an enum
-    private static final BuilderParam<Unit> IS_RULE = BuilderParam.of("rule"); // TODO: replace this with a value registered in an enum
-
-    private ConceptBuilderImpl(ConceptManager conceptManager, WriteExecutor writeExecutor, Variable var) {
-        this.conceptManager = conceptManager;
-        this.writeExecutor = writeExecutor;
-        this.var = var;
     }
 
     private <T> T useOrDefault(BuilderParam<T> param, @Nullable T defaultValue) {
@@ -428,28 +446,6 @@ public class ConceptBuilderImpl implements ConceptBuilder {
                 '}';
     }
 
-
-    /**
-     * Make the second argument the super of the first argument
-     *
-     * @throws GraqlSemanticException if the types are different, or setting the super to be a meta-type
-     */
-    static void setSuper(SchemaConcept subConcept, SchemaConcept superConcept) {
-        if (superConcept.isEntityType()) {
-            subConcept.asEntityType().sup(superConcept.asEntityType());
-        } else if (superConcept.isRelationType()) {
-            subConcept.asRelationType().sup(superConcept.asRelationType());
-        } else if (superConcept.isRole()) {
-            subConcept.asRole().sup(superConcept.asRole());
-        } else if (superConcept.isAttributeType()) {
-            subConcept.asAttributeType().sup(superConcept.asAttributeType());
-        } else if (superConcept.isRule()) {
-            subConcept.asRule().sup(superConcept.asRule());
-        } else {
-            throw GraknConceptException.invalidSuperType(subConcept.label(), superConcept);
-        }
-    }
-
     /**
      * Describes a parameter that can be set on a ConceptBuilder.
      * We could instead just represent these parameters as fields of ConceptBuilder. Instead, we use a
@@ -465,6 +461,14 @@ public class ConceptBuilderImpl implements ConceptBuilder {
             this.name = name;
         }
 
+        static <T> BuilderParam of(Object obj) {
+            return of(obj.toString());
+        }
+
+        static <T> BuilderParam of(String name) {
+            return new BuilderParam(name);
+        }
+
         String name() {
             return name;
         }
@@ -472,14 +476,6 @@ public class ConceptBuilderImpl implements ConceptBuilder {
         @Override
         public String toString() {
             return name;
-        }
-
-        static <T> BuilderParam of(Object obj) {
-            return of(obj.toString());
-        }
-
-        static <T> BuilderParam of(String name) {
-            return new BuilderParam(name);
         }
     }
 
@@ -490,10 +486,10 @@ public class ConceptBuilderImpl implements ConceptBuilder {
      * see <a href=https://en.wikipedia.org/wiki/Unit_type>Wikipedia</a>
      */
     final static class Unit {
+        static Unit INSTANCE = new Unit();
+
         private Unit() {
         }
-
-        static Unit INSTANCE = new Unit();
 
         @Override
         public String toString() {

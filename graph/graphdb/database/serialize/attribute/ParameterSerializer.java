@@ -33,14 +33,14 @@ public class ParameterSerializer implements AttributeSerializer<Parameter>, Seri
 
     @Override
     public Parameter read(ScanBuffer buffer) {
-        String key = serializer.readObjectNotNull(buffer,String.class);
+        String key = serializer.readObjectNotNull(buffer, String.class);
         Object value = serializer.readClassAndObject(buffer);
-        return new Parameter(key,value);
+        return new Parameter(key, value);
     }
 
     @Override
     public void write(WriteBuffer buffer, Parameter attribute) {
-        DataOutput out = (DataOutput)buffer;
+        DataOutput out = (DataOutput) buffer;
         out.writeObjectNotNull(attribute.key());
         out.writeClassAndObject(attribute.value());
     }
@@ -49,6 +49,6 @@ public class ParameterSerializer implements AttributeSerializer<Parameter>, Seri
     @Override
     public void setSerializer(Serializer serializer) {
         Preconditions.checkNotNull(serializer);
-        this.serializer=serializer;
+        this.serializer = serializer;
     }
 }

@@ -53,9 +53,8 @@ public class CacheTransaction implements StoreTransaction, LoggableTransaction {
      */
     private final int bufferSize;
     private final Duration maxWriteTime;
-
-    private int numMutations;
     private final Map<KCVSCache, Map<StaticBuffer, KCVEntryMutation>> mutations;
+    private int numMutations;
 
     public CacheTransaction(StoreTransaction tx, KeyColumnValueStoreManager manager, int bufferSize, Duration maxWriteTime, boolean batchLoading) {
         Preconditions.checkArgument(bufferSize > 0, "Buffer size must be positive");

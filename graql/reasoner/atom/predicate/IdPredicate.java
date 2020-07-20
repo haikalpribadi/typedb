@@ -88,7 +88,7 @@ public class IdPredicate extends Predicate<ConceptId> {
 
     @Override
     public Atomic copy(ReasonerQuery parent) {
-        return create( this, parent);
+        return create(this, parent);
     }
 
     @Override

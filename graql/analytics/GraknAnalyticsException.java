@@ -48,12 +48,12 @@ public class GraknAnalyticsException extends GraknException {
         return new GraknAnalyticsException("Statement expected to be unreachable: " + message, cause);
     }
 
+    public static GraknAnalyticsException create(String error) {
+        return new GraknAnalyticsException(error);
+    }
+
     @Override
     public String getName() {
         return this.getClass().getName();
-    }
-
-    public static GraknAnalyticsException create(String error) {
-        return new GraknAnalyticsException(error);
     }
 }

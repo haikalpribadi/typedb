@@ -28,12 +28,12 @@ public class ConfigNamespace extends ConfigElement {
     private final Map<String, ConfigElement> children = Maps.newHashMap();
 
     public ConfigNamespace(ConfigNamespace parent, String name, String description, boolean isUmbrella) {
-        super(parent,name,description);
-        this.isUmbrella=isUmbrella;
+        super(parent, name, description);
+        this.isUmbrella = isUmbrella;
     }
 
     public ConfigNamespace(ConfigNamespace parent, String name, String description) {
-        this(parent,name,description,false);
+        this(parent, name, description, false);
     }
 
     /**
@@ -57,10 +57,10 @@ public class ConfigNamespace extends ConfigElement {
 
     void registerChild(ConfigElement element) {
         Preconditions.checkNotNull(element);
-        Preconditions.checkArgument(element.getNamespace()==this,"Configuration element registered with wrong namespace");
+        Preconditions.checkArgument(element.getNamespace() == this, "Configuration element registered with wrong namespace");
         Preconditions.checkArgument(!children.containsKey(element.getName()),
-                "A configuration element with the same name has already been added to this namespace: %s",element.getName());
-        children.put(element.getName(),element);
+                                    "A configuration element with the same name has already been added to this namespace: %s", element.getName());
+        children.put(element.getName(), element);
     }
 
     public Iterable<ConfigElement> getChildren() {

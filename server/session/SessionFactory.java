@@ -52,11 +52,10 @@ public class SessionFactory {
     protected final JanusGraphFactory janusGraphFactory;
     // Keep visibility to protected as this is used by KGMS
     protected final HadoopGraphFactory hadoopGraphFactory;
-    protected Config config;
     // Keep visibility to protected as this is used by KGMS
     protected final LockManager lockManager;
-
     private final Map<Keyspace, SharedKeyspaceData> sharedKeyspaceDataMap;
+    protected Config config;
 
     public SessionFactory(LockManager lockManager, JanusGraphFactory janusGraphFactory, HadoopGraphFactory hadoopGraphFactory, Config config) {
         this.janusGraphFactory = janusGraphFactory;
@@ -253,7 +252,7 @@ public class SessionFactory {
             return attributeManager;
         }
 
-        public ShardManager shardManager(){ return shardManager;}
+        public ShardManager shardManager() { return shardManager;}
 
         // Keep visibility to public as this is used by KGMS
         public HadoopGraph hadoopGraph() {

@@ -74,7 +74,6 @@ import java.util.stream.StreamSupport;
 /**
  * Builds a JanusGraphQuery, optimizes the query and compiles the result into a GraphCentricQuery which
  * is then executed through a QueryProcessor.
- *
  */
 public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQueryBuilder> {
 
@@ -133,6 +132,131 @@ public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQue
      * ---------------------------------------------------------------
      */
 
+    public static boolean indexCoversOrder(MixedIndexType index, OrderList orders) {
+        for (int i = 0; i < orders.size(); i++) {
+            if (!index.indexesKey(orders.getKey(i))) return false;
+        }
+        return true;
+    }
+
+    private static List<Object[]> indexCover(CompositeIndexType index, Condition<JanusGraphElement> condition, Set<Condition> covered) {
+        if (!QueryUtil.isQueryNormalForm(condition)) {
+            return null;
+        }
+        if (index.getStatus() != SchemaStatus.ENABLED) {
+            return null;
+        }
+        IndexField[] fields = index.getFieldKeys();
+        Object[] indexValues = new Object[fields.length];
+        Set<Condition> coveredClauses = new HashSet<>(fields.length);
+        List<Object[]> indexCovers = new ArrayList<>(4);
+
+        constructIndexCover(indexValues, 0, fields, condition, indexCovers, coveredClauses);
+        if (!indexCovers.isEmpty()) {
+            covered.addAll(coveredClauses);
+            return indexCovers;
+        } else {
+            return null;
+        }
+    }
+
+    private static void constructIndexCover(Object[] indexValues, int position, IndexField[] fields, Condition<JanusGraphElement> condition,
+                                            List<Object[]> indexCovers, Set<Condition> coveredClauses) {
+        if (position >= fields.length) {
+            indexCovers.add(indexValues);
+        } else {
+            IndexField field = fields[position];
+            Map.Entry<Condition, Collection<Object>> equalCon = getEqualityConditionValues(condition, field.getFieldKey());
+            if (equalCon != null) {
+                coveredClauses.add(equalCon.getKey());
+                for (Object value : equalCon.getValue()) {
+                    Object[] newValues = Arrays.copyOf(indexValues, fields.length);
+                    newValues[position] = value;
+                    constructIndexCover(newValues, position + 1, fields, condition, indexCovers, coveredClauses);
+                }
+            }
+        }
+    }
+
+    private static Map.Entry<Condition, Collection<Object>> getEqualityConditionValues(
+            Condition<JanusGraphElement> condition, RelationType type) {
+        for (Condition c : condition.getChildren()) {
+            if (c instanceof Or) {
+                Map.Entry<RelationType, Collection> orEqual = QueryUtil.extractOrCondition((Or) c);
+                if (orEqual != null && orEqual.getKey().equals(type) && !orEqual.getValue().isEmpty()) {
+                    return new AbstractMap.SimpleImmutableEntry(c, orEqual.getValue());
+                }
+            } else if (c instanceof PredicateCondition) {
+                PredicateCondition<RelationType, JanusGraphRelation> atom = (PredicateCondition) c;
+                if (atom.getKey().equals(type) && atom.getPredicate() == Cmp.EQUAL && atom.getValue() != null) {
+                    return new AbstractMap.SimpleImmutableEntry(c, ImmutableList.of(atom.getValue()));
+                }
+            }
+
+        }
+        return null;
+    }
+
+
+    /* ---------------------------------------------------------------
+     * Query Construction
+     * ---------------------------------------------------------------
+     */
+
+    private static Condition<JanusGraphElement> indexCover(MixedIndexType index, Condition<JanusGraphElement> condition, IndexSerializer indexInfo, Set<Condition> covered) {
+        if (!indexInfo.features(index).supportNotQueryNormalForm() && !QueryUtil.isQueryNormalForm(condition)) {
+            return null;
+        }
+        if (condition instanceof Or) {
+            for (Condition<JanusGraphElement> subClause : condition.getChildren()) {
+                if (subClause instanceof And) {
+                    for (Condition<JanusGraphElement> subsubClause : condition.getChildren()) {
+                        if (!coversAll(index, subsubClause, indexInfo)) {
+                            return null;
+                        }
+                    }
+                } else {
+                    if (!coversAll(index, subClause, indexInfo)) {
+                        return null;
+                    }
+                }
+            }
+            covered.add(condition);
+            return condition;
+        }
+        And<JanusGraphElement> subCondition = new And<>(condition.numChildren());
+        for (Condition<JanusGraphElement> subClause : condition.getChildren()) {
+            if (coversAll(index, subClause, indexInfo)) {
+                subCondition.add(subClause);
+                covered.add(subClause);
+            }
+        }
+        return subCondition.isEmpty() ? null : subCondition;
+    }
+
+    private static boolean coversAll(MixedIndexType index, Condition<JanusGraphElement> condition, IndexSerializer indexInfo) {
+        if (condition.getType() != Condition.Type.LITERAL) {
+            return StreamSupport.stream(condition.getChildren().spliterator(), false)
+                    .allMatch(child -> coversAll(index, child, indexInfo));
+        }
+        if (!(condition instanceof PredicateCondition)) {
+            return false;
+        }
+        PredicateCondition<RelationType, JanusGraphElement> atom = (PredicateCondition) condition;
+        if (atom.getValue() == null) {
+            return false;
+        }
+
+        Preconditions.checkArgument(atom.getKey().isPropertyKey());
+        PropertyKey key = (PropertyKey) atom.getKey();
+        ParameterIndexField[] fields = index.getFieldKeys();
+        ParameterIndexField match = Arrays.stream(fields)
+                .filter(field -> field.getStatus() == SchemaStatus.ENABLED)
+                .filter(field -> field.getFieldKey().equals(key))
+                .findAny().orElse(null);
+        return match != null && indexInfo.supports(index, match, atom.getPredicate());
+    }
+
     @Override
     public Iterable<JanusGraphVertex> vertices() {
         return iterables(constructQuery(ElementCategory.VERTEX), JanusGraphVertex.class);
@@ -151,12 +275,6 @@ public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQue
     public <E extends JanusGraphElement> Iterable<E> iterables(GraphCentricQuery query, Class<E> aClass) {
         return Iterables.filter(new QueryProcessor<>(query, tx.elementProcessor), aClass);
     }
-
-
-    /* ---------------------------------------------------------------
-     * Query Construction
-     * ---------------------------------------------------------------
-     */
 
     public List<PredicateCondition<String, JanusGraphElement>> getConstraints() {
         return constraints;
@@ -225,9 +343,9 @@ public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQue
         PropertyKey key = tx.getPropertyKey(keyName);
         Preconditions.checkArgument(key != null && order != null, "Need to specify and key and an order");
         Preconditions.checkArgument(Comparable.class.isAssignableFrom(key.dataType()),
-                "Can only order on keys with comparable data type. [%s] has datatype [%s]", key.name(), key.dataType());
+                                    "Can only order on keys with comparable data type. [%s] has datatype [%s]", key.name(), key.dataType());
         Preconditions.checkArgument(key.cardinality() == Cardinality.SINGLE,
-                "Ordering is undefined on multi-valued key [%s]", key.name());
+                                    "Ordering is undefined on multi-valued key [%s]", key.name());
         Preconditions.checkArgument(!orders.containsKey(key));
         orders.add(key, Order.convert(order));
         return this;
@@ -280,7 +398,7 @@ public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQue
                 RelationType type = ((PredicateCondition<RelationType, JanusGraphElement>) condition).getKey();
                 Preconditions.checkArgument(type != null && type.isPropertyKey());
                 Iterables.addAll(indexCandidates, Iterables.filter(((InternalRelationType) type).getKeyIndexes(),
-                        indexType -> indexType.getElement() == resultType && !(conditions instanceof Or && (indexType.isCompositeIndex() || !serializer.features((MixedIndexType) indexType).supportNotQueryNormalForm()))));
+                                                                   indexType -> indexType.getElement() == resultType && !(conditions instanceof Or && (indexType.isCompositeIndex() || !serializer.features((MixedIndexType) indexType).supportNotQueryNormalForm()))));
             }
             return true;
         });
@@ -385,125 +503,6 @@ public class GraphCentricQueryBuilder implements JanusGraphQuery<GraphCentricQue
             query = new BackendQueryHolder<>(new JointIndexQuery(), false, isSorted);
         }
         return new GraphCentricQuery(resultType, conditions, orders, query, limit);
-    }
-
-    public static boolean indexCoversOrder(MixedIndexType index, OrderList orders) {
-        for (int i = 0; i < orders.size(); i++) {
-            if (!index.indexesKey(orders.getKey(i))) return false;
-        }
-        return true;
-    }
-
-    private static List<Object[]> indexCover(CompositeIndexType index, Condition<JanusGraphElement> condition, Set<Condition> covered) {
-        if (!QueryUtil.isQueryNormalForm(condition)) {
-            return null;
-        }
-        if (index.getStatus() != SchemaStatus.ENABLED) {
-            return null;
-        }
-        IndexField[] fields = index.getFieldKeys();
-        Object[] indexValues = new Object[fields.length];
-        Set<Condition> coveredClauses = new HashSet<>(fields.length);
-        List<Object[]> indexCovers = new ArrayList<>(4);
-
-        constructIndexCover(indexValues, 0, fields, condition, indexCovers, coveredClauses);
-        if (!indexCovers.isEmpty()) {
-            covered.addAll(coveredClauses);
-            return indexCovers;
-        } else {
-            return null;
-        }
-    }
-
-    private static void constructIndexCover(Object[] indexValues, int position, IndexField[] fields, Condition<JanusGraphElement> condition,
-                                            List<Object[]> indexCovers, Set<Condition> coveredClauses) {
-        if (position >= fields.length) {
-            indexCovers.add(indexValues);
-        } else {
-            IndexField field = fields[position];
-            Map.Entry<Condition, Collection<Object>> equalCon = getEqualityConditionValues(condition, field.getFieldKey());
-            if (equalCon != null) {
-                coveredClauses.add(equalCon.getKey());
-                for (Object value : equalCon.getValue()) {
-                    Object[] newValues = Arrays.copyOf(indexValues, fields.length);
-                    newValues[position] = value;
-                    constructIndexCover(newValues, position + 1, fields, condition, indexCovers, coveredClauses);
-                }
-            }
-        }
-    }
-
-    private static Map.Entry<Condition, Collection<Object>> getEqualityConditionValues(
-            Condition<JanusGraphElement> condition, RelationType type) {
-        for (Condition c : condition.getChildren()) {
-            if (c instanceof Or) {
-                Map.Entry<RelationType, Collection> orEqual = QueryUtil.extractOrCondition((Or) c);
-                if (orEqual != null && orEqual.getKey().equals(type) && !orEqual.getValue().isEmpty()) {
-                    return new AbstractMap.SimpleImmutableEntry(c, orEqual.getValue());
-                }
-            } else if (c instanceof PredicateCondition) {
-                PredicateCondition<RelationType, JanusGraphRelation> atom = (PredicateCondition) c;
-                if (atom.getKey().equals(type) && atom.getPredicate() == Cmp.EQUAL && atom.getValue() != null) {
-                    return new AbstractMap.SimpleImmutableEntry(c, ImmutableList.of(atom.getValue()));
-                }
-            }
-
-        }
-        return null;
-    }
-
-    private static Condition<JanusGraphElement> indexCover(MixedIndexType index, Condition<JanusGraphElement> condition, IndexSerializer indexInfo, Set<Condition> covered) {
-        if (!indexInfo.features(index).supportNotQueryNormalForm() && !QueryUtil.isQueryNormalForm(condition)) {
-            return null;
-        }
-        if (condition instanceof Or) {
-            for (Condition<JanusGraphElement> subClause : condition.getChildren()) {
-                if (subClause instanceof And) {
-                    for (Condition<JanusGraphElement> subsubClause : condition.getChildren()) {
-                        if (!coversAll(index, subsubClause, indexInfo)) {
-                            return null;
-                        }
-                    }
-                } else {
-                    if (!coversAll(index, subClause, indexInfo)) {
-                        return null;
-                    }
-                }
-            }
-            covered.add(condition);
-            return condition;
-        }
-        And<JanusGraphElement> subCondition = new And<>(condition.numChildren());
-        for (Condition<JanusGraphElement> subClause : condition.getChildren()) {
-            if (coversAll(index, subClause, indexInfo)) {
-                subCondition.add(subClause);
-                covered.add(subClause);
-            }
-        }
-        return subCondition.isEmpty() ? null : subCondition;
-    }
-
-    private static boolean coversAll(MixedIndexType index, Condition<JanusGraphElement> condition, IndexSerializer indexInfo) {
-        if (condition.getType() != Condition.Type.LITERAL) {
-            return StreamSupport.stream(condition.getChildren().spliterator(), false)
-                    .allMatch(child -> coversAll(index, child, indexInfo));
-        }
-        if (!(condition instanceof PredicateCondition)) {
-            return false;
-        }
-        PredicateCondition<RelationType, JanusGraphElement> atom = (PredicateCondition) condition;
-        if (atom.getValue() == null) {
-            return false;
-        }
-
-        Preconditions.checkArgument(atom.getKey().isPropertyKey());
-        PropertyKey key = (PropertyKey) atom.getKey();
-        ParameterIndexField[] fields = index.getFieldKeys();
-        ParameterIndexField match = Arrays.stream(fields)
-                .filter(field -> field.getStatus() == SchemaStatus.ENABLED)
-                .filter(field -> field.getFieldKey().equals(key))
-                .findAny().orElse(null);
-        return match != null && indexInfo.supports(index, match, atom.getPredicate());
     }
 
 

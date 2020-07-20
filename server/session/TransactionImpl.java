@@ -105,33 +105,28 @@ import java.util.stream.Stream;
  */
 public class TransactionImpl implements Transaction {
     private final static Logger LOG = LoggerFactory.getLogger(TransactionImpl.class);
-    private final long typeShardThreshold;
-
     // Shared Variables
     protected final Session session;
     protected final ConceptManager conceptManager;
     protected final ExecutorFactory executorFactory;
-
     // Caches
     protected final MultilevelSemanticCache queryCache;
     protected final RuleCache ruleCache;
     protected final ExplanationCache explanationCache;
     protected final TransactionCache transactionCache;
-
+    protected final StatisticsDeltaImpl uncomittedStatisticsDelta;
+    protected final JanusTraversalSourceProvider janusTraversalSourceProvider;
+    protected final ReasonerQueryFactory reasonerQueryFactory;
+    private final long typeShardThreshold;
     // TransactionOLTP Specific
     private final JanusGraphTransaction janusTransaction;
-    protected final StatisticsDeltaImpl uncomittedStatisticsDelta;
-    private Type txType;
-    private String closedReason = null;
-    private boolean isTxOpen;
-
     // Thread-local boolean which is set to true in the constructor. Used to check if current Tx is created in current Thread because
     // reaching across threads in a single threaded janus transaction leads to errors
     private final ThreadLocal<Boolean> createdInCurrentThread = ThreadLocal.withInitial(() -> Boolean.FALSE);
-
-    protected final JanusTraversalSourceProvider janusTraversalSourceProvider;
-    protected final ReasonerQueryFactory reasonerQueryFactory;
     private final ReadWriteLock graphLock;
+    private Type txType;
+    private String closedReason = null;
+    private boolean isTxOpen;
 
     public TransactionImpl(Session session, JanusGraphTransaction janusTransaction, ConceptManager conceptManager,
                            JanusTraversalSourceProvider janusTraversalSourceProvider, TransactionCache transactionCache,
@@ -199,10 +194,10 @@ public class TransactionImpl implements Transaction {
                 || keyLockRequired;
         if (lockRequired) {
             LOG.debug(txId + " needs lock: " +
-                    (attributeLockRequired ? "attribute" : "") +
-                    (shardLockRequired ? "shard" : "") +
-                    (keyLockRequired ? "key" : "") +
-                    (!transactionCache.getRemovedAttributes().isEmpty() ? "delete" : ""));
+                              (attributeLockRequired ? "attribute" : "") +
+                              (shardLockRequired ? "shard" : "") +
+                              (keyLockRequired ? "key" : "") +
+                              (!transactionCache.getRemovedAttributes().isEmpty() ? "delete" : ""));
         }
         return lockRequired;
     }
@@ -364,58 +359,16 @@ public class TransactionImpl implements Transaction {
         return session.keyspace();
     }
 
-
-    // Define Query
-
-    @Override
-    public List<ConceptMap> execute(GraqlDefine query) {
-        return stream(query).collect(Collectors.toList());
-    }
-
     @Override
     public Stream<ConceptMap> stream(GraqlDefine query) {
         checkMutationAllowed();
         return executorFactory.transactional(false).define(query);
     }
 
-    // Undefine Query
-
-    @Override
-    public List<ConceptMap> execute(GraqlUndefine query) {
-        return stream(query).collect(Collectors.toList());
-    }
-
     @Override
     public Stream<ConceptMap> stream(GraqlUndefine query) {
         checkMutationAllowed();
         return executorFactory.transactional(false).undefine(query);
-    }
-
-    // Insert query
-
-    @Override
-    public List<ConceptMap> execute(GraqlInsert query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<ConceptMap> execute(GraqlInsert query, boolean infer) {
-        return stream(query, infer, false).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ConceptMap> execute(GraqlInsert query, boolean infer, boolean explain) {
-        return stream(query, infer, explain).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<ConceptMap> stream(GraqlInsert query) {
-        return stream(query, true);
-    }
-
-    @Override
-    public Stream<ConceptMap> stream(GraqlInsert query, boolean infer) {
-        return stream(query, infer, false);
     }
 
     @Override
@@ -489,54 +442,10 @@ public class TransactionImpl implements Transaction {
         }
     }
 
-    // Delete query
-
-    @Override
-    public List<Void> execute(GraqlDelete query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<Void> execute(GraqlDelete query, boolean infer) {
-        return stream(query, infer).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<Void> stream(GraqlDelete query) {
-        return stream(query, true);
-    }
-
     @Override
     public Stream<Void> stream(GraqlDelete query, boolean infer) {
         checkMutationAllowed();
         return Stream.of(executor(infer).delete(query));
-    }
-
-    // Get Query
-
-    @Override
-    public List<ConceptMap> execute(GraqlGet query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<ConceptMap> execute(GraqlGet query, boolean infer) {
-        return stream(query, infer).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ConceptMap> execute(GraqlGet query, boolean infer, boolean explain) {
-        return stream(query, infer, explain).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<ConceptMap> stream(GraqlGet query) {
-        return stream(query, true);
-    }
-
-    @Override
-    public Stream<ConceptMap> stream(GraqlGet query, boolean infer) {
-        return stream(query, infer, false);
     }
 
     @Override
@@ -544,43 +453,9 @@ public class TransactionImpl implements Transaction {
         return executor(infer).get(query, explain);
     }
 
-    // Aggregate Query
-
-    @Override
-    public List<Numeric> execute(GraqlGet.Aggregate query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<Numeric> execute(GraqlGet.Aggregate query, boolean infer) {
-        return stream(query, infer).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<Numeric> stream(GraqlGet.Aggregate query) {
-        return stream(query, true);
-    }
-
     @Override
     public Stream<Numeric> stream(GraqlGet.Aggregate query, boolean infer) {
         return executor(infer).aggregate(query);
-    }
-
-    // Group Query
-
-    @Override
-    public List<AnswerGroup<ConceptMap>> execute(GraqlGet.Group query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<AnswerGroup<ConceptMap>> execute(GraqlGet.Group query, boolean infer) {
-        return stream(query, infer).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<AnswerGroup<ConceptMap>> stream(GraqlGet.Group query) {
-        return stream(query, true);
     }
 
     @Override
@@ -588,33 +463,9 @@ public class TransactionImpl implements Transaction {
         return executor(infer).get(query);
     }
 
-    // Group Aggregate Query
-
-    @Override
-    public List<AnswerGroup<Numeric>> execute(GraqlGet.Group.Aggregate query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<AnswerGroup<Numeric>> execute(GraqlGet.Group.Aggregate query, boolean infer) {
-        return stream(query, infer).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<AnswerGroup<Numeric>> stream(GraqlGet.Group.Aggregate query) {
-        return stream(query, true);
-    }
-
     @Override
     public Stream<AnswerGroup<Numeric>> stream(GraqlGet.Group.Aggregate query, boolean infer) {
         return executor(infer).get(query);
-    }
-
-    // Compute Query
-
-    @Override
-    public List<Numeric> execute(GraqlCompute.Statistics query) {
-        return stream(query).collect(Collectors.toList());
     }
 
     @Override
@@ -624,19 +475,9 @@ public class TransactionImpl implements Transaction {
     }
 
     @Override
-    public List<ConceptList> execute(GraqlCompute.Path query) {
-        return stream(query).collect(Collectors.toList());
-    }
-
-    @Override
     public Stream<ConceptList> stream(GraqlCompute.Path query) {
         if (query.getException().isPresent()) throw query.getException().get();
         return executorFactory.compute().stream(query);
-    }
-
-    @Override
-    public List<ConceptSetMeasure> execute(GraqlCompute.Centrality query) {
-        return stream(query).collect(Collectors.toList());
     }
 
     @Override
@@ -646,42 +487,12 @@ public class TransactionImpl implements Transaction {
     }
 
     @Override
-    public List<ConceptSet> execute(GraqlCompute.Cluster query) {
-        return stream(query).collect(Collectors.toList());
-    }
-
-    @Override
     public Stream<ConceptSet> stream(GraqlCompute.Cluster query) {
         if (query.getException().isPresent()) throw query.getException().get();
         return executorFactory.compute().stream(query);
     }
 
     // Generic queries
-
-    @Override
-    public List<? extends Answer> execute(GraqlQuery query) {
-        return execute(query, true);
-    }
-
-    @Override
-    public List<? extends Answer> execute(GraqlQuery query, boolean infer) {
-        return execute(query, infer, false);
-    }
-
-    @Override
-    public List<? extends Answer> execute(GraqlQuery query, boolean infer, boolean explain) {
-        return stream(query, infer, explain).collect(Collectors.toList());
-    }
-
-    @Override
-    public Stream<? extends Answer> stream(GraqlQuery query) {
-        return stream(query, true);
-    }
-
-    @Override
-    public Stream<? extends Answer> stream(GraqlQuery query, boolean infer) {
-        return stream(query, infer, false);
-    }
 
     @Override
     public Stream<? extends Answer> stream(GraqlQuery query, boolean infer, boolean explain) {

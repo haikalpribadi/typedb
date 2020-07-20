@@ -38,7 +38,6 @@ import static grakn.core.graql.analytics.Utility.reduceSet;
  * It returns a map, the key being the cluster id, the value being a vertex id set containing all the vertices
  * in the given cluster
  * <p>
- *
  */
 
 public class ClusterMemberMapReduce extends GraknMapReduce<Set<ConceptId>> {

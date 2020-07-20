@@ -28,15 +28,15 @@ import graql.lang.statement.Variable;
 
 import java.util.stream.Stream;
 
-public class IsaMaterialiser implements AtomMaterialiser<IsaAtom>{
+public class IsaMaterialiser implements AtomMaterialiser<IsaAtom> {
 
     @Override
-    public Stream<ConceptMap> materialise(IsaAtom atom, ReasoningContext ctx){
+    public Stream<ConceptMap> materialise(IsaAtom atom, ReasoningContext ctx) {
         ConceptMap substitution = atom.getParentQuery().getSubstitution();
         EntityType entityType = atom.getSchemaConcept().asEntityType();
 
         Variable varName = atom.getVarName();
-        Concept foundConcept = substitution.containsVar(varName)? substitution.get(varName) : null;
+        Concept foundConcept = substitution.containsVar(varName) ? substitution.get(varName) : null;
         if (foundConcept != null) return Stream.of(substitution);
 
         Concept concept = entityType.addEntityInferred();

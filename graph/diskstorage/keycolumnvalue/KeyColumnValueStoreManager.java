@@ -28,7 +28,6 @@ import java.util.Map;
  * <p>
  * A KeyColumnValueStoreManager provides transaction handles across multiple data stores that
  * are managed by this KeyColumnValueStoreManager.
- *
  */
 public interface KeyColumnValueStoreManager extends StoreManager {
 
@@ -38,7 +37,6 @@ public interface KeyColumnValueStoreManager extends StoreManager {
      *
      * @param name Name of database
      * @return Database Handle
-     *
      */
     default KeyColumnValueStore openDatabase(String name) throws BackendException {
         return openDatabase(name, StoreMetaData.EMPTY);
@@ -48,10 +46,9 @@ public interface KeyColumnValueStoreManager extends StoreManager {
      * Opens an ordered database by the given name. If the database does not exist, it is
      * created. If it has already been opened, the existing handle is returned.
      *
-     * @param name Name of database
+     * @param name     Name of database
      * @param metaData options specific to this store
      * @return Database Handle
-     *
      */
     KeyColumnValueStore openDatabase(String name, StoreMetaData.Container metaData) throws BackendException;
 

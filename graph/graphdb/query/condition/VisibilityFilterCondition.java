@@ -28,11 +28,8 @@ import java.util.Objects;
 
 /**
  * Evaluates elements based on their visibility
- *
  */
 public class VisibilityFilterCondition<E extends JanusGraphElement> extends Literal<E> {
-
-    public enum Visibility { NORMAL, SYSTEM }
 
     private final Visibility visibility;
 
@@ -42,12 +39,15 @@ public class VisibilityFilterCondition<E extends JanusGraphElement> extends Lite
 
     @Override
     public boolean evaluate(E element) {
-        switch(visibility) {
-            case NORMAL: return !((InternalElement)element).isInvisible();
-            case SYSTEM: return (element instanceof JanusGraphRelation &&
-                                    ((JanusGraphRelation)element).getType() instanceof SystemRelationType)
-                    || (element instanceof JanusGraphVertex && element instanceof JanusGraphSchemaElement);
-            default: throw new AssertionError("Unrecognized visibility: " + visibility);
+        switch (visibility) {
+            case NORMAL:
+                return !((InternalElement) element).isInvisible();
+            case SYSTEM:
+                return (element instanceof JanusGraphRelation &&
+                        ((JanusGraphRelation) element).getType() instanceof SystemRelationType)
+                        || (element instanceof JanusGraphVertex && element instanceof JanusGraphSchemaElement);
+            default:
+                throw new AssertionError("Unrecognized visibility: " + visibility);
         }
     }
 
@@ -64,6 +64,8 @@ public class VisibilityFilterCondition<E extends JanusGraphElement> extends Lite
 
     @Override
     public String toString() {
-        return "visibility:"+visibility.toString().toLowerCase();
+        return "visibility:" + visibility.toString().toLowerCase();
     }
+
+    public enum Visibility {NORMAL, SYSTEM}
 }

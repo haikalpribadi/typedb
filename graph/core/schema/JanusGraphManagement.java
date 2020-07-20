@@ -133,6 +133,59 @@ public interface JanusGraphManagement extends SchemaManager {
     void addIndexKey(JanusGraphIndex index, PropertyKey key, Parameter... parameters);
 
     /**
+     * Retrieves the consistency modifier for the given JanusGraphSchemaElement. If none has been explicitly
+     * defined, ConsistencyModifier#DEFAULT is returned.
+     */
+    ConsistencyModifier getConsistency(JanusGraphSchemaElement element);
+
+    /*
+    ##################### CONSISTENCY SETTING ##########################
+     */
+
+    /**
+     * Retrieves the time-to-live for the given JanusGraphSchemaType as a Duration.
+     * If no TTL has been defined, the returned Duration will be zero-length ("lives forever").
+     */
+    Duration getTTL(JanusGraphSchemaType type);
+
+    /**
+     * Returns an iterable over all defined types that have the given clazz (either EdgeLabel which returns all labels,
+     * PropertyKey which returns all keys, or RelationType which returns all types).
+     *
+     * @param clazz RelationType or sub-interface
+     * @return Iterable over all types for the given category (label, key, or both)
+     */
+    <T extends RelationType> Iterable<T> getRelationTypes(Class<T> clazz);
+
+    /*
+    ##################### CLUSTER MANAGEMENT ##########################
+     */
+
+    /**
+     * Returns an Iterable over all defined VertexLabels.
+     */
+    Iterable<VertexLabel> getVertexLabels();
+
+    /**
+     * Whether this management transaction is open or has been closed (i.e. committed or rolled-back)
+     */
+    boolean isOpen();
+
+    /**
+     * Commits this management transaction and persists all schema changes. Closes this transaction.
+     *
+     * see JanusGraphTransaction#commit()
+     */
+    void commit();
+
+    /**
+     * Closes this management transaction and discards all changes.
+     *
+     * see JanusGraphTransaction#rollback()
+     */
+    void rollback();
+
+    /**
      * Builder for JanusGraphIndex. Allows for the configuration of a graph index prior to its construction.
      */
     interface IndexBuilder {
@@ -185,58 +238,5 @@ public interface JanusGraphManagement extends SchemaManager {
         JanusGraphIndex buildMixedIndex(String backingIndex);
 
     }
-
-    /*
-    ##################### CONSISTENCY SETTING ##########################
-     */
-
-    /**
-     * Retrieves the consistency modifier for the given JanusGraphSchemaElement. If none has been explicitly
-     * defined, ConsistencyModifier#DEFAULT is returned.
-     */
-    ConsistencyModifier getConsistency(JanusGraphSchemaElement element);
-
-    /**
-     * Retrieves the time-to-live for the given JanusGraphSchemaType as a Duration.
-     * If no TTL has been defined, the returned Duration will be zero-length ("lives forever").
-     */
-    Duration getTTL(JanusGraphSchemaType type);
-
-    /*
-    ##################### CLUSTER MANAGEMENT ##########################
-     */
-
-    /**
-     * Returns an iterable over all defined types that have the given clazz (either EdgeLabel which returns all labels,
-     * PropertyKey which returns all keys, or RelationType which returns all types).
-     *
-     * @param clazz RelationType or sub-interface
-     * @return Iterable over all types for the given category (label, key, or both)
-     */
-    <T extends RelationType> Iterable<T> getRelationTypes(Class<T> clazz);
-
-    /**
-     * Returns an Iterable over all defined VertexLabels.
-     */
-    Iterable<VertexLabel> getVertexLabels();
-
-    /**
-     * Whether this management transaction is open or has been closed (i.e. committed or rolled-back)
-     */
-    boolean isOpen();
-
-    /**
-     * Commits this management transaction and persists all schema changes. Closes this transaction.
-     *
-     * see JanusGraphTransaction#commit()
-     */
-    void commit();
-
-    /**
-     * Closes this management transaction and discards all changes.
-     *
-     * see JanusGraphTransaction#rollback()
-     */
-    void rollback();
 
 }

@@ -54,12 +54,9 @@ import java.util.Set;
 import static java.util.stream.Collectors.toSet;
 
 /**
- *
  * <p>
  * Class providing resolution and higher level facilities for Rule objects.
  * </p>
- *
- *
  */
 public class InferenceRule {
 
@@ -72,7 +69,7 @@ public class InferenceRule {
     private Atom conclusionAtom = null;
     private Boolean requiresMaterialisation = null;
 
-    public InferenceRule(Rule rule, ReasonerQueryFactory reasonerQueryFactory){
+    public InferenceRule(Rule rule, ReasonerQueryFactory reasonerQueryFactory) {
         this.rule = rule;
         this.reasonerQueryFactory = reasonerQueryFactory;
         //TODO simplify once changes propagated to rule objects
@@ -80,7 +77,7 @@ public class InferenceRule {
         this.head = reasonerQueryFactory.atomic(conjunction(rule.then()));
     }
 
-    private InferenceRule(ReasonerAtomicQuery head, ResolvableQuery body, Rule rule, ReasonerQueryFactory reasonerQueryFactory){
+    private InferenceRule(ReasonerAtomicQuery head, ResolvableQuery body, Rule rule, ReasonerQueryFactory reasonerQueryFactory) {
         this.rule = rule;
         this.head = head;
         this.body = body;
@@ -88,8 +85,8 @@ public class InferenceRule {
     }
 
     @Override
-    public String toString(){
-        return  "\n" + this.body.toString() + "->\n" + this.head.toString() + "]\n";
+    public String toString() {
+        return "\n" + this.body.toString() + "->\n" + this.head.toString() + "]\n";
     }
 
     @Override
@@ -111,7 +108,7 @@ public class InferenceRule {
     /**
      * @return the priority with which the rule should be fired
      */
-    long resolutionPriority(){
+    long resolutionPriority() {
         if (priority == Long.MAX_VALUE) {
             //NB: this has to be relatively lightweight as it is called on each rule
             //TODO come with a more useful metric
@@ -120,33 +117,33 @@ public class InferenceRule {
                     .filter(Objects::nonNull)
                     .map(Concept::asType)
                     .anyMatch(t -> t.thenRules().findFirst().isPresent());
-            priority = bodyRuleResolvable? -1 : 0;
+            priority = bodyRuleResolvable ? -1 : 0;
             //resolve base types first
             priority -= getHead().getAtom().getSchemaConcept().sups().count();
         }
         return priority;
     }
 
-    private Conjunction<Statement> conjunction(Pattern pattern){
+    private Conjunction<Statement> conjunction(Pattern pattern) {
         Set<Statement> vars = pattern
                 .getDisjunctiveNormalForm().getPatterns()
                 .stream().flatMap(p -> p.getPatterns().stream()).collect(toSet());
         return Graql.and(vars);
     }
 
-    public Rule getRule(){ return rule;}
+    public Rule getRule() { return rule;}
 
     /**
      * @return true if the rule has disconnected head, i.e. head and body do not share any variables
      */
-    private boolean hasDisconnectedHead(){
+    private boolean hasDisconnectedHead() {
         return Sets.intersection(body.getVarNames(), head.getVarNames()).isEmpty();
     }
 
     /**
      * @return true if head satisfies the pattern specified in the body of the rule
      */
-    boolean headSatisfiesBody(){
+    boolean headSatisfiesBody() {
         if (!getBody().isAtomic()) return false;
         Set<Atomic> atoms = new HashSet<>(getHead().getAtoms());
         Set<Variable> headVars = getHead().getVarNames();
@@ -156,14 +153,14 @@ public class InferenceRule {
                 .forEach(atoms::add);
         return reasonerQueryFactory.create(atoms).isEquivalent(getBody());
     }
-    
+
     /**
      * rule requires materialisation in the context of resolving parent atom
      * if parent atom requires materialisation, head atom requires materialisation or if the head contains only fresh variables
      *
      * @return true if the rule needs to be materialised
      */
-    public boolean requiresMaterialisation(Atom parentAtom){
+    public boolean requiresMaterialisation(Atom parentAtom) {
         if (requiresMaterialisation == null) {
             requiresMaterialisation = parentAtom.requiresMaterialisation()
                     || getHead().getAtom().requiresMaterialisation()
@@ -175,21 +172,21 @@ public class InferenceRule {
     /**
      * @return body of the rule of the form head :- body
      */
-    public ResolvableQuery getBody(){ return body;}
+    public ResolvableQuery getBody() { return body;}
 
     /**
      * @return head of the rule of the form head :- body
      */
-    public ReasonerAtomicQuery getHead(){ return head;}
+    public ReasonerAtomicQuery getHead() { return head;}
 
     /**
      * @return reasoner query formed of combining head and body queries
      */
-    private ReasonerQueryImpl getCombinedQuery(){
+    private ReasonerQueryImpl getCombinedQuery() {
         Set<Atomic> allAtoms = new HashSet<>(body.getAtoms());
         //NB: if rule acts as a sub, do not include type overlap
         boolean subHead = head.getAtom().isCompatibleWithTypeAtom();
-        if (subHead){
+        if (subHead) {
             body.getAtoms().stream()
                     .filter(Atomic::isCompatibleWithTypeAtom)
                     .filter(at -> at.getVarName().equals(head.getAtom().getVarName()))
@@ -213,10 +210,10 @@ public class InferenceRule {
 
     /**
      * @param parentAtom atom containing constraints (parent)
-     * @param unifier unifier unifying parent with the rule
+     * @param unifier    unifier unifying parent with the rule
      * @return rule with propagated constraints from parent
      */
-    private InferenceRule propagateConstraints(Atom parentAtom, Unifier unifier){
+    private InferenceRule propagateConstraints(Atom parentAtom, Unifier unifier) {
         if (!parentAtom.isRelationAtom() && !parentAtom.isAttributeAtom()) return this;
         Atom headAtom = head.getAtom();
 
@@ -247,11 +244,11 @@ public class InferenceRule {
                 // TODO revert this to old implementation of instantiating without copy constructor
                 // or do it properly with a factory
                 headAtom = AttributeAtom.create(resourceHead.getPattern(), resourceHead.getAttributeVariable(),
-                        resourceHead.getPredicateVariable(),
-                        resourceHead.getTypeLabel(),
-                        innerVps,
-                        resourceHead.getParentQuery(),
-                        resourceHead.context());
+                                                resourceHead.getPredicateVariable(),
+                                                resourceHead.getTypeLabel(),
+                                                innerVps,
+                                                resourceHead.getParentQuery(),
+                                                resourceHead.context());
                 //headAtom = resourceHead.copy(innerVps);
             }
         }
@@ -289,7 +286,7 @@ public class InferenceRule {
     /**
      * @return true if the application of the rule results in type redefinition
      */
-    public boolean redefinesType(){
+    public boolean redefinesType() {
         Variable instanceVariable = getHead().getAtom().getVarName();
         return getBody().getVarNames().contains(instanceVariable);
     }
@@ -297,7 +294,7 @@ public class InferenceRule {
     /**
      * @return true if the application of the rule results in addition of roleplayers to existing relations
      */
-    public boolean appendsRolePlayers(){
+    public boolean appendsRolePlayers() {
         Atom headAtom = getHead().getAtom();
         SchemaConcept headType = headAtom.getSchemaConcept();
         if (headType.isRelationType()
@@ -312,7 +309,7 @@ public class InferenceRule {
         return false;
     }
 
-    private InferenceRule rewriteVariables(Atom parentAtom){
+    private InferenceRule rewriteVariables(Atom parentAtom) {
         if (parentAtom.isUserDefined() || parentAtom.requiresRoleExpansion()) {
             //NB we don't have to rewrite complements as we don't allow recursion atm
             return new InferenceRule(
@@ -325,7 +322,7 @@ public class InferenceRule {
         return this;
     }
 
-    private InferenceRule rewriteBodyAtoms(){
+    private InferenceRule rewriteBodyAtoms() {
         if (getBody().requiresDecomposition()) {
             return new InferenceRule(getHead(), getBody().rewrite(), rule, reasonerQueryFactory);
         }
@@ -334,10 +331,11 @@ public class InferenceRule {
 
     /**
      * rewrite the rule to a form with user defined variables
+     *
      * @param parentAtom reference parent atom
      * @return rewritten rule
      */
-    public InferenceRule rewrite(Atom parentAtom){
+    public InferenceRule rewrite(Atom parentAtom) {
         return this
                 .rewriteBodyAtoms()
                 .rewriteVariables(parentAtom);
@@ -349,11 +347,11 @@ public class InferenceRule {
      */
     public MultiUnifier getMultiUnifier(Atom parentAtom) {
         Atom childAtom = getRuleConclusionAtom();
-        if (parentAtom.getSchemaConcept() != null){
+        if (parentAtom.getSchemaConcept() != null) {
             return childAtom.getMultiUnifier(parentAtom, UnifierType.RULE);
         }
         //case of match all atom (atom without type)
-        else{
+        else {
             Atom extendedParent = parentAtom
                     .addType(childAtom.getSchemaConcept())
                     .inferTypes();
@@ -362,13 +360,13 @@ public class InferenceRule {
     }
 
     /**
-     * @param parentAtom atom to which this rule is applied
-     * @param ruleUnifier unifier with parent state
-     * @param parent parent state
+     * @param parentAtom      atom to which this rule is applied
+     * @param ruleUnifier     unifier with parent state
+     * @param parent          parent state
      * @param visitedSubGoals set of visited sub goals
      * @return resolution resolutionState formed from this rule
      */
-    public ResolutionState subGoal(Atom parentAtom, Unifier ruleUnifier, AnswerPropagatorState parent, Set<ReasonerAtomicQuery> visitedSubGoals){
+    public ResolutionState subGoal(Atom parentAtom, Unifier ruleUnifier, AnswerPropagatorState parent, Set<ReasonerAtomicQuery> visitedSubGoals) {
         Unifier ruleUnifierInverse = ruleUnifier.inverse();
 
         //delta' = theta . thetaP . delta

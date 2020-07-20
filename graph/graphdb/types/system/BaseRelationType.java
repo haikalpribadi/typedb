@@ -35,6 +35,19 @@ public abstract class BaseRelationType extends EmptyRelationType implements Syst
         this.id = getSystemTypeId(id, type);
     }
 
+    static long getSystemTypeId(long id, JanusGraphSchemaCategory type) {
+        Preconditions.checkArgument(id > 0);
+        Preconditions.checkArgument(type.isRelationType());
+        switch (type) {
+            case EDGELABEL:
+                return IDManager.getSchemaId(IDManager.VertexIDType.SystemEdgeLabel, id);
+            case PROPERTYKEY:
+                return IDManager.getSchemaId(IDManager.VertexIDType.SystemPropertyKey, id);
+            default:
+                throw new AssertionError("Illegal argument: " + type);
+        }
+    }
+
     @Override
     public String name() {
         return name;
@@ -63,20 +76,6 @@ public abstract class BaseRelationType extends EmptyRelationType implements Syst
     @Override
     public boolean isInvisibleType() {
         return true;
-    }
-
-
-    static long getSystemTypeId(long id, JanusGraphSchemaCategory type) {
-        Preconditions.checkArgument(id > 0);
-        Preconditions.checkArgument(type.isRelationType());
-        switch (type) {
-            case EDGELABEL:
-                return IDManager.getSchemaId(IDManager.VertexIDType.SystemEdgeLabel, id);
-            case PROPERTYKEY:
-                return IDManager.getSchemaId(IDManager.VertexIDType.SystemPropertyKey, id);
-            default:
-                throw new AssertionError("Illegal argument: " + type);
-        }
     }
 
 }

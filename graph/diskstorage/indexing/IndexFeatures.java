@@ -47,7 +47,7 @@ public class IndexFeatures {
 
         Preconditions.checkArgument(defaultMap != null && defaultMap != Mapping.DEFAULT);
         Preconditions.checkArgument(supportedMap != null && !supportedMap.isEmpty()
-                && supportedMap.contains(defaultMap));
+                                            && supportedMap.contains(defaultMap));
         this.supportsDocumentTTL = supportsDocumentTTL;
         this.defaultStringMapping = defaultMap;
         this.supportedStringMappings = supportedMap;
@@ -97,10 +97,10 @@ public class IndexFeatures {
 
     public static class Builder {
 
-        private boolean supportsDocumentTTL = false;
-        private Mapping defaultStringMapping = Mapping.TEXT;
         private final Set<Mapping> supportedMappings = Sets.newHashSet();
         private final Set<Cardinality> supportedCardinalities = Sets.newHashSet();
+        private boolean supportsDocumentTTL = false;
+        private Mapping defaultStringMapping = Mapping.TEXT;
         private String wildcardField = "*";
         private boolean supportsNanoseconds;
         private boolean supportsCustomAnalyzer;
@@ -154,8 +154,8 @@ public class IndexFeatures {
 
         public IndexFeatures build() {
             return new IndexFeatures(supportsDocumentTTL, defaultStringMapping, ImmutableSet.copyOf(supportedMappings),
-                    wildcardField, ImmutableSet.copyOf(supportedCardinalities), supportsNanoseconds, supportsCustomAnalyzer,
-                    supportsGeoContains, supportNotQueryNormalForm);
+                                     wildcardField, ImmutableSet.copyOf(supportedCardinalities), supportsNanoseconds, supportsCustomAnalyzer,
+                                     supportsGeoContains, supportNotQueryNormalForm);
         }
     }
 }

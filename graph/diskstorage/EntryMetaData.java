@@ -30,17 +30,15 @@ public enum EntryMetaData {
     VISIBILITY(String.class, true, data -> data instanceof String && StringEncoding.isAsciiString((String) data)),
     TIMESTAMP(Long.class, false, data -> data instanceof Long);
 
+    public static final java.util.Map<EntryMetaData, Object> EMPTY_METADATA = ImmutableMap.of();
+    private final Class<?> dataType;
+    private final boolean identifying;
+    private final Function<Object, Boolean> validator;
     EntryMetaData(Class<?> dataType, boolean identifying, Function<Object, Boolean> validator) {
         this.dataType = dataType;
         this.identifying = identifying;
         this.validator = validator;
     }
-
-    public static final java.util.Map<EntryMetaData, Object> EMPTY_METADATA = ImmutableMap.of();
-
-    private final Class<?> dataType;
-    private final boolean identifying;
-    private final Function<Object, Boolean> validator;
 
     public Class<?> getDataType() {
         return dataType;

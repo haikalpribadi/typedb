@@ -80,10 +80,10 @@ public class QueryProcessor<Q extends ElementQuery<R, B>, R extends JanusGraphEl
             for (int i = query.numSubQueries() - 1; i >= 0; i--) {
                 BackendQueryHolder<B> subquery = query.getSubQuery(i);
                 Iterator<R> subqueryIterator = getFilterIterator((subquery.isSorted())
-                                ? new LimitAdjustingIterator(subquery)
-                                : new PreSortingIterator(subquery),
-                        hasDeletions,
-                        !subquery.isFitted());
+                                                                         ? new LimitAdjustingIterator(subquery)
+                                                                         : new PreSortingIterator(subquery),
+                                                                 hasDeletions,
+                                                                 !subquery.isFitted());
 
                 iterator = (iterator == null)
                         ? subqueryIterator
@@ -148,8 +148,8 @@ public class QueryProcessor<Q extends ElementQuery<R, B>, R extends JanusGraphEl
 
         private PreSortingIterator(BackendQueryHolder<B> backendQueryHolder) {
             List<R> all = Lists.newArrayList(executor.execute(query,
-                    backendQueryHolder.getBackendQuery().updateLimit(MAX_SORT_ITERATION),
-                    backendQueryHolder.getExecutionInfo(), backendQueryHolder.getProfiler()));
+                                                              backendQueryHolder.getBackendQuery().updateLimit(MAX_SORT_ITERATION),
+                                                              backendQueryHolder.getExecutionInfo(), backendQueryHolder.getProfiler()));
             if (all.size() >= MAX_SORT_ITERATION) {
                 throw new QueryException("Could not execute query since pre-sorting requires fetching more than " + MAX_SORT_ITERATION + " elements. Consider rewriting the query to exploit sort orders");
             }
@@ -182,9 +182,9 @@ public class QueryProcessor<Q extends ElementQuery<R, B>, R extends JanusGraphEl
 
     private final class LimitAdjustingIterator extends grakn.core.graph.graphdb.query.LimitAdjustingIterator<R> {
 
-        private B backendQuery;
         private final QueryProfiler profiler;
         private final Object executionInfo;
+        private B backendQuery;
 
         private LimitAdjustingIterator(BackendQueryHolder<B> backendQueryHolder) {
             super(Integer.MAX_VALUE - 1, backendQueryHolder.getBackendQuery().getLimit());

@@ -29,7 +29,6 @@ import java.util.Set;
 /**
  * The MapReduce program for computing the max value of given resource.
  * <p>
- *
  */
 
 public class MaxMapReduce extends StatisticsMapReduce<Number> {

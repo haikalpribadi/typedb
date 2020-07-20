@@ -68,59 +68,30 @@ public interface Transaction extends AutoCloseable {
 
     Keyspace keyspace();
 
-    List<ConceptMap> execute(GraqlDefine query);
     Stream<ConceptMap> stream(GraqlDefine query);
-    List<ConceptMap> execute(GraqlUndefine query);
+
     Stream<ConceptMap> stream(GraqlUndefine query);
 
-    List<ConceptMap> execute(GraqlInsert query);
-    List<ConceptMap> execute(GraqlInsert query, boolean infer);
-    List<ConceptMap> execute(GraqlInsert query, boolean infer, boolean explain);
-    Stream<ConceptMap> stream(GraqlInsert query);
-    Stream<ConceptMap> stream(GraqlInsert query, boolean infer);
     Stream<ConceptMap> stream(GraqlInsert query, boolean infer, boolean explain);
 
-    List<Void> execute(GraqlDelete query);
-    List<Void> execute(GraqlDelete query, boolean infer);
-    Stream<Void> stream(GraqlDelete query);
     Stream<Void> stream(GraqlDelete query, boolean infer);
 
-    List<ConceptMap> execute(GraqlGet query);
-    List<ConceptMap> execute(GraqlGet query, boolean infer);
-    List<ConceptMap> execute(GraqlGet query, boolean infer, boolean explain);
-    Stream<ConceptMap> stream(GraqlGet query);
-    Stream<ConceptMap> stream(GraqlGet query, boolean infer);
     Stream<ConceptMap> stream(GraqlGet query, boolean infer, boolean explain);
 
-    List<Numeric> execute(GraqlGet.Aggregate query);
-    List<Numeric> execute(GraqlGet.Aggregate query, boolean infer);
-    Stream<Numeric> stream(GraqlGet.Aggregate query);
     Stream<Numeric> stream(GraqlGet.Aggregate query, boolean infer);
 
-    List<AnswerGroup<ConceptMap>> execute(GraqlGet.Group query);
-    List<AnswerGroup<ConceptMap>> execute(GraqlGet.Group query, boolean infer);
-    Stream<AnswerGroup<ConceptMap>> stream(GraqlGet.Group query);
     Stream<AnswerGroup<ConceptMap>> stream(GraqlGet.Group query, boolean infer);
 
-    List<AnswerGroup<Numeric>> execute(GraqlGet.Group.Aggregate query);
-    List<AnswerGroup<Numeric>> execute(GraqlGet.Group.Aggregate query, boolean infer);
-    Stream<AnswerGroup<Numeric>> stream(GraqlGet.Group.Aggregate query);
     Stream<AnswerGroup<Numeric>> stream(GraqlGet.Group.Aggregate query, boolean infer);
 
-    List<Numeric> execute(GraqlCompute.Statistics query);
     Stream<Numeric> stream(GraqlCompute.Statistics query);
-    List<ConceptList> execute(GraqlCompute.Path query);
+
     Stream<ConceptList> stream(GraqlCompute.Path query);
-    List<ConceptSetMeasure> execute(GraqlCompute.Centrality query);
+
     Stream<ConceptSetMeasure> stream(GraqlCompute.Centrality query);
-    List<ConceptSet> execute(GraqlCompute.Cluster query);
+
     Stream<ConceptSet> stream(GraqlCompute.Cluster query);
 
-    List<? extends Answer> execute(GraqlQuery query);
-    List<? extends Answer> execute(GraqlQuery query, boolean infer);
-    List<? extends Answer> execute(GraqlQuery query, boolean infer, boolean explain);
-    Stream<? extends Answer> stream(GraqlQuery query);
-    Stream<? extends Answer> stream(GraqlQuery query, boolean infer);
     Stream<? extends Answer> stream(GraqlQuery query, boolean infer, boolean explain);
 
     boolean isOpen();
@@ -160,14 +131,14 @@ public interface Transaction extends AutoCloseable {
     Role putRole(String label);
 
     /**
-     * @param label    A unique label for the AttributeType
+     * @param label     A unique label for the AttributeType
      * @param valueType The value type of the AttributeType.
-     *                 Supported types include: ValueType.STRING, ValueType.LONG, ValueType.DOUBLE, and ValueType.BOOLEAN
+     *                  Supported types include: ValueType.STRING, ValueType.LONG, ValueType.DOUBLE, and ValueType.BOOLEAN
      * @param <V>
      * @return A new or existing AttributeType with the provided label and value type.
      * @throws TransactionException       if the graph is closed
      * @throws PropertyNotUniqueException if the {@param label} is already in use by an existing non-AttributeType.
-     * @throws GraknElementException if the {@param label} is already in use by an existing AttributeType which is
+     * @throws GraknElementException      if the {@param label} is already in use by an existing AttributeType which is
      *                                    unique or has a different ValueType.
      */
     <V> AttributeType<V> putAttributeType(Label label, AttributeType.ValueType<V> valueType);
@@ -346,6 +317,13 @@ public interface Transaction extends AutoCloseable {
             this.type = type;
         }
 
+        public static Transaction.Type of(int value) {
+            for (Transaction.Type t : Transaction.Type.values()) {
+                if (t.type == value) return t;
+            }
+            return null;
+        }
+
         public int id() {
             return type;
         }
@@ -353,13 +331,6 @@ public interface Transaction extends AutoCloseable {
         @Override
         public String toString() {
             return this.name();
-        }
-
-        public static Transaction.Type of(int value) {
-            for (Transaction.Type t : Transaction.Type.values()) {
-                if (t.type == value) return t;
-            }
-            return null;
         }
     }
 }

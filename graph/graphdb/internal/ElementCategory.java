@@ -35,6 +35,26 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 public enum ElementCategory {
     VERTEX, EDGE, PROPERTY;
 
+    public static ElementCategory getByClazz(Class<? extends Element> clazz) {
+        Preconditions.checkArgument(clazz != null, "Need to provide a element class argument");
+        if (Vertex.class.isAssignableFrom(clazz)) {
+            return VERTEX;
+        } else if (Edge.class.isAssignableFrom(clazz)) {
+            return EDGE;
+        } else if (JanusGraphVertexProperty.class.isAssignableFrom(clazz)) {
+            return PROPERTY;
+        } else {
+            throw new IllegalArgumentException("Invalid clazz provided: " + clazz);
+        }
+    }
+
+    public static ElementCategory getByName(String name) {
+        for (ElementCategory category : values()) {
+            if (category.toString().equalsIgnoreCase(name)) return category;
+        }
+        throw new IllegalArgumentException("Unrecognized name: " + name);
+    }
+
     public Class<? extends Element> getElementType() {
         switch (this) {
             case VERTEX:
@@ -117,25 +137,5 @@ public enum ElementCategory {
             default:
                 throw new IllegalArgumentException();
         }
-    }
-
-    public static ElementCategory getByClazz(Class<? extends Element> clazz) {
-        Preconditions.checkArgument(clazz != null, "Need to provide a element class argument");
-        if (Vertex.class.isAssignableFrom(clazz)) {
-            return VERTEX;
-        } else if (Edge.class.isAssignableFrom(clazz)) {
-            return EDGE;
-        } else if (JanusGraphVertexProperty.class.isAssignableFrom(clazz)) {
-            return PROPERTY;
-        } else {
-            throw new IllegalArgumentException("Invalid clazz provided: " + clazz);
-        }
-    }
-
-    public static ElementCategory getByName(String name) {
-        for (ElementCategory category : values()) {
-            if (category.toString().equalsIgnoreCase(name)) return category;
-        }
-        throw new IllegalArgumentException("Unrecognized name: " + name);
     }
 }

@@ -31,7 +31,7 @@ public class NoSerializer<V> implements AttributeSerializer<V> {
     }
 
     private IllegalArgumentException error() {
-        return new IllegalArgumentException("Serializing objects of type ["+datatype+"] is not supported");
+        return new IllegalArgumentException("Serializing objects of type [" + datatype + "] is not supported");
     }
 
     @Override

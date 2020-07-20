@@ -56,9 +56,8 @@ import static java.util.stream.Collectors.toSet;
 class ConjunctionQuery {
 
     private final Set<Statement> statements;
-    private PropertyExecutorFactory propertyExecutorFactory;
-
     private final ImmutableSet<EquivalentFragmentSet> equivalentFragmentSets;
+    private PropertyExecutorFactory propertyExecutorFactory;
 
     /**
      * @param patternConjunction a pattern containing no disjunctions to find in the graph
@@ -78,8 +77,8 @@ class ConjunctionQuery {
         Set<Variable> names = fragmentSets.stream()
                 .flatMap(EquivalentFragmentSet::stream)
                 .filter(fragment -> !fragment.validStartIfDisconnected()
-                                && !(fragment instanceof ValueFragment)
-                                && !(fragment instanceof NeqFragment))
+                        && !(fragment instanceof ValueFragment)
+                        && !(fragment instanceof NeqFragment))
                 .flatMap(fragment -> fragment.vars().stream())
                 .collect(ImmutableSet.toImmutableSet());
 

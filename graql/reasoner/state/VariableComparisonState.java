@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * Query state corresponding to an atomic query (ReasonerAtomicQuery) with variable comparison predicates -
  * either NeqIdPredicates or VariableValuePredicates.
  * We define the entry query Q as a conjunction:
@@ -44,7 +43,6 @@ import java.util.stream.Collectors;
  *
  * Consequently we compute the answer set of Q' ans(Q') first and find the answer set of Q ans(Q) by applying all variable
  * predicates to ans(Q').
- *
  */
 public class VariableComparisonState extends AnswerPropagatorState<ReasonerQueryImpl> {
 
@@ -76,7 +74,7 @@ public class VariableComparisonState extends AnswerPropagatorState<ReasonerQuery
 
         boolean predicatesSatisfied = variablePredicates.stream()
                 .allMatch(p -> p.isSatisfied(fullAnswer));
-        return predicatesSatisfied?
+        return predicatesSatisfied ?
                 new AnswerState(state.getSubstitution(), getUnifier(), getParentState()) :
                 null;
     }

@@ -23,7 +23,6 @@ import java.util.Collections;
 
 /**
  * Abstract literal condition.
- *
  */
 public abstract class Literal<E extends JanusGraphElement> implements Condition<E> {
 

@@ -82,17 +82,16 @@ public class IndexQueryBuilder extends BaseQuery implements JanusGraphIndexQuery
      * Parameters passed to the indexing backend during query execution to modify the execution behavior.
      */
     private final List<Parameter> parameters;
-
+    /**
+     * Name to use for unknown keys, i.e. key references that could not be resolved to an actual type in the database.
+     */
+    private final String unknownKeyName;
     /**
      * Prefix to be used to identify vertex, edge or property references and trigger key parsing and conversion.
      * In most cases this will be one of the above defined static prefixes, but in some special cases, the user may
      * define this.
      */
     private String prefix;
-    /**
-     * Name to use for unknown keys, i.e. key references that could not be resolved to an actual type in the database.
-     */
-    private final String unknownKeyName;
     /**
      * In addition to limit, this type of query supports offsets.
      */

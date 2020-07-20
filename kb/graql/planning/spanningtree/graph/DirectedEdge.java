@@ -29,7 +29,6 @@ import java.util.Set;
 
 /**
  * An edge in a directed graph.
- *
  */
 public class DirectedEdge {
     public final Node source;
@@ -40,44 +39,9 @@ public class DirectedEdge {
         this.destination = destination;
     }
 
-    public static class EdgeBuilder {
-        public final Node source;
-
-        private EdgeBuilder(Node source) {
-            this.source = source;
-        }
-
-        public DirectedEdge to(Node destination) {
-            return new DirectedEdge(source, destination);
-        }
-    }
-
     public static EdgeBuilder from(Node source) {
         return new EdgeBuilder(source);
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(source, destination);
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("source", source)
-                .add("destination", destination).toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        final DirectedEdge other = (DirectedEdge) o;
-        return this.source.equals(other.source) && this.destination.equals(other.destination);
-    }
-
-    //// Edge Predicates
 
     public static Predicate<DirectedEdge> hasDestination(final Node node) {
         return input -> {
@@ -108,5 +72,40 @@ public class DirectedEdge {
 
     public static Predicate<DirectedEdge> isIn(final Set<DirectedEdge> banned) {
         return input -> banned.contains(input);
+    }
+
+    //// Edge Predicates
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(source, destination);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("source", source)
+                .add("destination", destination).toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final DirectedEdge other = (DirectedEdge) o;
+        return this.source.equals(other.source) && this.destination.equals(other.destination);
+    }
+
+    public static class EdgeBuilder {
+        public final Node source;
+
+        private EdgeBuilder(Node source) {
+            this.source = source;
+        }
+
+        public DirectedEdge to(Node destination) {
+            return new DirectedEdge(source, destination);
+        }
     }
 }

@@ -29,7 +29,6 @@ import static junit.framework.TestCase.assertNotNull;
 
 /**
  * Testing the Config class
- *
  */
 public class ConfigTest {
 
@@ -52,7 +51,7 @@ public class ConfigTest {
     }
 
     @org.junit.Test
-    public void whenGettingExistingProperty_PropertyIsReturned(){
+    public void whenGettingExistingProperty_PropertyIsReturned() {
         assertNotNull(configuration.getProperty(ConfigKey.SERVER_HOST_NAME));
     }
 }

@@ -47,6 +47,12 @@ public abstract class AbstractElement implements InternalElement, Comparable<Jan
         return elementId < 0;
     }
 
+    public static int compare(JanusGraphElement e1, JanusGraphElement e2) {
+        long e1id = (e1 instanceof AbstractElement) ? ((AbstractElement) e1).getCompareId() : e1.longId();
+        long e2id = (e2 instanceof AbstractElement) ? ((AbstractElement) e2).getCompareId() : e2.longId();
+        return Longs.compare(e1id, e2id);
+    }
+
     @Override
     public int hashCode() {
         return Long.hashCode(getCompareId());
@@ -80,16 +86,9 @@ public abstract class AbstractElement implements InternalElement, Comparable<Jan
         }
     }
 
-
     @Override
     public int compareTo(JanusGraphElement other) {
         return compare(this, other);
-    }
-
-    public static int compare(JanusGraphElement e1, JanusGraphElement e2) {
-        long e1id = (e1 instanceof AbstractElement) ? ((AbstractElement) e1).getCompareId() : e1.longId();
-        long e2id = (e2 instanceof AbstractElement) ? ((AbstractElement) e2).getCompareId() : e2.longId();
-        return Longs.compare(e1id, e2id);
     }
 
     @Override

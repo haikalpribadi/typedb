@@ -34,11 +34,9 @@ import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
-import grakn.core.kb.concept.structure.EdgeElement;
 import grakn.core.kb.concept.structure.Shard;
 import grakn.core.kb.concept.structure.VertexElement;
 import graql.lang.pattern.Pattern;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.Set;
@@ -46,44 +44,68 @@ import java.util.Set;
 public interface ConceptManager {
 
     <T extends Concept> T buildConcept(Vertex vertex);
+
     <T extends Concept> T buildConcept(VertexElement vertex);
 
     <T extends Type> T getType(Label label);
+
     <T extends SchemaConcept> T getSchemaConcept(Label label);
+
     <T extends SchemaConcept> T getSchemaConcept(LabelId labelId);
+
     EntityType getEntityType(String label);
+
     RelationType getRelationType(String label);
+
     <V> AttributeType<V> getAttributeType(String attributeTypeLabel);
+
     Role getRole(String label);
+
     Rule getRule(String label);
+
     <D> Attribute<D> getCachedAttribute(String index);
+
     <D> Attribute<D> getAttribute(String index);
 
     <T extends Concept> T getConcept(Schema.VertexProperty vertexProperty, Object propertyValue);
+
     <T extends Concept> T getConcept(ConceptId conceptId);
 
     Type getMetaConcept();
+
     EntityType getMetaEntityType();
+
     RelationType getMetaRelationType();
+
     AttributeType getMetaAttributeType();
+
     Role getMetaRole();
+
     Rule getMetaRule();
 
     Relation createRelation(RelationType relationType, boolean isInferred);
+
     Entity createEntity(EntityType entityType, boolean isInferred);
+
     <D> Attribute<D> createAttribute(AttributeType<D> dAttributeType, D value, boolean isInferred);
+
     void createHasAttribute(Thing owner, Attribute attribute, boolean isInferred);
 
     EntityType createEntityType(Label label, EntityType superType);
+
     RelationType createRelationType(Label label, RelationType superType);
+
     <V> AttributeType<V> createAttributeType(Label label, AttributeType<V> superType, AttributeType.ValueType<V> valueType);
+
     Rule createRule(Label label, Pattern when, Pattern then, Rule superType);
+
     Role createRole(Label label, Role superType);
 
     Set<Concept> getConcepts(Schema.VertexProperty key, Object value);
 
     // TODO these should not be here, overexposed interface or incorrect location
     LabelId convertToId(Label label);
+
     VertexElement addTypeVertex(LabelId id, Label label, Schema.BaseType baseType);
 
     Shard getShardWithLock(String toString);

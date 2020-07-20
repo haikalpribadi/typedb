@@ -95,7 +95,7 @@ class CQLResultSetKeyIterator extends AbstractIterator<StaticBuffer> implements 
             this.getter = getter;
             StaticBuffer sliceEnd = sliceQuery.getSliceEnd();
             this.iterator = iterator
-                    .<Tuple3<StaticBuffer, StaticBuffer, Row>> map(row -> Tuple.of(
+                    .<Tuple3<StaticBuffer, StaticBuffer, Row>>map(row -> Tuple.of(
                             StaticArrayBuffer.of(row.getByteBuffer(CQLKeyColumnValueStore.COLUMN_COLUMN_NAME)),
                             StaticArrayBuffer.of(row.getByteBuffer(CQLKeyColumnValueStore.VALUE_COLUMN_NAME)),
                             row))

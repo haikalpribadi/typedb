@@ -25,6 +25,7 @@ package grakn.core.kb.server;
 public interface TransactionProvider {
     /**
      * Prepare a generic transaction in a session that hasn't been opened or has a transaction type set
+     *
      * @return
      */
     Transaction newTransaction(Session session);

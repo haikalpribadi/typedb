@@ -23,12 +23,12 @@ import java.time.Instant;
 
 /**
  * Messages which are added to and received from the Log.
- *
  */
 public interface Message {
 
     /**
      * Returns the unique identifier for the sender of the message
+     *
      * @return
      */
     String getSenderId();
@@ -36,12 +36,14 @@ public interface Message {
     /**
      * Returns the timestamp of this message in the specified time unit.
      * This is the time when the message was added to the LOG.
+     *
      * @return
      */
     Instant getTimestamp();
 
     /**
      * Returns the content of the message
+     *
      * @return
      */
     StaticBuffer getContent();

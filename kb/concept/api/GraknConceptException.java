@@ -45,11 +45,6 @@ public class GraknConceptException extends GraknException {
         return GraknConceptException.create(ErrorMessage.NOT_A_TYPE.getMessage(concept.id(), concept.getClass()));
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
-
     public static GraknConceptException create(String error) {
         return new GraknConceptException(error);
     }
@@ -84,7 +79,6 @@ public class GraknConceptException extends GraknException {
         return create(ErrorMessage.REGEX_INSTANCE_FAILURE.getMessage(regex, attributeType.label(), value));
     }
 
-
     /**
      * Thrown when attempting to create a Thing via the execution of a Rule when
      * the Thing already exists.
@@ -96,6 +90,14 @@ public class GraknConceptException extends GraknException {
     public static GraknConceptException unsupportedValueType(String name) {
         String supported = AttributeType.ValueType.values().stream().map(AttributeType.ValueType::name).collect(Collectors.joining(","));
         return create(ErrorMessage.INVALID_VALUETYPE.getMessage(name, supported));
+    }
+
+    /**
+     * Thrown when creating a label which starts with a reserved character Schema.ImplicitType#RESERVED
+     */
+    // TODO use Schema.ImplicitType.RESERVED.getValue() after breaking cyclic dependency
+    public static GraknConceptException invalidLabelStart(Label label) {
+        return create(String.format("Cannot create a label {%s} starting with character {%s} as it is a reserved starting character", label, "@"));
     }
 
     /**
@@ -112,7 +114,6 @@ public class GraknConceptException extends GraknException {
         return create(ErrorMessage.IS_ABSTRACT.getMessage(type.label()));
     }
 
-
     /**
      * Thrown when trying to build a Concept using an invalid graph construct
      */
@@ -126,7 +127,6 @@ public class GraknConceptException extends GraknException {
     public static GraknConceptException unknownTypeMetaType(Type type) {
         return create(ErrorMessage.UNKNOWN_META_TYPE.getMessage(type.label().toString(), type.getClass().toString()));
     }
-
 
     /**
      * Thrown when changing the Label of an SchemaConcept which is owned by another SchemaConcept
@@ -145,7 +145,6 @@ public class GraknConceptException extends GraknException {
     public static GraknConceptException cannotBeDeleted(SchemaConcept schemaConcept) {
         return create(ErrorMessage.CANNOT_DELETE.getMessage(schemaConcept.label()));
     }
-
 
     /**
      * Thrown when setting {@code superType} as the super type of {@code type} and a loop is created
@@ -168,13 +167,12 @@ public class GraknConceptException extends GraknException {
         return create(NO_TYPE.getMessage(thing.id()));
     }
 
-
     /**
      * Thrown when changing the super of a Type will result in a Role disconnection which is in use.
      */
     public static GraknConceptException changingSuperWillDisconnectRole(Type oldSuper, Type newSuper, Role role) {
         return create(String.format("Cannot change the super type {%s} to {%s} because {%s} is connected to role {%s} which {%s} is not connected to.",
-                oldSuper.label(), newSuper.label(), oldSuper.label(), role.label(), newSuper.label()));
+                                    oldSuper.label(), newSuper.label(), oldSuper.label(), role.label(), newSuper.label()));
     }
 
     /**
@@ -198,14 +196,12 @@ public class GraknConceptException extends GraknException {
         return create(ErrorMessage.ILLEGAL_TYPE_UNHAS_ATTRIBUTE_NOT_EXIST.getMessage(type, isKey ? "key" : "has", attributeType));
     }
 
-
     /**
      * Thrown when {@code type} has {@code attributeType} as a Type#key(AttributeType) and a Type#has(AttributeType)
      */
     public static GraknConceptException cannotBeKeyAndHas(Type type, AttributeType attributeType) {
         return create(ErrorMessage.CANNOT_BE_KEY_AND_ATTRIBUTE.getMessage(type.label(), attributeType.label()));
     }
-
 
     /**
      * Thrown when trying to add a Schema.VertexProperty to a Concept which does not accept that type
@@ -227,6 +223,11 @@ public class GraknConceptException extends GraknException {
      */
     public static GraknConceptException unhandledConceptDeletion(Concept concept) {
         return new GraknConceptException(ErrorMessage.UNHANDLED_CONCEPT_DELETION.getMessage(concept.toString()));
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
     }
 
 }

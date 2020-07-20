@@ -39,9 +39,9 @@ import java.util.Set;
  */
 public class Validator {
     private final ReasonerQueryFactory reasonerQueryFactory;
+    private final List<String> errorsFound = new ArrayList<>();
     private TransactionCache transactionCache;
     private ConceptManager conceptManager;
-    private final List<String> errorsFound = new ArrayList<>();
 
     public Validator(ReasonerQueryFactory reasonerQueryFactory, TransactionCache transactionCache, ConceptManager conceptManager) {
         this.reasonerQueryFactory = reasonerQueryFactory;
@@ -92,7 +92,7 @@ public class Validator {
      * the precedence of validation is: labelValidation -> ontologicalValidation -> clauseValidation
      * each of the validation happens only if the preceding validation yields no errors
      *
-     * @param rule  the rule which needs to be validated
+     * @param rule the rule which needs to be validated
      */
     private void validateRule(Rule rule) {
         Set<String> labelErrors = ValidateGlobalRules.validateRuleSchemaConceptExist(conceptManager, rule);

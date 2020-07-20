@@ -33,6 +33,7 @@ import java.util.List;
 public class KCVSUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(KeyColumnValueStore.class);
+    private static final StaticBuffer START = BufferUtil.zeroBuffer(1), END = BufferUtil.oneBuffer(32);
 
     /**
      * Retrieves the value for the specified column and key under the given transaction
@@ -57,7 +58,7 @@ public class KCVSUtil {
 
     public static KeyIterator getKeys(KeyColumnValueStore store, StoreFeatures features, int keyLength, int sliceLength, StoreTransaction txh) throws BackendException {
         return getKeys(store, new SliceQuery(BufferUtil.zeroBuffer(1), BufferUtil.oneBuffer(sliceLength)).setLimit(1),
-                features, keyLength, txh);
+                       features, keyLength, txh);
     }
 
     public static KeyIterator getKeys(KeyColumnValueStore store, SliceQuery slice, StoreFeatures features, int keyLength, StoreTransaction txh) throws BackendException {
@@ -80,8 +81,6 @@ public class KCVSUtil {
     public static boolean containsKeyColumn(KeyColumnValueStore store, StaticBuffer key, StaticBuffer column, StoreTransaction txh) throws BackendException {
         return get(store, key, column, txh) != null;
     }
-
-    private static final StaticBuffer START = BufferUtil.zeroBuffer(1), END = BufferUtil.oneBuffer(32);
 
     public static boolean containsKey(KeyColumnValueStore store, StaticBuffer key, StoreTransaction txh) throws BackendException {
         return containsKey(store, key, 32, txh);

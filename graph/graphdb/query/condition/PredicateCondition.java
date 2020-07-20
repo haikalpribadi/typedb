@@ -41,6 +41,10 @@ public class PredicateCondition<K, E extends JanusGraphElement> extends Literal<
         this.value = value;
     }
 
+    public static <K, E extends JanusGraphElement> PredicateCondition<K, E> of(K key, JanusGraphPredicate janusgraphPredicate, Object condition) {
+        return new PredicateCondition<>(key, janusgraphPredicate, condition);
+    }
+
     private boolean satisfiesCondition(Object value) {
         return predicate.test(value, this.value);
     }
@@ -109,10 +113,6 @@ public class PredicateCondition<K, E extends JanusGraphElement> extends Literal<
     @Override
     public String toString() {
         return key.toString() + " " + predicate.toString() + " " + value;
-    }
-
-    public static <K, E extends JanusGraphElement> PredicateCondition<K, E> of(K key, JanusGraphPredicate janusgraphPredicate, Object condition) {
-        return new PredicateCondition<>(key, janusgraphPredicate, condition);
     }
 
 }

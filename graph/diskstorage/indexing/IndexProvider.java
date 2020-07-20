@@ -42,7 +42,7 @@ public interface IndexProvider extends IndexInformation {
 
     static void checkKeyValidity(String key) {
         Preconditions.checkArgument(!StringUtils.containsAny(key, new char[]{IndexProvider.REPLACEMENT_CHAR}),
-                "Invalid key name containing reserved character %c provided: %s", IndexProvider.REPLACEMENT_CHAR, key);
+                                    "Invalid key name containing reserved character %c provided: %s", IndexProvider.REPLACEMENT_CHAR, key);
     }
 
     /**
@@ -66,7 +66,7 @@ public interface IndexProvider extends IndexInformation {
      *                    all changes for each document in an IndexMutation.
      * @param information Information on the keys used in the mutation accessible through KeyInformation.IndexRetriever.
      * @param tx          Enclosing transaction
-     * see IndexMutation
+     *                    see IndexMutation
      */
     void mutate(Map<String, Map<String, IndexMutation>> mutations, KeyInformation.IndexRetriever information, BaseTransaction tx) throws BackendException;
 

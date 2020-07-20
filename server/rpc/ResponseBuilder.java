@@ -55,6 +55,38 @@ import java.util.stream.Collectors;
  */
 public class ResponseBuilder {
 
+    public static StatusRuntimeException exception(Throwable e) {
+
+        if (e instanceof GraknException) {
+            GraknException ge = (GraknException) e;
+            String message = ge.getName() + "-" + ge.getMessage();
+            if (e instanceof TemporaryWriteException) {
+                return exception(Status.RESOURCE_EXHAUSTED, message);
+            } else if (e instanceof GraknServerException) {
+                return exception(Status.INTERNAL, message);
+            } else if (e instanceof PropertyNotUniqueException) {
+                return exception(Status.ALREADY_EXISTS, message);
+            } else if (e instanceof TransactionException | e instanceof GraqlSemanticException |
+                    e instanceof GraqlException | e instanceof InvalidKBException) {
+                return exception(Status.INVALID_ARGUMENT, message);
+            } else if (e instanceof SessionException) {
+                return exception(Status.UNAVAILABLE, message);
+            }
+        } else if (e instanceof StatusRuntimeException) {
+            return (StatusRuntimeException) e;
+        }
+
+        return exception(Status.UNKNOWN, e.getMessage());
+    }
+
+    private static StatusRuntimeException exception(Status status, String message) {
+        return exception(status.withDescription(message + ". Please check server logs for the stack trace."));
+    }
+
+    public static StatusRuntimeException exception(Status status) {
+        return new StatusRuntimeException(status);
+    }
+
     /**
      * An RPC Response Builder class for Transaction responses
      */
@@ -123,7 +155,6 @@ public class ResponseBuilder {
         }
 
         /**
-         *
          * @param explanation
          * @return
          */
@@ -131,7 +162,7 @@ public class ResponseBuilder {
             SessionProto.Transaction.Res.Builder res = SessionProto.Transaction.Res.newBuilder();
             AnswerProto.Explanation.Res.Builder explanationBuilder = AnswerProto.Explanation.Res.newBuilder()
                     .addAllExplanation(explanation.getAnswers().stream().map(Answer::conceptMap)
-                            .collect(Collectors.toList()));
+                                               .collect(Collectors.toList()));
 
             if (explanation.isRuleExplanation()) {
                 Rule rule = ((RuleExplanation) explanation).getRule();
@@ -151,22 +182,22 @@ public class ResponseBuilder {
             static SessionProto.Transaction.Res query(Object object) {
                 return SessionProto.Transaction.Res.newBuilder()
                         .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
-                                .setQueryIterRes(SessionProto.Transaction.Query.Iter.Res.newBuilder()
-                                        .setAnswer(Answer.answer(object)))).build();
+                                            .setQueryIterRes(SessionProto.Transaction.Query.Iter.Res.newBuilder()
+                                                                     .setAnswer(Answer.answer(object)))).build();
             }
 
             static SessionProto.Transaction.Res getAttributes(grakn.core.kb.concept.api.Concept concept) {
                 return SessionProto.Transaction.Res.newBuilder()
                         .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
-                                .setGetAttributesIterRes(SessionProto.Transaction.GetAttributes.Iter.Res.newBuilder()
-                                        .setAttribute(Concept.concept(concept)))).build();
+                                            .setGetAttributesIterRes(SessionProto.Transaction.GetAttributes.Iter.Res.newBuilder()
+                                                                             .setAttribute(Concept.concept(concept)))).build();
             }
 
             static SessionProto.Transaction.Res conceptMethod(ConceptProto.Method.Iter.Res methodResponse) {
                 return SessionProto.Transaction.Res.newBuilder()
                         .setIterRes(SessionProto.Transaction.Iter.Res.newBuilder()
-                                .setConceptMethodIterRes(SessionProto.Transaction.ConceptMethod.Iter.Res.newBuilder()
-                                        .setResponse(methodResponse))).build();
+                                            .setConceptMethodIterRes(SessionProto.Transaction.ConceptMethod.Iter.Res.newBuilder()
+                                                                             .setResponse(methodResponse))).build();
             }
         }
     }
@@ -190,18 +221,18 @@ public class ResponseBuilder {
 
             if (concept.isSchemaConcept()) {
                 builder.setLabelRes(ConceptProto.SchemaConcept.GetLabel.Res.newBuilder()
-                        .setLabel(concept.asSchemaConcept().label().getValue()));
+                                            .setLabel(concept.asSchemaConcept().label().getValue()));
             } else if (concept.isThing()) {
                 builder.setTypeRes(ConceptProto.Thing.Type.Res.newBuilder()
-                        .setType(conceptPrefilled(concept.asThing().type())));
+                                           .setType(conceptPrefilled(concept.asThing().type())));
                 builder.setInferredRes(ConceptProto.Thing.IsInferred.Res.newBuilder()
-                        .setInferred(concept.asThing().isInferred()));
+                                               .setInferred(concept.asThing().isInferred()));
 
                 if (concept.isAttribute()) {
                     builder.setValueRes(ConceptProto.Attribute.Value.Res.newBuilder()
-                            .setValue(attributeValue(concept.asAttribute().value())));
+                                                .setValue(attributeValue(concept.asAttribute().value())));
                     builder.setValueTypeRes(ConceptProto.AttributeType.ValueType.Res.newBuilder()
-                            .setValueType(VALUE_TYPE(concept.asAttribute().valueType())));
+                                                    .setValueType(VALUE_TYPE(concept.asAttribute().valueType())));
                 }
             }
 
@@ -391,42 +422,10 @@ public class ResponseBuilder {
         private static AnswerProto.ConceptIds conceptIds(Collection<ConceptId> conceptIds) {
             AnswerProto.ConceptIds.Builder conceptIdsRPC = AnswerProto.ConceptIds.newBuilder();
             conceptIdsRPC.addAllIds(conceptIds.stream()
-                    .map(id -> id.getValue())
-                    .collect(Collectors.toList()));
+                                            .map(id -> id.getValue())
+                                            .collect(Collectors.toList()));
 
             return conceptIdsRPC.build();
         }
-    }
-
-    public static StatusRuntimeException exception(Throwable e) {
-
-        if (e instanceof GraknException) {
-            GraknException ge = (GraknException) e;
-            String message = ge.getName() + "-" + ge.getMessage();
-            if (e instanceof TemporaryWriteException) {
-                return exception(Status.RESOURCE_EXHAUSTED, message);
-            } else if (e instanceof GraknServerException) {
-                return exception(Status.INTERNAL, message);
-            } else if (e instanceof PropertyNotUniqueException) {
-                return exception(Status.ALREADY_EXISTS, message);
-            } else if (e instanceof TransactionException | e instanceof GraqlSemanticException |
-                    e instanceof GraqlException | e instanceof InvalidKBException) {
-                return exception(Status.INVALID_ARGUMENT, message);
-            } else if (e instanceof SessionException) {
-                return exception(Status.UNAVAILABLE, message);
-            }
-        } else if (e instanceof StatusRuntimeException) {
-            return (StatusRuntimeException) e;
-        }
-
-        return exception(Status.UNKNOWN, e.getMessage());
-    }
-
-    private static StatusRuntimeException exception(Status status, String message) {
-        return exception(status.withDescription(message + ". Please check server logs for the stack trace."));
-    }
-
-    public static StatusRuntimeException exception(Status status) {
-        return new StatusRuntimeException(status);
     }
 }

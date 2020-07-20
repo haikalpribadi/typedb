@@ -35,21 +35,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- *
  * <p>
  * Base class for collections of ReasonerQueryImpl queries with equality comparison ReasonerQueryEquivalence.
  * </p>
- *
- *
  */
-public abstract class QueryCollectionBase{
+public abstract class QueryCollectionBase {
 
     public abstract Stream<ReasonerQueryImpl> stream();
+
     public abstract Stream<Equivalence.Wrapper<ReasonerQueryImpl>> wrappedStream();
 
-    ReasonerQueryEquivalence equality(){ return ReasonerQueryEquivalence.Equality;}
+    ReasonerQueryEquivalence equality() { return ReasonerQueryEquivalence.Equality;}
 
-    private boolean isQueryDisconnected(Equivalence.Wrapper<ReasonerQueryImpl> query){
+    private boolean isQueryDisconnected(Equivalence.Wrapper<ReasonerQueryImpl> query) {
         return getImmediateNeighbours(query).isEmpty();
     }
 
@@ -57,11 +55,11 @@ public abstract class QueryCollectionBase{
      * @param query of interest
      * @return true if query is disconnected wrt queries of this collection
      */
-    public boolean isQueryDisconnected(ReasonerQueryImpl query){
+    public boolean isQueryDisconnected(ReasonerQueryImpl query) {
         return isQueryDisconnected(equality().wrap(query));
     }
 
-    private Set<ReasonerQueryImpl> getImmediateNeighbours(ReasonerQueryImpl query){
+    private Set<ReasonerQueryImpl> getImmediateNeighbours(ReasonerQueryImpl query) {
         return getImmediateNeighbours(equality().wrap(query))
                 .stream()
                 .map(Equivalence.Wrapper::get)
@@ -69,9 +67,9 @@ public abstract class QueryCollectionBase{
                 .collect(Collectors.toSet());
     }
 
-    private Set<Equivalence.Wrapper<ReasonerQueryImpl>> getImmediateNeighbours(Equivalence.Wrapper<ReasonerQueryImpl> query){
+    private Set<Equivalence.Wrapper<ReasonerQueryImpl>> getImmediateNeighbours(Equivalence.Wrapper<ReasonerQueryImpl> query) {
         ReasonerQueryImpl unwrappedQuery = query.get();
-        Set<Variable> vars = unwrappedQuery != null? unwrappedQuery.getVarNames() : new HashSet<>();
+        Set<Variable> vars = unwrappedQuery != null ? unwrappedQuery.getVarNames() : new HashSet<>();
         return this.wrappedStream()
                 .filter(q2 -> !query.equals(q2))
                 .map(Equivalence.Wrapper::get)
@@ -81,17 +79,17 @@ public abstract class QueryCollectionBase{
                 .collect(Collectors.toSet());
     }
 
-    private Multimap<ReasonerQueryImpl, ReasonerQueryImpl> immediateNeighbourMap(){
+    private Multimap<ReasonerQueryImpl, ReasonerQueryImpl> immediateNeighbourMap() {
         Multimap<ReasonerQueryImpl, ReasonerQueryImpl> neighbourMap = HashMultimap.create();
         this.stream().forEach(q -> neighbourMap.putAll(q, getImmediateNeighbours(q)));
         return neighbourMap;
     }
 
-    private boolean isQueryReachable(Equivalence.Wrapper<ReasonerQueryImpl> query, Collection<Equivalence.Wrapper<ReasonerQueryImpl>> target){
+    private boolean isQueryReachable(Equivalence.Wrapper<ReasonerQueryImpl> query, Collection<Equivalence.Wrapper<ReasonerQueryImpl>> target) {
         return isQueryReachable(query.get(), target.stream().map(Equivalence.Wrapper::get).collect(Collectors.toList()));
     }
 
-    private boolean isQueryReachable(ReasonerQueryImpl query, Collection<ReasonerQueryImpl> target){
+    private boolean isQueryReachable(ReasonerQueryImpl query, Collection<ReasonerQueryImpl> target) {
         Set<Variable> queryVars = getAllNeighbours(query).stream()
                 .flatMap(q -> q.getVarNames().stream())
                 .collect(Collectors.toSet());
@@ -126,10 +124,10 @@ public abstract class QueryCollectionBase{
 
     /**
      * @param entryQuery query for which candidates are to be determined
-     * @param plan current plan
+     * @param plan       current plan
      * @return set of candidate queries for this query
      */
-    QuerySet getCandidates(ReasonerQueryImpl entryQuery, QueryList plan){
+    QuerySet getCandidates(ReasonerQueryImpl entryQuery, QueryList plan) {
         Equivalence.Wrapper<ReasonerQueryImpl> query = equality().wrap(entryQuery);
         Set<Equivalence.Wrapper<ReasonerQueryImpl>> availableQueries = this.wrappedStream()
                 .filter(q -> !(plan.contains(q) || q.equals(query)))
@@ -151,10 +149,10 @@ public abstract class QueryCollectionBase{
                 .collect(Collectors.toSet());
 
         return QuerySet.create(
-                this.isQueryDisconnected(query)?
+                this.isQueryDisconnected(query) ?
                         availableQueries :
-                        this.isQueryReachable(query, availableQueries)?
-                                Sets.union(availableImmediateNeighbours, availableImmediateNeighboursFromSubs): availableQueries
+                        this.isQueryReachable(query, availableQueries) ?
+                                Sets.union(availableImmediateNeighbours, availableImmediateNeighboursFromSubs) : availableQueries
         );
     }
 }

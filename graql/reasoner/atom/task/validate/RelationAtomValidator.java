@@ -47,7 +47,7 @@ public class RelationAtomValidator implements AtomValidator<RelationAtom> {
 
     private final BasicAtomValidator basicValidator;
 
-    public RelationAtomValidator(){
+    public RelationAtomValidator() {
         this.basicValidator = new BasicAtomValidator();
     }
 
@@ -93,7 +93,7 @@ public class RelationAtomValidator implements AtomValidator<RelationAtom> {
                     varTypeMap.get(player).stream()
                             .filter(playerType -> playerType.playing().noneMatch(plays -> plays.equals(role)))
                             .forEach(playerType ->
-                                    errors.add(ErrorMessage.VALIDATION_RULE_TYPE_CANNOT_PLAY_ROLE.getMessage(ruleLabel, playerType.label(), role.label(), type == null ? "" : type.label()))
+                                             errors.add(ErrorMessage.VALIDATION_RULE_TYPE_CANNOT_PLAY_ROLE.getMessage(ruleLabel, playerType.label(), role.label(), type == null ? "" : type.label()))
                             );
                 }
             }

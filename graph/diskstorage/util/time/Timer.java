@@ -65,14 +65,14 @@ public class Timer {
         if (null == start) {
             return Duration.ZERO;
         }
-        final Instant stopTime = (null==stop? times.getTime() : stop);
+        final Instant stopTime = (null == stop ? times.getTime() : stop);
         return Duration.between(start, stopTime);
     }
 
     public String toString() {
         TemporalUnit u = times.getUnit();
-        if (start==null) return "Initialized";
-        if (stop==null) return String.format("Started at %d %s",times.getTime(start),u);
+        if (start == null) return "Initialized";
+        if (stop == null) return String.format("Started at %d %s", times.getTime(start), u);
         return String.format("%d %s", times.getTime(stop) - times.getTime(start), u);
     }
 }

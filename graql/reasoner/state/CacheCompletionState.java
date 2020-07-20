@@ -24,14 +24,12 @@ import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
 import grakn.core.kb.graql.reasoner.cache.QueryCache;
 
 /**
- *
  * State used to acknowledge db completion of a query in the cache - all db answers to the query are cached.
- *
  */
 public class CacheCompletionState extends ResolutionState {
 
-    private QueryCache queryCache;
     final private ReasonerAtomicQuery query;
+    private QueryCache queryCache;
 
     public CacheCompletionState(QueryCache queryCache, ReasonerAtomicQuery query, ConceptMap sub, AnswerPropagatorState parent) {
         super(sub, parent);

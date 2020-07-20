@@ -36,40 +36,42 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * <p>
  * Implementation of the Unifier interface.
  * </p>
- *
- *
  */
 public class UnifierImpl implements Unifier {
-    
+
     private final ImmutableSetMultimap<Variable, Variable> unifier;
 
     /**
      * Identity unifier.
      */
-    public UnifierImpl(){
+    public UnifierImpl() {
         this.unifier = ImmutableSetMultimap.of();
     }
-    public UnifierImpl(ImmutableMultimap<Variable, Variable> map){ this(map.entries());}
-    public UnifierImpl(Multimap<Variable, Variable> map){ this(map.entries());}
-    public UnifierImpl(Map<Variable, Variable> map){ this(map.entrySet());}
-    private UnifierImpl(Collection<Map.Entry<Variable, Variable>> mappings){
+
+    public UnifierImpl(ImmutableMultimap<Variable, Variable> map) { this(map.entries());}
+
+    public UnifierImpl(Multimap<Variable, Variable> map) { this(map.entries());}
+
+    public UnifierImpl(Map<Variable, Variable> map) { this(map.entrySet());}
+
+    private UnifierImpl(Collection<Map.Entry<Variable, Variable>> mappings) {
         this.unifier = ImmutableSetMultimap.<Variable, Variable>builder().putAll(mappings).build();
     }
 
-    public static UnifierImpl trivial(){return new UnifierImpl();}
-    public static UnifierImpl nonExistent(){ return null;}
+    public static UnifierImpl trivial() {return new UnifierImpl();}
+
+    public static UnifierImpl nonExistent() { return null;}
 
     @Override
-    public String toString(){
+    public String toString() {
         return unifier.toString();
     }
 
     @Override
-    public boolean equals(Object obj){
+    public boolean equals(Object obj) {
         if (obj == null || this.getClass() != obj.getClass()) return false;
         if (obj == this) return true;
         UnifierImpl u2 = (UnifierImpl) obj;
@@ -77,7 +79,7 @@ public class UnifierImpl implements Unifier {
     }
 
     @Override
-    public int hashCode(){
+    public int hashCode() {
         return unifier.hashCode();
     }
 
@@ -102,7 +104,7 @@ public class UnifierImpl implements Unifier {
     }
 
     @Override
-    public ImmutableSet<Map.Entry<Variable, Variable>> mappings(){ return unifier.entries();}
+    public ImmutableSet<Map.Entry<Variable, Variable>> mappings() { return unifier.entries();}
 
     @Override
     public Collection<Variable> get(Variable key) {

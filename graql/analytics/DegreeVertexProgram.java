@@ -36,7 +36,6 @@ import static grakn.core.graql.analytics.Utility.vertexHasSelectedTypeId;
 /**
  * The vertex program for computing the degree.
  * <p>
- *
  */
 
 public class DegreeVertexProgram extends GraknVertexProgram<Long> {
@@ -64,7 +63,7 @@ public class DegreeVertexProgram extends GraknVertexProgram<Long> {
     public void loadState(Graph graph, Configuration configuration) {
         super.loadState(graph, configuration);
         configuration.subset(OF_LABELS).getKeys().forEachRemaining(key ->
-                ofLabelIds.add((LabelId) configuration.getProperty(OF_LABELS + "." + key)));
+                                                                           ofLabelIds.add((LabelId) configuration.getProperty(OF_LABELS + "." + key)));
     }
 
     @Override

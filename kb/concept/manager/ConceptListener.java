@@ -20,6 +20,7 @@ package grakn.core.kb.concept.manager;
 
 import grakn.core.kb.concept.api.Attribute;
 import grakn.core.kb.concept.api.AttributeType;
+import grakn.core.kb.concept.api.Casting;
 import grakn.core.kb.concept.api.Concept;
 import grakn.core.kb.concept.api.Entity;
 import grakn.core.kb.concept.api.EntityType;
@@ -30,7 +31,6 @@ import grakn.core.kb.concept.api.Rule;
 import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Thing;
 import grakn.core.kb.concept.api.Type;
-import grakn.core.kb.concept.api.Casting;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -67,6 +67,7 @@ public interface ConceptListener {
     TODO this pair of methods might be combinable somehow
     */
     void labelRemoved(SchemaConcept schemaConcept);
+
     void labelAdded(SchemaConcept schemaConcept);
 
     void conceptSetAbstract(Type type, boolean isAbstract);

@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 
 /**
  * Simple implementation of PartitionAssignment.
- *
  */
 public class SimplePartitionAssignment implements PartitionAssignment {
 
@@ -34,13 +33,13 @@ public class SimplePartitionAssignment implements PartitionAssignment {
         setPartitionID(id);
     }
 
-    public void setPartitionID(int id) {
-        Preconditions.checkArgument(id >= 0);
-        this.partitionID = id;
-    }
-
     @Override
     public int getPartitionID() {
         return partitionID;
+    }
+
+    public void setPartitionID(int id) {
+        Preconditions.checkArgument(id >= 0);
+        this.partitionID = id;
     }
 }

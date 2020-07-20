@@ -45,6 +45,10 @@ public class ResultSetIterator<R extends JanusGraphElement> implements Iterator<
         this.next = nextInternal();
     }
 
+    public static <R extends JanusGraphElement> Iterable<R> wrap(Iterable<R> inner, int limit) {
+        return () -> new ResultSetIterator<>(inner.iterator(), limit);
+    }
+
     @Override
     public boolean hasNext() {
         return next != null;
@@ -77,10 +81,6 @@ public class ResultSetIterator<R extends JanusGraphElement> implements Iterator<
         } else {
             throw new UnsupportedOperationException();
         }
-    }
-
-    public static <R extends JanusGraphElement> Iterable<R> wrap(Iterable<R> inner, int limit) {
-        return () -> new ResultSetIterator<>(inner.iterator(), limit);
     }
 
 }

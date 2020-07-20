@@ -53,7 +53,7 @@ public class StandardKeyInformation implements KeyInformation {
     }
 
     public boolean hasParameters() {
-        return parameters.length>0;
+        return parameters.length > 0;
     }
 
     @Override

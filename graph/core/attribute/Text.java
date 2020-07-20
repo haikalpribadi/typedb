@@ -249,6 +249,11 @@ public enum Text implements JanusGraphPredicate {
 
     };
 
+    public final static Set<Text> HAS_CONTAINS = Collections
+            .unmodifiableSet(EnumSet.of(CONTAINS, CONTAINS_PREFIX, CONTAINS_REGEX, CONTAINS_FUZZY));
+    private static final Logger log = LoggerFactory.getLogger(Text.class);
+    private static final int MIN_TOKEN_LENGTH = 1;
+
     /**
      * Whether {@code term} is at X Lenvenstein of a {@code value}
      * with X=:
@@ -272,17 +277,6 @@ public enum Text implements JanusGraphPredicate {
         return false; //TODO: this is hard-coded so we can avoid an extra dependency, re-enable line above if we ever decide to actually use this mysterious class
     }
 
-    private static final Logger log = LoggerFactory.getLogger(Text.class);
-
-    public void preevaluate(Object value, Object condition) {
-        Preconditions.checkArgument(this.isValidCondition(condition), "Invalid condition provided: %s", condition);
-        if (!(value instanceof String)) log.debug("Value not a string: " + value);
-    }
-
-    abstract boolean evaluateRaw(String value, String condition);
-
-    private static final int MIN_TOKEN_LENGTH = 1;
-
     public static List<String> tokenize(String str) {
         final ArrayList<String> tokens = new ArrayList<>();
         int previous = 0;
@@ -295,32 +289,6 @@ public enum Text implements JanusGraphPredicate {
         if (previous + MIN_TOKEN_LENGTH < str.length()) tokens.add(str.substring(previous));
         return tokens;
     }
-
-    @Override
-    public boolean isValidValueType(Class<?> clazz) {
-        Preconditions.checkNotNull(clazz);
-        return clazz.equals(String.class);
-    }
-
-    @Override
-    public boolean hasNegation() {
-        return false;
-    }
-
-    @Override
-    public JanusGraphPredicate negate() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isQNF() {
-        return true;
-    }
-
-    //////////////// statics
-
-    public final static Set<Text> HAS_CONTAINS = Collections
-            .unmodifiableSet(EnumSet.of(CONTAINS, CONTAINS_PREFIX, CONTAINS_REGEX, CONTAINS_FUZZY));
 
     public static <V> P<V> textContains(V value) {
         return new P(Text.CONTAINS, value);
@@ -342,11 +310,41 @@ public enum Text implements JanusGraphPredicate {
         return new P(Text.REGEX, value);
     }
 
+    //////////////// statics
+
     public static <V> P<V> textContainsFuzzy(V value) {
         return new P(Text.CONTAINS_FUZZY, value);
     }
 
     public static <V> P<V> textFuzzy(V value) {
         return new P(Text.FUZZY, value);
+    }
+
+    public void preevaluate(Object value, Object condition) {
+        Preconditions.checkArgument(this.isValidCondition(condition), "Invalid condition provided: %s", condition);
+        if (!(value instanceof String)) log.debug("Value not a string: " + value);
+    }
+
+    abstract boolean evaluateRaw(String value, String condition);
+
+    @Override
+    public boolean isValidValueType(Class<?> clazz) {
+        Preconditions.checkNotNull(clazz);
+        return clazz.equals(String.class);
+    }
+
+    @Override
+    public boolean hasNegation() {
+        return false;
+    }
+
+    @Override
+    public JanusGraphPredicate negate() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isQNF() {
+        return true;
     }
 }

@@ -256,14 +256,6 @@ public class StringSerializer implements OrderPreservingSerializer<String>, Supp
         };
 
 
-        public abstract byte[] compress(String text);
-
-        public abstract String decompress(ScanBuffer buffer, int numBytes);
-
-        public int getId() {
-            return this.ordinal();
-        }
-
         public static CompressionType getFromId(int id) {
             for (CompressionType ct : values()) {
                 if (ct.getId() == id) {
@@ -271,6 +263,14 @@ public class StringSerializer implements OrderPreservingSerializer<String>, Supp
                 }
             }
             throw new IllegalArgumentException("Unknown compressor type for id: " + id);
+        }
+
+        public abstract byte[] compress(String text);
+
+        public abstract String decompress(ScanBuffer buffer, int numBytes);
+
+        public int getId() {
+            return this.ordinal();
         }
 
     }

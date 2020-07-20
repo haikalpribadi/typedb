@@ -22,23 +22,23 @@ import com.google.common.base.Preconditions;
 /**
  * ElementLifeCycle enumerates all possible states of the lifecycle of a entity.
  *
-;
+ * ;
  */
 public class ElementLifeCycle {
-
-    public enum Event {REMOVED, REMOVED_RELATION, ADDED_RELATION, UPDATE }
 
     /**
      * The entity has been newly created and not yet persisted.
      */
     public final static byte New = 1;
-
     /**
      * The entity has been loaded from the database and has not changed
      * after initial loading.
      */
     public final static byte Loaded = 2;
-
+    /**
+     * The entity has been deleted but not yet erased from the database.
+     */
+    public final static byte Removed = 6;
     /**
      * The entity has changed after being loaded from the database by adding relations.
      */
@@ -54,49 +54,42 @@ public class ElementLifeCycle {
      */
     private final static byte Modified = 5;
 
-    /**
-     * The entity has been deleted but not yet erased from the database.
-     */
-    public final static byte Removed = 6;
-
-
     public static boolean isModified(byte lifecycle) {
-        return lifecycle>=AddedRelations && lifecycle<=Modified;
+        return lifecycle >= AddedRelations && lifecycle <= Modified;
     }
 
     public static boolean hasRemovedRelations(byte lifecycle) {
-        return lifecycle== RemovedRelations || lifecycle==Modified;
+        return lifecycle == RemovedRelations || lifecycle == Modified;
     }
 
     public static boolean hasAddedRelations(byte lifecycle) {
-        return lifecycle==AddedRelations || lifecycle==Modified;
+        return lifecycle == AddedRelations || lifecycle == Modified;
     }
 
-
     public static boolean isNew(byte lifecycle) {
-        return lifecycle==New;
+        return lifecycle == New;
     }
 
     public static boolean isLoaded(byte lifecycle) {
-        return lifecycle==Loaded;
+        return lifecycle == Loaded;
     }
 
     public static boolean isRemoved(byte lifecycle) {
-        return lifecycle== Removed;
+        return lifecycle == Removed;
     }
 
     public static boolean isValid(byte lifecycle) {
-        return lifecycle>=New && lifecycle<=Removed;
+        return lifecycle >= New && lifecycle <= Removed;
     }
 
     public static byte update(byte lifecycle, Event event) {
-        Preconditions.checkArgument(isValid(lifecycle),"Invalid element state: " + lifecycle);
-        if (event== Event.REMOVED) return Removed;
-        else if (lifecycle==New || lifecycle==Modified) {
+        Preconditions.checkArgument(isValid(lifecycle), "Invalid element state: " + lifecycle);
+        if (event == Event.REMOVED) return Removed;
+        else if (lifecycle == New || lifecycle == Modified) {
             return lifecycle;
-        } else if (lifecycle== Removed) {
+        } else if (lifecycle == Removed) {
             throw new IllegalStateException("No event can occur on deleted vertices: " + event);
-        } else if (event== Event.REMOVED_RELATION) {
+        } else if (event == Event.REMOVED_RELATION) {
             switch (lifecycle) {
                 case Loaded:
                     return RemovedRelations;
@@ -107,7 +100,7 @@ public class ElementLifeCycle {
                 default:
                     throw new IllegalStateException("Unexpected state: " + lifecycle + " - " + event);
             }
-        } else if (event== Event.ADDED_RELATION) {
+        } else if (event == Event.ADDED_RELATION) {
             switch (lifecycle) {
                 case Loaded:
                     return AddedRelations;
@@ -118,10 +111,12 @@ public class ElementLifeCycle {
                 default:
                     throw new IllegalStateException("Unexpected state: " + lifecycle + " - " + event);
             }
-        } else if (event== Event.UPDATE) {
+        } else if (event == Event.UPDATE) {
             return Modified;
         } else throw new IllegalStateException("Unexpected state event: " + lifecycle + " - " + event);
     }
+
+    public enum Event {REMOVED, REMOVED_RELATION, ADDED_RELATION, UPDATE}
 
 
 }

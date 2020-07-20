@@ -35,6 +35,10 @@ public class Not<E extends JanusGraphElement> implements Condition<E> {
         this.condition = condition;
     }
 
+    public static <E extends JanusGraphElement> Not<E> of(Condition<E> element) {
+        return new Not<>(element);
+    }
+
     @Override
     public Type getType() {
         return Type.NOT;
@@ -78,10 +82,6 @@ public class Not<E extends JanusGraphElement> implements Condition<E> {
     @Override
     public String toString() {
         return "!(" + condition.toString() + ")";
-    }
-
-    public static <E extends JanusGraphElement> Not<E> of(Condition<E> element) {
-        return new Not<>(element);
     }
 
 }

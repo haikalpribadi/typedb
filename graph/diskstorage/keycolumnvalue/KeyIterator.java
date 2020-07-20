@@ -33,7 +33,6 @@ public interface KeyIterator extends RecordIterator<StaticBuffer> {
      * Calling #next() might close previously returned RecordIterators
      * depending on the implementation, hence it is important to iterate over
      * (and close) the RecordIterator before calling #next() or #hasNext().
-     *
      */
     RecordIterator<Entry> getEntries();
 

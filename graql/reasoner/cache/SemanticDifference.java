@@ -37,7 +37,6 @@ import javax.annotation.CheckReturnValue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,7 +75,7 @@ public class SemanticDifference {
         return definition.hashCode();
     }
 
-    public boolean isTrivial(){ return definition.isEmpty();}
+    public boolean isTrivial() { return definition.isEmpty();}
 
     private Set<Relation> rolesToRels(Variable var, Multiset<Role> roles, ConceptMap answer) {
         if (!answer.containsVar(var)) return new HashSet<>();
@@ -149,8 +148,8 @@ public class SemanticDifference {
             if (concept == null) return false;
             Type requiredType = vd.type();
             Role requiredRole = vd.role();
-            Type conceptType = requiredType != null? concept.asThing().type() : null;
-            Role conceptRole = requiredRole != null? concept.asRole() : null;
+            Type conceptType = requiredType != null ? concept.asThing().type() : null;
+            Role conceptRole = requiredRole != null ? concept.asRole() : null;
             Set<ValuePredicate> vps = vd.valuePredicates();
             return (requiredType == null || requiredType.subs().anyMatch(t -> t.equals(conceptType))) &&
                     (requiredRole == null || requiredRole.subs().anyMatch(r -> r.equals(conceptRole))) &&
@@ -171,10 +170,10 @@ public class SemanticDifference {
     }
 
     /**
-     * @param answer to parent query - answer we want to propagate
-     * @param childSub partial child substitution that needs to be incorporated
-     * @param childVars       child vars
-     * @param unifier    parent->child unifier
+     * @param answer    to parent query - answer we want to propagate
+     * @param childSub  partial child substitution that needs to be incorporated
+     * @param childVars child vars
+     * @param unifier   parent->child unifier
      * @return propagated answer to child query or empty answer if semantic difference not satisfied
      */
     @CheckReturnValue

@@ -31,24 +31,20 @@ import java.util.Set;
 /**
  * Core Grakn implementation of the common methods on the MapReduce and VertexProgram interfaces.
  * <p>
- *
  */
 public abstract class CommonOLAP {
     static final Logger LOGGER = LoggerFactory.getLogger(CommonOLAP.class);
 
     private static final String PREFIX_SELECTED_TYPE_KEY = "SELECTED_TYPE";
     private static final String PREFIX_PERSISTENT_PROPERTIES = "PERSISTENT";
-
-    /**
-     * The types that define a subgraph.
-     */
-    Set<LabelId> selectedTypes = new HashSet<>();
-
     /**
      * Properties that will be reloaded whenever the class is instantiated in a spark executor.
      */
     final Map<String, Object> persistentProperties = new HashMap<>();
-
+    /**
+     * The types that define a subgraph.
+     */
+    Set<LabelId> selectedTypes = new HashSet<>();
 
     /**
      * Store <code>persistentProperties</code> and any hard coded fields in an apache config object for propagation to
@@ -65,11 +61,11 @@ public abstract class CommonOLAP {
 
         // store selectedTypes
         selectedTypes.forEach(typeId ->
-                configuration.addProperty(PREFIX_SELECTED_TYPE_KEY + "." + typeId, typeId));
+                                      configuration.addProperty(PREFIX_SELECTED_TYPE_KEY + "." + typeId, typeId));
 
         // store user specified properties
         persistentProperties.forEach((key, value) ->
-                configuration.addProperty(PREFIX_PERSISTENT_PROPERTIES + "." + key, value));
+                                             configuration.addProperty(PREFIX_PERSISTENT_PROPERTIES + "." + key, value));
     }
 
     /**
@@ -82,11 +78,11 @@ public abstract class CommonOLAP {
     public void loadState(Graph graph, Configuration configuration) {
         // load selected types
         configuration.subset(PREFIX_SELECTED_TYPE_KEY).getKeys().forEachRemaining(key ->
-                selectedTypes.add((LabelId) configuration.getProperty(PREFIX_SELECTED_TYPE_KEY + "." + key)));
+                                                                                          selectedTypes.add((LabelId) configuration.getProperty(PREFIX_SELECTED_TYPE_KEY + "." + key)));
 
         // load user specified properties
         configuration.subset(PREFIX_PERSISTENT_PROPERTIES).getKeys().forEachRemaining(key ->
-                persistentProperties.put(key, configuration.getProperty(PREFIX_PERSISTENT_PROPERTIES + "." + key)));
+                                                                                              persistentProperties.put(key, configuration.getProperty(PREFIX_PERSISTENT_PROPERTIES + "." + key)));
     }
 
     public String toString() {

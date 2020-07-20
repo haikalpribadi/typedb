@@ -34,10 +34,6 @@ public class ReasonerException extends GraknException {
 
     private ReasonerException(String error) { super(error); }
 
-
-    @Override
-    public String getName() { return getClass().getName(); }
-
     public static ReasonerException invalidCast(Class<?> actualClass, Class<?> targetClass) {
         return new ReasonerException(ErrorMessage.INVALID_CAST.getMessage(actualClass, targetClass));
     }
@@ -94,12 +90,15 @@ public class ReasonerException extends GraknException {
         return new ReasonerException(ErrorMessage.ROLE_ID_IS_NOT_ROLE.getMessage(var.toString()));
     }
 
-    public static ReasonerException invalidVariablePredicateState(Atomic vp, ConceptMap ans){
+    public static ReasonerException invalidVariablePredicateState(Atomic vp, ConceptMap ans) {
         return new ReasonerException(ErrorMessage.INVALID_VARIABLE_PREDICATE_STATE.getMessage(vp.toString(), ans.toString()));
     }
 
     public static ReasonerException unsafeNegationBlock(ReasonerQuery query) {
         return new ReasonerException(ErrorMessage.UNSAFE_NEGATION_BLOCK.getMessage(query));
     }
+
+    @Override
+    public String getName() { return getClass().getName(); }
 
 }

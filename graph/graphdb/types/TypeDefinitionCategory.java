@@ -74,7 +74,7 @@ public enum TypeDefinitionCategory {
 
     public static final Set<TypeDefinitionCategory> PROPERTYKEY_DEFINITION_CATEGORIES = ImmutableSet.of(STATUS, INVISIBLE, SORT_KEY, SORT_ORDER, SIGNATURE, MULTIPLICITY, DATATYPE);
     public static final Set<TypeDefinitionCategory> EDGELABEL_DEFINITION_CATEGORIES = ImmutableSet.of(STATUS, INVISIBLE, SORT_KEY, SORT_ORDER, SIGNATURE, MULTIPLICITY, UNIDIRECTIONAL);
-    public static final Set<TypeDefinitionCategory> INDEX_DEFINITION_CATEGORIES = ImmutableSet.of(STATUS, ELEMENT_CATEGORY,INDEX_CARDINALITY,INTERNAL_INDEX, BACKING_INDEX,INDEXSTORE_NAME);
+    public static final Set<TypeDefinitionCategory> INDEX_DEFINITION_CATEGORIES = ImmutableSet.of(STATUS, ELEMENT_CATEGORY, INDEX_CARDINALITY, INTERNAL_INDEX, BACKING_INDEX, INDEXSTORE_NAME);
     public static final Set<TypeDefinitionCategory> VERTEXLABEL_DEFINITION_CATEGORIES = ImmutableSet.of(PARTITIONED, STATIC);
     public static final Set<TypeDefinitionCategory> TYPE_MODIFIER_DEFINITION_CATEGORIES;
 
@@ -90,7 +90,7 @@ public enum TypeDefinitionCategory {
     private final Class dataType;
 
     TypeDefinitionCategory() {
-        this(RelationCategory.EDGE,null);
+        this(RelationCategory.EDGE, null);
     }
 
     TypeDefinitionCategory(Class<?> dataType) {
@@ -98,14 +98,14 @@ public enum TypeDefinitionCategory {
     }
 
     TypeDefinitionCategory(RelationCategory relCat, Class<?> dataType) {
-        Preconditions.checkArgument(relCat!=null && relCat.isProper());
-        Preconditions.checkArgument(relCat== RelationCategory.EDGE || dataType !=null);
+        Preconditions.checkArgument(relCat != null && relCat.isProper());
+        Preconditions.checkArgument(relCat == RelationCategory.EDGE || dataType != null);
         this.relationCategory = relCat;
         this.dataType = dataType;
     }
 
     public boolean hasDataType() {
-        return dataType !=null;
+        return dataType != null;
     }
 
     public Class<?> getDataType() {
@@ -114,11 +114,11 @@ public enum TypeDefinitionCategory {
     }
 
     public boolean isProperty() {
-        return relationCategory== RelationCategory.PROPERTY;
+        return relationCategory == RelationCategory.PROPERTY;
     }
 
     public boolean isEdge() {
-        return relationCategory== RelationCategory.EDGE;
+        return relationCategory == RelationCategory.EDGE;
     }
 
     public boolean verifyAttribute(Object attribute) {
@@ -127,10 +127,13 @@ public enum TypeDefinitionCategory {
     }
 
     public Object defaultValue(TypeDefinitionMap map) {
-        switch(this) {
-            case SORT_ORDER: return Order.ASC;
-            case STATUS: return SchemaStatus.ENABLED;
-            default: return null;
+        switch (this) {
+            case SORT_ORDER:
+                return Order.ASC;
+            case STATUS:
+                return SchemaStatus.ENABLED;
+            default:
+                return null;
         }
     }
 

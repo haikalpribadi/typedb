@@ -22,7 +22,6 @@ package grakn.core.graph.diskstorage;
  * that is, an exception that is due to a permanent failure while persisting
  * data.
  * <p>
-
  */
 
 public class PermanentBackendException extends BackendException {

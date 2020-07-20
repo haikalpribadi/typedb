@@ -98,10 +98,24 @@ public class VertexIDAssigner implements AutoCloseable {
 
         idPools = new ConcurrentHashMap<>(partitionIdBound);
         schemaIdPool = new StandardIDPool(idAuthority, IDManager.SCHEMA_PARTITION, PoolType.SCHEMA.getIDNamespace(),
-                IDManager.getSchemaCountBound(), renewTimeoutMS, renewBufferPercentage);
+                                          IDManager.getSchemaCountBound(), renewTimeoutMS, renewBufferPercentage);
         partitionVertexIdPool = new StandardIDPool(idAuthority, IDManager.PARTITIONED_VERTEX_PARTITION, PoolType.PARTITIONED_VERTEX.getIDNamespace(),
-                PoolType.PARTITIONED_VERTEX.getCountBound(idManager), renewTimeoutMS, renewBufferPercentage);
+                                                   PoolType.PARTITIONED_VERTEX.getCountBound(idManager), renewTimeoutMS, renewBufferPercentage);
         setLocalPartitions(partitionBits);
+    }
+
+    private static IDManager.VertexIDType getVertexIDType(VertexLabel vertexLabel) {
+        if (vertexLabel.isPartitioned()) {
+            return IDManager.VertexIDType.PartitionedVertex;
+        } else if (vertexLabel.isStatic()) {
+            return IDManager.VertexIDType.UnmodifiableVertex;
+        } else {
+            return IDManager.VertexIDType.NormalVertex;
+        }
+    }
+
+    private static IDManager.VertexIDType getVertexIDType(JanusGraphVertex v) {
+        return getVertexIDType(v.vertexLabel());
     }
 
     private void setLocalPartitionsToGlobal(int partitionBits) {
@@ -153,7 +167,6 @@ public class VertexIDAssigner implements AutoCloseable {
         Preconditions.checkArgument(vertex != null && label != null);
         assignID(vertex, getVertexIDType(label));
     }
-
 
     private void assignID(InternalElement element, IDManager.VertexIDType vertexIDType) {
         for (int attempt = 0; attempt < MAX_PARTITION_RENEW_ATTEMPTS; attempt++) {
@@ -360,56 +373,28 @@ public class VertexIDAssigner implements AutoCloseable {
         element.setId(elementId);
     }
 
-    private static IDManager.VertexIDType getVertexIDType(VertexLabel vertexLabel) {
-        if (vertexLabel.isPartitioned()) {
-            return IDManager.VertexIDType.PartitionedVertex;
-        } else if (vertexLabel.isStatic()) {
-            return IDManager.VertexIDType.UnmodifiableVertex;
-        } else {
-            return IDManager.VertexIDType.NormalVertex;
-        }
-    }
-
-    private static IDManager.VertexIDType getVertexIDType(JanusGraphVertex v) {
-        return getVertexIDType(v.vertexLabel());
-    }
-
-    private class SimpleVertexIDBlockSizer implements IDBlockSizer {
-
-        private final long baseBlockSize;
-
-        SimpleVertexIDBlockSizer(long size) {
-            Preconditions.checkArgument(size > 0 && size < Integer.MAX_VALUE);
-            this.baseBlockSize = size;
-        }
-
-        @Override
-        public long getBlockSize(int idNamespace) {
-            switch (PoolType.getPoolType(idNamespace)) {
-                case NORMAL_VERTEX:
-                    return baseBlockSize;
-                case UNMODIFIABLE_VERTEX:
-                    return Math.max(10, baseBlockSize / 10);
-                case PARTITIONED_VERTEX:
-                    return Math.max(10, baseBlockSize / 100);
-                case RELATION:
-                    return baseBlockSize * 8;
-                case SCHEMA:
-                    return 50;
-                default:
-                    throw new IllegalArgumentException("Unrecognized pool type");
-            }
-        }
-
-        @Override
-        public long getIdUpperBound(int idNamespace) {
-            return PoolType.getPoolType(idNamespace).getCountBound(idManager);
-        }
-    }
-
     private enum PoolType {
 
         NORMAL_VERTEX, UNMODIFIABLE_VERTEX, PARTITIONED_VERTEX, RELATION, SCHEMA;
+
+        public static PoolType getPoolTypeFor(IDManager.VertexIDType idType) {
+            if (idType == IDManager.VertexIDType.NormalVertex) {
+                return NORMAL_VERTEX;
+            } else if (idType == IDManager.VertexIDType.UnmodifiableVertex) {
+                return UNMODIFIABLE_VERTEX;
+            } else if (idType == IDManager.VertexIDType.PartitionedVertex) {
+                return PARTITIONED_VERTEX;
+            } else if (IDManager.VertexIDType.Schema.isSubType(idType)) {
+                return SCHEMA;
+            } else {
+                throw new IllegalArgumentException("Invalid id type: " + idType);
+            }
+        }
+
+        public static PoolType getPoolType(int idNamespace) {
+            Preconditions.checkArgument(idNamespace >= 0 && idNamespace < values().length);
+            return values()[idNamespace];
+        }
 
         public int getIDNamespace() {
             return ordinal();
@@ -439,25 +424,6 @@ public class VertexIDAssigner implements AutoCloseable {
                 default:
                     return false;
             }
-        }
-
-        public static PoolType getPoolTypeFor(IDManager.VertexIDType idType) {
-            if (idType == IDManager.VertexIDType.NormalVertex) {
-                return NORMAL_VERTEX;
-            } else if (idType == IDManager.VertexIDType.UnmodifiableVertex) {
-                return UNMODIFIABLE_VERTEX;
-            } else if (idType == IDManager.VertexIDType.PartitionedVertex) {
-                return PARTITIONED_VERTEX;
-            } else if (IDManager.VertexIDType.Schema.isSubType(idType)) {
-                return SCHEMA;
-            } else {
-                throw new IllegalArgumentException("Invalid id type: " + idType);
-            }
-        }
-
-        public static PoolType getPoolType(int idNamespace) {
-            Preconditions.checkArgument(idNamespace >= 0 && idNamespace < values().length);
-            return values()[idNamespace];
         }
 
     }
@@ -502,6 +468,39 @@ public class VertexIDAssigner implements AutoCloseable {
             return lastAccess;
         }
 
+    }
+
+    private class SimpleVertexIDBlockSizer implements IDBlockSizer {
+
+        private final long baseBlockSize;
+
+        SimpleVertexIDBlockSizer(long size) {
+            Preconditions.checkArgument(size > 0 && size < Integer.MAX_VALUE);
+            this.baseBlockSize = size;
+        }
+
+        @Override
+        public long getBlockSize(int idNamespace) {
+            switch (PoolType.getPoolType(idNamespace)) {
+                case NORMAL_VERTEX:
+                    return baseBlockSize;
+                case UNMODIFIABLE_VERTEX:
+                    return Math.max(10, baseBlockSize / 10);
+                case PARTITIONED_VERTEX:
+                    return Math.max(10, baseBlockSize / 100);
+                case RELATION:
+                    return baseBlockSize * 8;
+                case SCHEMA:
+                    return 50;
+                default:
+                    throw new IllegalArgumentException("Unrecognized pool type");
+            }
+        }
+
+        @Override
+        public long getIdUpperBound(int idNamespace) {
+            return PoolType.getPoolType(idNamespace).getCountBound(idManager);
+        }
     }
 
 

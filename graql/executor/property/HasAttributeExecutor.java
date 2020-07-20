@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class HasAttributeExecutor  implements PropertyExecutor.Insertable, PropertyExecutor.Deletable {
+public class HasAttributeExecutor implements PropertyExecutor.Insertable, PropertyExecutor.Deletable {
 
     private final Variable var;
     private final HasAttributeProperty property;

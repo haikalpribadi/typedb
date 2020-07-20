@@ -60,7 +60,6 @@ import java.util.Set;
  * This is a modified version of Spark Executor.
  * We change its behaviour so it can work with our own graph computer.
  * </p>
- *
  */
 public class GraknSparkExecutor {
 
@@ -101,8 +100,9 @@ public class GraknSparkExecutor {
                     KryoShimServiceLoader.applyConfiguration(graphComputerConfiguration);
 
                     // if the partition is empty, return without starting a new VP iteration
-                    if (!partitionIterator.hasNext()){
-                        return Collections.emptyIterator();}
+                    if (!partitionIterator.hasNext()) {
+                        return Collections.emptyIterator();
+                    }
 
                     final VertexProgram<M> workerVertexProgram = VertexProgram.createVertexProgram(HadoopGraph.open(graphComputerConfiguration), vertexProgramConfiguration); // each partition(Spark)/worker(TP3) has a local copy of the vertex program (a worker's task)
                     final String[] vertexComputeKeysArray = VertexProgramHelper.vertexComputeKeysAsArray(workerVertexProgram.getVertexComputeKeys()); // the compute keys as an array
@@ -114,8 +114,9 @@ public class GraknSparkExecutor {
                         final boolean hasViewAndMessages = vertexViewIncoming._2()._2().isPresent(); // if this is the first iteration, then there are no views or messages
                         final List<DetachedVertexProperty<Object>> previousView = hasViewAndMessages ? vertexViewIncoming._2()._2().get().getView() : memory.isInitialIteration() ? new ArrayList<>() : Collections.emptyList();
                         // revive compute properties if they already exist
-                        if (memory.isInitialIteration() && vertexComputeKeysArray.length > 0){
-                            vertex.properties(vertexComputeKeysArray).forEachRemaining(vertexProperty -> previousView.add(DetachedFactory.detach(vertexProperty, true)));}
+                        if (memory.isInitialIteration() && vertexComputeKeysArray.length > 0) {
+                            vertex.properties(vertexComputeKeysArray).forEachRemaining(vertexProperty -> previousView.add(DetachedFactory.detach(vertexProperty, true)));
+                        }
                         // drop any computed properties that are cached in memory
                         vertex.dropVertexProperties(vertexComputeKeysArray);
                         final List<M> incomingMessages = hasViewAndMessages ? vertexViewIncoming._2()._2().get().getIncomingMessages() : Collections.emptyList();
@@ -134,7 +135,8 @@ public class GraknSparkExecutor {
                         final List<Tuple2<Object, M>> outgoingMessages = messenger.getOutgoingMessages(); // get the outgoing messages being sent by this vertex
                         if (!partitionIterator.hasNext()) {
                             workerVertexProgram.workerIterationEnd(memory.asImmutable()); // if no more vertices in the partition, end the worker's iteration}
-                        }return (nextView.isEmpty() && outgoingMessages.isEmpty()) ?
+                        }
+                        return (nextView.isEmpty() && outgoingMessages.isEmpty()) ?
                                 null : // if there is no view nor outgoing messages, emit nothing
                                 new Tuple2<>(vertex.id(), new ViewOutgoingPayload<>(nextView, outgoingMessages));  // else, emit the vertex id, its view, and its outgoing messages
                     });
@@ -172,11 +174,12 @@ public class GraknSparkExecutor {
                         viewOutgoingRDD.flatMapToPair(messageFunction).reduceByKey(reducerFunction))
                         .mapValues(payload -> { // handle various corner cases of when views don't exist, messages don't exist, or neither exists.
                             if (payload instanceof ViewIncomingPayload) {// this happens if there is a vertex view with incoming messages
-                                return (ViewIncomingPayload<M>) payload;}
-                            else if (payload instanceof ViewPayload)  {  // this happens if there is a vertex view with no incoming messages
-                                return new ViewIncomingPayload<>((ViewPayload) payload);}
-                            else  {                                      // this happens when there is a single message to a vertex that has no view or outgoing messages
-                                return new ViewIncomingPayload<>((MessagePayload<M>) payload);}
+                                return (ViewIncomingPayload<M>) payload;
+                            } else if (payload instanceof ViewPayload) {  // this happens if there is a vertex view with no incoming messages
+                                return new ViewIncomingPayload<>((ViewPayload) payload);
+                            } else {                                      // this happens when there is a single message to a vertex that has no view or outgoing messages
+                                return new ViewIncomingPayload<>((MessagePayload<M>) payload);
+                            }
                         });
         // the graphRDD and the viewRDD must have the same partitioner
         Preconditions.checkState(!partitionedGraphRDD || graphRDD.partitioner().get().equals(newViewIncomingRDD.partitioner().get()));
@@ -201,8 +204,9 @@ public class GraknSparkExecutor {
                     // attach the final computed view to the cached graph
                     final List<DetachedVertexProperty<Object>> view = tuple._2().isPresent() ? tuple._2().get().getView() : Collections.emptyList();
                     for (final DetachedVertexProperty<Object> property : view) {
-                        if (!VertexProgramHelper.isTransientVertexComputeKey(property.key(), vertexComputeKeys)){
-                            property.attach(Attachable.Method.create(vertex));}
+                        if (!VertexProgramHelper.isTransientVertexComputeKey(property.key(), vertexComputeKeys)) {
+                            property.attach(Attachable.Method.create(vertex));
+                        }
                     }
                     return tuple._1();
                 });
@@ -219,8 +223,9 @@ public class GraknSparkExecutor {
             KryoShimServiceLoader.applyConfiguration(graphComputerConfiguration);
             return new MapIterator<>(MapReduce.<MapReduce<K, V, ?, ?, ?>>createMapReduce(HadoopGraph.open(graphComputerConfiguration), graphComputerConfiguration), partitionIterator);
         });
-        if (mapReduce.getMapKeySort().isPresent()){
-            mapRDD = mapRDD.sortByKey(mapReduce.getMapKeySort().get(), true, 1);}
+        if (mapReduce.getMapKeySort().isPresent()) {
+            mapRDD = mapRDD.sortByKey(mapReduce.getMapKeySort().get(), true, 1);
+        }
         return mapRDD;
     }
 
@@ -239,8 +244,9 @@ public class GraknSparkExecutor {
             KryoShimServiceLoader.applyConfiguration(graphComputerConfiguration);
             return new ReduceIterator<>(MapReduce.<MapReduce<K, V, OK, OV, ?>>createMapReduce(HadoopGraph.open(graphComputerConfiguration), graphComputerConfiguration), partitionIterator);
         });
-        if (mapReduce.getReduceKeySort().isPresent()){
-            reduceRDD = reduceRDD.sortByKey(mapReduce.getReduceKeySort().get(), true, 1);}
+        if (mapReduce.getReduceKeySort().isPresent()) {
+            reduceRDD = reduceRDD.sortByKey(mapReduce.getReduceKeySort().get(), true, 1);
+        }
         return reduceRDD;
     }
 }

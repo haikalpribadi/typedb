@@ -30,6 +30,6 @@ public interface MetaAnnotated {
     /**
      * @return all meta data associated with this entry
      */
-    Map<EntryMetaData,Object> getMetaData();
+    Map<EntryMetaData, Object> getMetaData();
 
 }

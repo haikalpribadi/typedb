@@ -30,7 +30,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#valueType(VarProperty, Variable, AttributeType.ValueType)
- *
  */
 class ValueTypeFragmentSet extends EquivalentFragmentSetImpl {
     private final Variable attributeType;

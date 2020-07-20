@@ -34,7 +34,7 @@ import java.util.Set;
  * It is used to allow rule application to Atomics where only part of the Atomic matches the rule head
  * Answers produced by the partial atomic that is resolved are checked against the full Atomic query
  */
-public class PartialAtomicState extends AnswerPropagatorState<ReasonerAtomicQuery>{
+public class PartialAtomicState extends AnswerPropagatorState<ReasonerAtomicQuery> {
 
     public PartialAtomicState(ReasonerAtomicQuery query, ConceptMap sub, Unifier u, AnswerPropagatorState parent, Set<ReasonerAtomicQuery> subGoals) {
         super(query, sub, u, parent, subGoals);

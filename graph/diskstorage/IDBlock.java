@@ -22,7 +22,6 @@ package grakn.core.graph.diskstorage;
  * the id at the given position, where the position must be smaller than the number of ids in this block (similar to array access).
  * <p>
  * Any IDBlock implementation must be completely thread-safe.
- *
  */
 public interface IDBlock {
 

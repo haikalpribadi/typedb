@@ -23,25 +23,24 @@ import grakn.core.graql.reasoner.query.ReasonerAtomicQuery;
 import grakn.core.graql.reasoner.query.ReasonerQueryEquivalence;
 import grakn.core.graql.reasoner.query.ResolvableQuery;
 import grakn.core.kb.graql.reasoner.unifier.Unifier;
+
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- *
  * <p>
  * Base abstract class for resolution states that exhibit the following behaviours:
  *
  * - answer propagation
- *   The state serves as a proxy state for propagating answer states up the tree to the root state.
- *   When an answer state propagates via this state, it is consumed - a specific action is performed on the answer state.
+ * The state serves as a proxy state for propagating answer states up the tree to the root state.
+ * When an answer state propagates via this state, it is consumed - a specific action is performed on the answer state.
  *
  * - possibility of production of multiple states
- *   The state has internal query states coming from an underlying query.
- *   The state defines an iterator for inner states that's used for state generation.
+ * The state has internal query states coming from an underlying query.
+ * The state defines an iterator for inner states that's used for state generation.
  *
  * </p>
- *
  */
 public abstract class AnswerPropagatorState<Q extends ResolvableQuery> extends ResolutionState {
 
@@ -58,13 +57,13 @@ public abstract class AnswerPropagatorState<Q extends ResolvableQuery> extends R
         this.subGoalIterator = generateChildStateIterator();
     }
 
-    public String toString(){
+    public String toString() {
         return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + "\n" + getQuery().toString();
     }
 
     @Override
     public ResolutionState generateChildState() {
-        return subGoalIterator.hasNext()? subGoalIterator.next() : null;
+        return subGoalIterator.hasNext() ? subGoalIterator.next() : null;
     }
 
     @Override
@@ -85,25 +84,26 @@ public abstract class AnswerPropagatorState<Q extends ResolvableQuery> extends R
     /**
      * @return query corresponding to this query state
      */
-    public Q getQuery(){ return query;}
+    public Q getQuery() { return query;}
 
-    /**@return set of already visited subGoals (atomic queries)
+    /**
+     * @return set of already visited subGoals (atomic queries)
      */
-    Set<ReasonerAtomicQuery> getVisitedSubGoals(){ return visitedSubGoals;}
+    Set<ReasonerAtomicQuery> getVisitedSubGoals() { return visitedSubGoals;}
 
     /**
      * @return unifier of this state with parent state
      */
-    public Unifier getUnifier(){ return unifier;}
+    public Unifier getUnifier() { return unifier;}
 
     /**
-     *
      * @return
      */
     abstract Iterator<ResolutionState> generateChildStateIterator();
 
     /**
      * propagates the answer state up the tree and acknowledges (caches) its substitution
+     *
      * @param state to propagate
      * @return new resolution state obtained by propagating the answer up the resolution tree
      */

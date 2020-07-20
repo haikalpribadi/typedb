@@ -26,37 +26,35 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- *
  * Index for IndexedAnswerSet. Corresponds to a set of variables which partial substitutions need to map.
- *
  */
-public class Index{
+public class Index {
     final private ImmutableSet<Variable> vars;
 
-    private Index(Variable var){
+    private Index(Variable var) {
         this.vars = ImmutableSet.of(var);
     }
 
-    private Index(Set<Variable> vars){
+    private Index(Set<Variable> vars) {
         this.vars = ImmutableSet.copyOf(vars);
     }
 
-    public static Index empty(){
+    public static Index empty() {
         return new Index(new HashSet<>());
     }
 
-    public static Index of(Variable var){
+    public static Index of(Variable var) {
         return new Index(var);
     }
 
-    public static Index of (Set<Variable> vars){
+    public static Index of(Set<Variable> vars) {
         return new Index(vars);
     }
 
-    Set<Variable> vars(){return vars;}
+    Set<Variable> vars() {return vars;}
 
     @Override
-    public String toString(){ return vars.toString(); }
+    public String toString() { return vars.toString(); }
 
     @Override
     public boolean equals(Object o) {

@@ -32,41 +32,8 @@ import static grakn.core.graql.planning.gremlin.sets.EquivalentFragmentSets.labe
 
 /**
  * see EquivalentFragmentSets#sub(VarProperty, Variable, Variable)
- *
  */
 class SubFragmentSet extends EquivalentFragmentSetImpl {
-
-    private final Variable subConcept;
-    private final Variable superConcept;
-    private final boolean explicitSub;
-
-    SubFragmentSet(
-            @Nullable VarProperty varProperty,
-            Variable subConcept,
-            Variable superConcept,
-            boolean explicitSub) {
-        super(varProperty);
-        this.subConcept = subConcept;
-        this.superConcept = superConcept;
-        this.explicitSub = explicitSub;
-    }
-
-    @Override
-    public final Set<Fragment> fragments() {
-
-        if (explicitSub) {
-            return ImmutableSet.of(
-                    Fragments.outSub(varProperty(), subConcept, superConcept, Fragments.TRAVERSE_ONE_SUB_EDGE),
-                    Fragments.inSub(varProperty(), superConcept, subConcept, Fragments.TRAVERSE_ONE_SUB_EDGE)
-            );
-        } else {
-            return ImmutableSet.of(
-                    Fragments.outSub(varProperty(), subConcept, superConcept,Fragments.TRAVERSE_ALL_SUB_EDGES),
-                    Fragments.inSub(varProperty(), superConcept, subConcept, Fragments.TRAVERSE_ALL_SUB_EDGES)
-            );
-        }
-    }
-
 
     /**
      * A query can avoid navigating the sub hierarchy when the following conditions are met:
@@ -114,6 +81,36 @@ class SubFragmentSet extends EquivalentFragmentSetImpl {
 
         return false;
     };
+    private final Variable subConcept;
+    private final Variable superConcept;
+    private final boolean explicitSub;
+
+    SubFragmentSet(
+            @Nullable VarProperty varProperty,
+            Variable subConcept,
+            Variable superConcept,
+            boolean explicitSub) {
+        super(varProperty);
+        this.subConcept = subConcept;
+        this.superConcept = superConcept;
+        this.explicitSub = explicitSub;
+    }
+
+    @Override
+    public final Set<Fragment> fragments() {
+
+        if (explicitSub) {
+            return ImmutableSet.of(
+                    Fragments.outSub(varProperty(), subConcept, superConcept, Fragments.TRAVERSE_ONE_SUB_EDGE),
+                    Fragments.inSub(varProperty(), superConcept, subConcept, Fragments.TRAVERSE_ONE_SUB_EDGE)
+            );
+        } else {
+            return ImmutableSet.of(
+                    Fragments.outSub(varProperty(), subConcept, superConcept, Fragments.TRAVERSE_ALL_SUB_EDGES),
+                    Fragments.inSub(varProperty(), superConcept, subConcept, Fragments.TRAVERSE_ALL_SUB_EDGES)
+            );
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

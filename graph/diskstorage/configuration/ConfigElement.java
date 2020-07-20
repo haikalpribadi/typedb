@@ -44,55 +44,6 @@ public abstract class ConfigElement {
         if (namespace != null) namespace.registerChild(this);
     }
 
-    public ConfigNamespace getNamespace() {
-        Preconditions.checkArgument(namespace != null, "Cannot get namespace of root");
-        return namespace;
-    }
-
-    public boolean isRoot() {
-        return namespace == null;
-    }
-
-    public ConfigNamespace getRoot() {
-        if (isRoot()) return (ConfigNamespace) this;
-        else return getNamespace().getRoot();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public abstract boolean isOption();
-
-    public boolean isNamespace() {
-        return !isOption();
-    }
-
-    @Override
-    public String toString() {
-        return (namespace != null ? namespace.toString() + SEPARATOR : "") + name;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, namespace);
-    }
-
-    @Override
-    public boolean equals(Object oth) {
-        if (this == oth) {
-            return true;
-        } else if (!getClass().isInstance(oth)) {
-            return false;
-        }
-        ConfigElement c = (ConfigElement) oth;
-        return name.equals(c.name) && namespace == c.namespace;
-    }
-
     public static String[] getComponents(String path) {
         return StringUtils.split(path, SEPARATOR);
     }
@@ -192,6 +143,55 @@ public abstract class ConfigElement {
             }
         }
         return new PathIdentifier(last, umbrellaElements.toArray(new String[umbrellaElements.size()]), lastIsUmbrella);
+    }
+
+    public ConfigNamespace getNamespace() {
+        Preconditions.checkArgument(namespace != null, "Cannot get namespace of root");
+        return namespace;
+    }
+
+    public boolean isRoot() {
+        return namespace == null;
+    }
+
+    public ConfigNamespace getRoot() {
+        if (isRoot()) return (ConfigNamespace) this;
+        else return getNamespace().getRoot();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public abstract boolean isOption();
+
+    public boolean isNamespace() {
+        return !isOption();
+    }
+
+    @Override
+    public String toString() {
+        return (namespace != null ? namespace.toString() + SEPARATOR : "") + name;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, namespace);
+    }
+
+    @Override
+    public boolean equals(Object oth) {
+        if (this == oth) {
+            return true;
+        } else if (!getClass().isInstance(oth)) {
+            return false;
+        }
+        ConfigElement c = (ConfigElement) oth;
+        return name.equals(c.name) && namespace == c.namespace;
     }
 
     public static class PathIdentifier {

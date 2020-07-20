@@ -37,8 +37,8 @@ public class EnumSerializer<E extends Enum> implements OrderPreservingSerializer
 
     private E getValue(long ordinal) {
         E[] values = datatype.getEnumConstants();
-        Preconditions.checkArgument(ordinal>=0 && ordinal<values.length,"Invalid ordinal number (max %s): %s",values.length,ordinal);
-        return values[(int)ordinal];
+        Preconditions.checkArgument(ordinal >= 0 && ordinal < values.length, "Invalid ordinal number (max %s): %s", values.length, ordinal);
+        return values[(int) ordinal];
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EnumSerializer<E extends Enum> implements OrderPreservingSerializer
 
     @Override
     public void writeByteOrder(WriteBuffer buffer, E attribute) {
-        ints.writeByteOrder(buffer,attribute.ordinal());
+        ints.writeByteOrder(buffer, attribute.ordinal());
     }
 
 }

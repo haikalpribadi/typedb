@@ -61,12 +61,12 @@ public class TypeAtomSemanticProcessor implements SemanticProcessor<TypeAtom> {
         SchemaConcept childType = childAtom.getSchemaConcept();
 
         //check for incompatibilities
-        if( !unifierType.typeCompatibility(
-                    parentType != null? Collections.singleton(parentType) : Collections.emptySet(),
-                    childType != null? Collections.singleton(childType) : Collections.emptySet())
+        if (!unifierType.typeCompatibility(
+                parentType != null ? Collections.singleton(parentType) : Collections.emptySet(),
+                childType != null ? Collections.singleton(childType) : Collections.emptySet())
                 || !unifierType.typeCompatibility(parentTypes, childTypes)
                 || !unifierType.typePlayabilityWithInsertSemantics(childAtom, childAtom.getVarName(), parentTypes)
-                || !unifierType.typeDirectednessCompatibility(parentAtom, childAtom)){
+                || !unifierType.typeDirectednessCompatibility(parentAtom, childAtom)) {
             return UnifierImpl.nonExistent();
         }
 
@@ -80,7 +80,7 @@ public class TypeAtomSemanticProcessor implements SemanticProcessor<TypeAtom> {
         }
 
         UnifierImpl unifier = new UnifierImpl(varMappings);
-        return AtomicUtil.isPredicateCompatible(childAtom, parentAtom, unifier, unifierType, conceptManager)?
+        return AtomicUtil.isPredicateCompatible(childAtom, parentAtom, unifier, unifierType, conceptManager) ?
                 unifier : UnifierImpl.nonExistent();
     }
 
@@ -91,7 +91,7 @@ public class TypeAtomSemanticProcessor implements SemanticProcessor<TypeAtom> {
     }
 
     @Override
-    public SemanticDifference computeSemanticDifference(TypeAtom parentAtom, Atom childAtom, Unifier unifier, ReasoningContext ctx){
+    public SemanticDifference computeSemanticDifference(TypeAtom parentAtom, Atom childAtom, Unifier unifier, ReasoningContext ctx) {
         Set<VariableDefinition> diff = new HashSet<>();
         Unifier unifierInverse = unifier.inverse();
 

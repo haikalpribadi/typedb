@@ -47,11 +47,14 @@ import java.util.stream.StreamSupport;
 
 public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource {
 
+    private String name = null;
+    private TypeDefinitionMap definition = null;
+    private ListMultimap<TypeDefinitionCategory, Entry> outRelations = null;
+    private ListMultimap<TypeDefinitionCategory, Entry> inRelations = null;
+
     public JanusGraphSchemaVertex(StandardJanusGraphTx tx, long id, byte lifecycle) {
         super(tx, id, lifecycle);
     }
-
-    private String name = null;
 
     @Override
     public String name() {
@@ -60,8 +63,8 @@ public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource 
             if (isLoaded()) {
                 StandardJanusGraphTx tx = tx();
                 p = (JanusGraphVertexProperty) Iterables.getOnlyElement(RelationConstructor.readRelation(this,
-                        tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseKey.SchemaName, Direction.OUT),
-                        tx), null);
+                                                                                                         tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseKey.SchemaName, Direction.OUT),
+                                                                                                         tx), null);
             } else {
                 p = Iterables.getOnlyElement(query().type(BaseKey.SchemaName).properties(), null);
             }
@@ -76,8 +79,6 @@ public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource 
         return null;
     }
 
-    private TypeDefinitionMap definition = null;
-
     @Override
     public TypeDefinitionMap getDefinition() {
         TypeDefinitionMap def = definition;
@@ -87,8 +88,8 @@ public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource 
             if (isLoaded()) {
                 StandardJanusGraphTx tx = tx();
                 ps = (Iterable) RelationConstructor.readRelation(this,
-                        tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseKey.SchemaDefinitionProperty, Direction.OUT),
-                        tx);
+                                                                 tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseKey.SchemaDefinitionProperty, Direction.OUT),
+                                                                 tx);
             } else {
                 ps = query().type(BaseKey.SchemaDefinitionProperty).properties();
             }
@@ -102,9 +103,6 @@ public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource 
         return def;
     }
 
-    private ListMultimap<TypeDefinitionCategory, Entry> outRelations = null;
-    private ListMultimap<TypeDefinitionCategory, Entry> inRelations = null;
-
     @Override
     public Iterable<Entry> getRelated(TypeDefinitionCategory def, Direction dir) {
         ListMultimap<TypeDefinitionCategory, Entry> relations = dir == Direction.OUT ? outRelations : inRelations;
@@ -114,8 +112,8 @@ public class JanusGraphSchemaVertex extends CacheVertex implements SchemaSource 
             if (isLoaded()) {
                 StandardJanusGraphTx tx = tx();
                 edges = (Iterable) RelationConstructor.readRelation(this,
-                        tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseLabel.SchemaDefinitionEdge, dir),
-                        tx);
+                                                                    tx.getGraph().getSchemaCache().getSchemaRelations(longId(), BaseLabel.SchemaDefinitionEdge, dir),
+                                                                    tx);
             } else {
                 edges = query().type(BaseLabel.SchemaDefinitionEdge).direction(dir).edges();
             }

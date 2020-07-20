@@ -59,7 +59,8 @@ public class OutKeyFragment extends EdgeFragment {
         // a type can be keyed by any attribute that any of its parents (self inclusive) is keyed by
         return Fragments
                 .outSubs(Fragments.isVertex(traversal))
-                .out(Schema.EdgeLabel.KEY.getLabel());    }
+                .out(Schema.EdgeLabel.KEY.getLabel());
+    }
 
     @Override
     public String name() {

@@ -27,13 +27,13 @@ public class ObjectSerializer implements AttributeSerializer<Object> {
 
     @Override
     public Object read(ScanBuffer buffer) {
-        Preconditions.checkArgument(buffer.getByte()==1,"Invalid serialization state");
+        Preconditions.checkArgument(buffer.getByte() == 1, "Invalid serialization state");
         return new Object();
     }
 
     @Override
     public void write(WriteBuffer buffer, Object attribute) {
-        buffer.putByte((byte)1);
+        buffer.putByte((byte) 1);
     }
 
 }

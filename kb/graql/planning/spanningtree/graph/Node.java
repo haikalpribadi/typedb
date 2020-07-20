@@ -112,6 +112,7 @@ public abstract class Node {
 
     /**
      * Lower is a more specific and therefore a more desirable node type
+     *
      * @return the node priority - lower is better
      */
     public abstract int getNodeTypePriority();

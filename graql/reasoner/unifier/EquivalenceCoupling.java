@@ -26,7 +26,6 @@ import grakn.core.graql.reasoner.query.ReasonerQueryEquivalence;
 public interface EquivalenceCoupling {
 
     /**
-     *
      * @return coupled equivalence class
      */
     ReasonerQueryEquivalence equivalence();

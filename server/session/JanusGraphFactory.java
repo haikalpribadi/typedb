@@ -62,30 +62,6 @@ final public class JanusGraphFactory {
         this.config = config;
     }
 
-    public StandardJanusGraph openGraph(String keyspace) {
-        StandardJanusGraph janusGraph = configureGraph(keyspace, config);
-        buildJanusIndexes(janusGraph);
-        if (!strategiesApplied.getAndSet(true)) {
-            TraversalStrategies strategies = TraversalStrategies.GlobalCache.getStrategies(StandardJanusGraphTx.class);
-            strategies = strategies.clone().addStrategies(new JanusPreviousPropertyStepStrategy());
-            //TODO: find out why Tinkerpop added these strategies. They result in many NoOpBarrier steps which slowed down our queries so we had to remove them.
-            // 2020 NOTE: find out if removing these strategies still makes a difference, probably not.
-            strategies.removeStrategies(PathRetractionStrategy.class, LazyBarrierStrategy.class);
-            TraversalStrategies.GlobalCache.registerStrategies(StandardJanusGraphTx.class, strategies);
-        }
-        return janusGraph;
-    }
-
-    public void drop(String keyspace) {
-        try {
-            JanusGraph graph = openGraph(keyspace);
-            graph.close();
-            grakn.core.graph.core.JanusGraphFactory.drop(graph);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private static StandardJanusGraph configureGraph(String keyspace, Config config) {
         grakn.core.graph.core.JanusGraphFactory.Builder builder = grakn.core.graph.core.JanusGraphFactory.build()
                 .set(ConfigKey.STORAGE_BACKEND.name(), CQL_BACKEND)
@@ -99,7 +75,6 @@ final public class JanusGraphFactory {
         LOG.debug("Opening graph {}", keyspace);
         return builder.open();
     }
-
 
     private static void buildJanusIndexes(JanusGraph graph) {
         JanusGraphManagement management = graph.openManagement();
@@ -169,10 +144,10 @@ final public class JanusGraphFactory {
 
     private static void makePropertyKeys(JanusGraphManagement management) {
         stream(Schema.VertexProperty.values()).forEach(property ->
-                makePropertyKey(management, property.name(), property.getPropertyClass()));
+                                                               makePropertyKey(management, property.name(), property.getPropertyClass()));
 
         stream(Schema.EdgeProperty.values()).forEach(property ->
-                makePropertyKey(management, property.name(), property.getPropertyClass()));
+                                                             makePropertyKey(management, property.name(), property.getPropertyClass()));
     }
 
     private static void makePropertyKey(JanusGraphManagement management, String propertyKey, Class type) {
@@ -197,6 +172,30 @@ final public class JanusGraphFactory {
                 }
                 indexBuilder.buildCompositeIndex();
             }
+        }
+    }
+
+    public StandardJanusGraph openGraph(String keyspace) {
+        StandardJanusGraph janusGraph = configureGraph(keyspace, config);
+        buildJanusIndexes(janusGraph);
+        if (!strategiesApplied.getAndSet(true)) {
+            TraversalStrategies strategies = TraversalStrategies.GlobalCache.getStrategies(StandardJanusGraphTx.class);
+            strategies = strategies.clone().addStrategies(new JanusPreviousPropertyStepStrategy());
+            //TODO: find out why Tinkerpop added these strategies. They result in many NoOpBarrier steps which slowed down our queries so we had to remove them.
+            // 2020 NOTE: find out if removing these strategies still makes a difference, probably not.
+            strategies.removeStrategies(PathRetractionStrategy.class, LazyBarrierStrategy.class);
+            TraversalStrategies.GlobalCache.registerStrategies(StandardJanusGraphTx.class, strategies);
+        }
+        return janusGraph;
+    }
+
+    public void drop(String keyspace) {
+        try {
+            JanusGraph graph = openGraph(keyspace);
+            graph.close();
+            grakn.core.graph.core.JanusGraphFactory.drop(graph);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

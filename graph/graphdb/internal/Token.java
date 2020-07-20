@@ -26,6 +26,7 @@ public class Token {
     public static final char SEPARATOR_CHAR = 0x1e;
 
     public static final String systemETprefix = Graph.Hidden.hide("T$");
+    public static final String INTERNAL_INDEX_NAME = "internalindex";
 
     public static String getSeparatedName(String... components) {
         for (String component : components) verifyName(component);
@@ -34,14 +35,12 @@ public class Token {
 
     public static void verifyName(String name) {
         Preconditions.checkArgument(name.indexOf(Token.SEPARATOR_CHAR) < 0,
-                "Name can not contains reserved character %s: %s", Token.SEPARATOR_CHAR, name);
+                                    "Name can not contains reserved character %s: %s", Token.SEPARATOR_CHAR, name);
     }
 
     public static String[] splitSeparatedName(String name) {
         return name.split(SEPARATOR_CHAR + "");
     }
-
-    public static final String INTERNAL_INDEX_NAME = "internalindex";
 
     public static boolean isSystemName(String name) {
         return Graph.Hidden.isHidden(name);

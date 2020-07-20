@@ -44,13 +44,55 @@ import static grakn.core.kb.graql.planning.spanningtree.util.Weighted.weighted;
  * Chu-Liu-Edmonds' algorithm for finding a maximum branching in a complete, directed graph in O(n^2) time.
  * Implementation is based on Tarjan's "Finding Optimum Branchings" paper:
  * http://cw.felk.cvut.cz/lib/exe/fetch.php/courses/a4m33pal/cviceni/tarjan-finding-optimum-branchings.pdf
- *
  */
 public class ChuLiuEdmonds {
+    /**
+     * Find an optimal arborescence of the given graph `graph`, rooted in the given node `root`.
+     */
+    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph, Node root) {
+        // remove all edges incoming to `root`. resulting arborescence is then forced to be rooted at `root`.
+        return getMaxArborescence(graph.filterEdges(not(DirectedEdge.hasDestination(root))));
+    }
+
+    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph,
+                                                                  Set<DirectedEdge> required,
+                                                                  Set<DirectedEdge> banned) {
+        return getMaxArborescence(graph.filterEdges(and(not(DirectedEdge.competesWith(required)), not(DirectedEdge.isIn(banned)))));
+    }
+
+    /**
+     * Find an optimal arborescence of the given graph.
+     */
+    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph) {
+        final PartialSolution partialSolution =
+                PartialSolution.initialize(graph.filterEdges(not(DirectedEdge.isAutoCycle())));
+        // In the beginning, subgraph has no edges, so no SCC has in-edges.
+        final Deque<Node> componentsWithNoInEdges = new ArrayDeque<>(partialSolution.getNodes());
+
+        // Work our way through all componentsWithNoInEdges, in no particular order
+        while (!componentsWithNoInEdges.isEmpty()) {
+            final Node component = componentsWithNoInEdges.poll();
+            // find maximum edge entering 'component' from outside 'component'.
+            final Optional<ExclusiveEdge> oMaxInEdge = partialSolution.popBestEdge(component);
+            if (!oMaxInEdge.isPresent()) continue; // No in-edges left to consider for this component. Done with it!
+            final ExclusiveEdge maxInEdge = oMaxInEdge.get();
+            // add the new edge to subgraph, merging SCCs if necessary
+            final Optional<Node> newComponent = partialSolution.addEdge(maxInEdge);
+            if (newComponent.isPresent()) {
+                // addEdge created a cycle/component, which means the new component doesn't have any incoming edges
+                componentsWithNoInEdges.add(newComponent.get());
+            }
+        }
+        // Once no component has incoming edges left to consider, it's time to recover the optimal branching.
+        return partialSolution.recoverBestArborescence();
+    }
+
     /**
      * Represents the subgraph that gets iteratively built up in the CLE algorithm.
      */
     static class PartialSolution {
+        // a priority queue of incoming edges for each SCC that we haven't chosen an incoming edge for yet.
+        final EdgeQueueMap unseenIncomingEdges;
         // Partition representing the strongly connected components (SCCs).
         private final Partition<Node> stronglyConnected;
         // Partition representing the weakly connected components (WCCs).
@@ -61,8 +103,6 @@ public class ChuLiuEdmonds {
         // History of edges we've added, and for each, a list of edges it would exclude.
         // More recently added edges get priority over less recently added edges when reconstructing the final tree.
         private final Deque<ExclusiveEdge> edgesAndWhatTheyExclude;
-        // a priority queue of incoming edges for each SCC that we haven't chosen an incoming edge for yet.
-        final EdgeQueueMap unseenIncomingEdges;
         // running sum of weights.
         // edge weights are adjusted as we go to take into account the fact that we have an extra edge in each cycle
         private double score;
@@ -209,46 +249,5 @@ public class ChuLiuEdmonds {
         public Optional<ExclusiveEdge> popBestEdge(Node component, Arborescence<Node> best) {
             return unseenIncomingEdges.popBestEdge(component, best);
         }
-    }
-
-    /**
-     * Find an optimal arborescence of the given graph `graph`, rooted in the given node `root`.
-     */
-    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph, Node root) {
-        // remove all edges incoming to `root`. resulting arborescence is then forced to be rooted at `root`.
-        return getMaxArborescence(graph.filterEdges(not(DirectedEdge.hasDestination(root))));
-    }
-
-    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph,
-                                                            Set<DirectedEdge> required,
-                                                            Set<DirectedEdge> banned) {
-        return getMaxArborescence(graph.filterEdges(and(not(DirectedEdge.competesWith(required)), not(DirectedEdge.isIn(banned)))));
-    }
-
-    /**
-     * Find an optimal arborescence of the given graph.
-     */
-    public static Weighted<Arborescence<Node>> getMaxArborescence(WeightedGraph graph) {
-        final PartialSolution partialSolution =
-                PartialSolution.initialize(graph.filterEdges(not(DirectedEdge.isAutoCycle())));
-        // In the beginning, subgraph has no edges, so no SCC has in-edges.
-        final Deque<Node> componentsWithNoInEdges = new ArrayDeque<>(partialSolution.getNodes());
-
-        // Work our way through all componentsWithNoInEdges, in no particular order
-        while (!componentsWithNoInEdges.isEmpty()) {
-            final Node component = componentsWithNoInEdges.poll();
-            // find maximum edge entering 'component' from outside 'component'.
-            final Optional<ExclusiveEdge> oMaxInEdge = partialSolution.popBestEdge(component);
-            if (!oMaxInEdge.isPresent()) continue; // No in-edges left to consider for this component. Done with it!
-            final ExclusiveEdge maxInEdge = oMaxInEdge.get();
-            // add the new edge to subgraph, merging SCCs if necessary
-            final Optional<Node> newComponent = partialSolution.addEdge(maxInEdge);
-            if (newComponent.isPresent()) {
-                // addEdge created a cycle/component, which means the new component doesn't have any incoming edges
-                componentsWithNoInEdges.add(newComponent.get());
-            }
-        }
-        // Once no component has incoming edges left to consider, it's time to recover the optimal branching.
-        return partialSolution.recoverBestArborescence();
     }
 }

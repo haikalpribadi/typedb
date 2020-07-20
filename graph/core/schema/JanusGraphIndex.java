@@ -27,12 +27,12 @@ import org.apache.tinkerpop.gremlin.structure.Element;
  * <p>
  * This interface allows introspecting an existing graph index. Existing graph indexes can be retrieved via
  * JanusGraphManagement#getGraphIndex(String) or JanusGraphManagement#getGraphIndexes(Class).
- *
  */
 public interface JanusGraphIndex extends Index {
 
     /**
      * Returns the name of the index
+     *
      * @return
      */
     String name();
@@ -88,12 +88,14 @@ public interface JanusGraphIndex extends Index {
 
     /**
      * Whether this is a composite index
+     *
      * @return
      */
     boolean isCompositeIndex();
 
     /**
      * Whether this is a mixed index
+     *
      * @return
      */
     boolean isMixedIndex();

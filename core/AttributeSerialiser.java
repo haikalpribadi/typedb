@@ -37,13 +37,6 @@ public abstract class AttributeSerialiser<DESERIALISED, SERIALISED> {
     public static final AttributeSerialiser<Long, Long> LONG = new Default<>();
     public static final AttributeSerialiser<String, String> STRING = new Default<>();
     public static final AttributeSerialiser<LocalDateTime, Long> DATE = new AttributeSerialiser.Date();
-
-    AttributeSerialiser() {}
-
-    public abstract SERIALISED serialise(DESERIALISED value);
-
-    public abstract DESERIALISED deserialise(SERIALISED value);
-
     private static Map<AttributeType.ValueType<?>, AttributeSerialiser<?, ?>> serialisers = map(
             pair(AttributeType.ValueType.BOOLEAN, BOOLEAN),
             pair(AttributeType.ValueType.DATETIME, DATE),
@@ -54,17 +47,22 @@ public abstract class AttributeSerialiser<DESERIALISED, SERIALISED> {
             pair(AttributeType.ValueType.STRING, STRING)
     );
 
+    AttributeSerialiser() {}
 
     // TODO: This method should not be needed if all usage of this class is
     //       accessed via the constant properties defined above.
     public static <DESERIALISED> AttributeSerialiser<DESERIALISED, ?> of(AttributeType.ValueType<DESERIALISED> valueType) {
         AttributeSerialiser<?, ?> attributeSerialiser = serialisers.get(valueType);
-        if (attributeSerialiser == null){
+        if (attributeSerialiser == null) {
             throw new UnsupportedOperationException("Unsupported ValueType: " + valueType.toString());
         }
         return (AttributeSerialiser<DESERIALISED, ?>) attributeSerialiser;
 
     }
+
+    public abstract SERIALISED serialise(DESERIALISED value);
+
+    public abstract DESERIALISED deserialise(SERIALISED value);
 
     public static class Default<VALUE> extends AttributeSerialiser<VALUE, VALUE> {
 
@@ -75,7 +73,7 @@ public abstract class AttributeSerialiser<DESERIALISED, SERIALISED> {
 
         @Override
         public VALUE deserialise(VALUE value) {
-            return  value;
+            return value;
         }
     }
 

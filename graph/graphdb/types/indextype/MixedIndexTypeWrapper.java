@@ -28,6 +28,8 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 
 public class MixedIndexTypeWrapper extends IndexTypeWrapper implements MixedIndexType {
 
+    ParameterIndexField[] fields = null;
+
     public MixedIndexTypeWrapper(SchemaSource base) {
         super(base);
     }
@@ -41,8 +43,6 @@ public class MixedIndexTypeWrapper extends IndexTypeWrapper implements MixedInde
     public boolean isMixedIndex() {
         return true;
     }
-
-    ParameterIndexField[] fields = null;
 
     @Override
     public ParameterIndexField[] getFieldKeys() {

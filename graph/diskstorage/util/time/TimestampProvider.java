@@ -29,7 +29,6 @@ public interface TimestampProvider {
     /**
      * Returns the current time based on this timestamp provider
      * as a Instant.
-     *
      */
     Instant getTime();
 
@@ -52,10 +51,8 @@ public interface TimestampProvider {
      * than the given timepoint.
      *
      * @param futureTime The time to sleep past
-     *
      * @return the current time in the same units as the {@code unit} argument
-     * @throws InterruptedException
-     *             if externally interrupted
+     * @throws InterruptedException if externally interrupted
      */
     Instant sleepPast(Instant futureTime) throws InterruptedException;
 

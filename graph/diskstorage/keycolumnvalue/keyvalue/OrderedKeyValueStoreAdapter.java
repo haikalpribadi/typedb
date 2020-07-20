@@ -68,6 +68,28 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
     private final OrderedKeyValueStore store;
     private final int keyLength;
     private boolean isClosed = false;
+    private StaticArrayEntry.GetColVal<KeyValueEntry, StaticBuffer> kvEntryGetter = new StaticArrayEntry.GetColVal<KeyValueEntry, StaticBuffer>() {
+
+        @Override
+        public StaticBuffer getColumn(KeyValueEntry element) {
+            return getColumnFromKey(element.getKey());
+        }
+
+        @Override
+        public StaticBuffer getValue(KeyValueEntry element) {
+            return element.getValue();
+        }
+
+        @Override
+        public EntryMetaData[] getMetaSchema(KeyValueEntry element) {
+            return StaticArrayEntry.EMPTY_SCHEMA;
+        }
+
+        @Override
+        public Object getMetaData(KeyValueEntry element, EntryMetaData meta) {
+            throw new UnsupportedOperationException("Unsupported meta data: " + meta);
+        }
+    };
 
     public OrderedKeyValueStoreAdapter(OrderedKeyValueStore store) {
         this(store, variableKeyLength);
@@ -117,7 +139,6 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
         }
     }
 
-
     @Override
     public KeyIterator getKeys(KeyRangeQuery keyQuery, StoreTransaction txh) throws BackendException {
         KVQuery query = new KVQuery(
@@ -142,7 +163,6 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
         }
         return key;
     }
-
 
     @Override
     public KeyIterator getKeys(SliceQuery columnQuery, StoreTransaction txh) throws BackendException {
@@ -181,29 +201,6 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
         }
     }
 
-    private StaticArrayEntry.GetColVal<KeyValueEntry, StaticBuffer> kvEntryGetter = new StaticArrayEntry.GetColVal<KeyValueEntry, StaticBuffer>() {
-
-        @Override
-        public StaticBuffer getColumn(KeyValueEntry element) {
-            return getColumnFromKey(element.getKey());
-        }
-
-        @Override
-        public StaticBuffer getValue(KeyValueEntry element) {
-            return element.getValue();
-        }
-
-        @Override
-        public EntryMetaData[] getMetaSchema(KeyValueEntry element) {
-            return StaticArrayEntry.EMPTY_SCHEMA;
-        }
-
-        @Override
-        public Object getMetaData(KeyValueEntry element, EntryMetaData meta) {
-            throw new UnsupportedOperationException("Unsupported meta data: " + meta);
-        }
-    };
-
     private Entry getEntry(KeyValueEntry entry) {
         return StaticArrayEntry.ofStaticBuffer(entry, kvEntryGetter);
     }
@@ -225,7 +222,7 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
 
     KeyValueEntry concatenate(StaticBuffer front, Entry entry) {
         return new KeyValueEntry(concatenate(front, entry.getColumnAs(StaticBuffer.STATIC_FACTORY)),
-                entry.getValueAs(StaticBuffer.STATIC_FACTORY));
+                                 entry.getValueAs(StaticBuffer.STATIC_FACTORY));
     }
 
     KVQuery convertQuery(KeySliceQuery query) {
@@ -364,6 +361,11 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
             iterator.close();
         }
 
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
         private class EntryIterator implements RecordIterator<Entry>, Closeable {
             private boolean open = true;
             private int count = 0;
@@ -411,11 +413,6 @@ public class OrderedKeyValueStoreAdapter implements KeyColumnValueStore {
             public void remove() {
                 throw new UnsupportedOperationException();
             }
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException();
         }
     }
 }

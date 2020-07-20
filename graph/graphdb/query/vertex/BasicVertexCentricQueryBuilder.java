@@ -83,17 +83,15 @@ import java.util.Set;
 public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q>> extends BaseVertexCentricQueryBuilder<Q> {
     @SuppressWarnings("unused")
     private static final Logger LOG = LoggerFactory.getLogger(BasicVertexCentricQueryBuilder.class);
-
+    private static final int HARD_MAX_LIMIT = 300000;
     /**
      * Transaction in which this query is executed
      */
     protected final StandardJanusGraphTx tx;
-
     /**
      * The query profiler used to observe this query
      */
     protected QueryProfiler profiler = QueryProfiler.NO_OP;
-
     /**
      * Whether to query for system relations only
      */
@@ -103,23 +101,103 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
      * This is achieved by using the SimpleVertexQueryProcessor for execution.
      */
     private boolean queryOnlyLoaded = false;
-
     /**
      * Whether this query should only focus on the provided vertex representative of a (potentially) partitioned vertex.
      * This effectively disables the automatic querying for other vertex representatives and focuses on the provided
      * vertex object only.
      */
     private boolean queryOnlyGivenVertex = false;
-
     /**
      * Whether to restrict this query to the specified "local" partitions in this transaction
      */
     private boolean restrict2Partitions = true;
 
-
     public BasicVertexCentricQueryBuilder(StandardJanusGraphTx tx) {
         super(tx);
         this.tx = Preconditions.checkNotNull(tx);
+    }
+
+    /* ---------------------------------------------------------------
+     * Query Construction
+     * ---------------------------------------------------------------
+     */
+
+    private static Iterable<JanusGraphVertex> edges2Vertices(Iterable<JanusGraphEdge> edges, JanusGraphVertex other) {
+        return Iterables.transform(edges, new Function<JanusGraphEdge, JanusGraphVertex>() {
+            @Nullable
+            @Override
+            public JanusGraphVertex apply(@Nullable JanusGraphEdge janusgraphEdge) {
+                return janusgraphEdge.otherVertex(other);
+            }
+        });
+    }
+
+    /**
+     * Returns the extended sort key of the given type. The extended sort key extends the type's primary sort key
+     * by ADJACENT_ID and ID depending on the multiplicity of the type in the given direction.
+     * It also converts the type ids to actual types.
+     */
+    private static PropertyKey[] getExtendedSortKey(InternalRelationType type, Direction dir, StandardJanusGraphTx
+            tx) {
+        int additional = 0;
+        if (!type.multiplicity().isUnique(dir)) {
+            if (!type.multiplicity().isConstrained()) additional++;
+            if (type.isEdgeLabel()) additional++;
+        }
+        PropertyKey[] entireKey = new PropertyKey[type.getSortKey().length + additional];
+        int i;
+        for (i = 0; i < type.getSortKey().length; i++) {
+            entireKey[i] = tx.getExistingPropertyKey(type.getSortKey()[i]);
+        }
+        if (type.isEdgeLabel() && !type.multiplicity().isUnique(dir)) entireKey[i++] = ImplicitKey.ADJACENT_ID;
+        if (!type.multiplicity().isConstrained()) entireKey[i] = ImplicitKey.JANUSGRAPHID;
+        return entireKey;
+    }
+
+    private static Interval intersectConstraints(Interval pint, RelationType type,
+                                                 JanusGraphPredicate predicate, Object value) {
+        Interval newInt;
+        if (predicate instanceof Cmp) {
+            switch ((Cmp) predicate) {
+                case EQUAL:
+                    if (value == null) return null;
+                    newInt = new PointInterval(value);
+                    break;
+                case NOT_EQUAL:
+                    return null;
+                case LESS_THAN:
+                    newInt = new RangeInterval().setEnd(value, false);
+                    break;
+                case LESS_THAN_EQUAL:
+                    newInt = new RangeInterval().setEnd(value, true);
+                    break;
+                case GREATER_THAN:
+                    newInt = new RangeInterval().setStart(value, false);
+                    break;
+                case GREATER_THAN_EQUAL:
+                    newInt = new RangeInterval().setStart(value, true);
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+        } else return null;
+        return pint != null ? pint.intersect(newInt) : newInt;
+    }
+
+    /**
+     * Constructs a condition that is equivalent to the type constraints of this query if there are any.
+     */
+    private static Condition<JanusGraphRelation> getTypeCondition(Set<RelationType> types) {
+        if (types.size() == 1) {
+            return new RelationTypeCondition<>(types.iterator().next());
+        }
+
+        Or<JanusGraphRelation> typeCond = new Or<>(types.size());
+        for (RelationType type : types) {
+            typeCond.add(new RelationTypeCondition<>(type));
+        }
+
+        return typeCond;
     }
 
     @Override
@@ -127,8 +205,9 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         return tx.getVertex(vertexId);
     }
 
+
     /* ---------------------------------------------------------------
-     * Query Construction
+     * Inspection Methods
      * ---------------------------------------------------------------
      */
 
@@ -149,6 +228,11 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         return getThis();
     }
 
+    /* ---------------------------------------------------------------
+     * Utility Methods
+     * ---------------------------------------------------------------
+     */
+
     /**
      * Restricts the result set of this query to only system types.
      */
@@ -166,16 +250,15 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         return getThis();
     }
 
+    /* ---------------------------------------------------------------
+     * Query Execution (Helper methods)
+     * ---------------------------------------------------------------
+     */
+
     public Q queryOnlyGivenVertex() {
         queryOnlyGivenVertex = true;
         return getThis();
     }
-
-
-    /* ---------------------------------------------------------------
-     * Inspection Methods
-     * ---------------------------------------------------------------
-     */
 
     private boolean hasAllCanonicalTypes() {
         if (types.length == 0) return false;
@@ -190,31 +273,11 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         return queryOnlyLoaded;
     }
 
-    /* ---------------------------------------------------------------
-     * Utility Methods
-     * ---------------------------------------------------------------
-     */
-
-    private static Iterable<JanusGraphVertex> edges2Vertices(Iterable<JanusGraphEdge> edges, JanusGraphVertex other) {
-        return Iterables.transform(edges, new Function<JanusGraphEdge, JanusGraphVertex>() {
-            @Nullable
-            @Override
-            public JanusGraphVertex apply(@Nullable JanusGraphEdge janusgraphEdge) {
-                return janusgraphEdge.otherVertex(other);
-            }
-        });
-    }
-
     private VertexList edges2VertexIds(Iterable<JanusGraphEdge> edges, JanusGraphVertex other) {
         VertexArrayList vertices = new VertexArrayList(tx);
         for (JanusGraphEdge edge : edges) vertices.add(edge.otherVertex(other));
         return vertices;
     }
-
-    /* ---------------------------------------------------------------
-     * Query Execution (Helper methods)
-     * ---------------------------------------------------------------
-     */
 
     /**
      * If #isImplicitKeyQuery(RelationCategory) is true,
@@ -227,57 +290,7 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         if (dir == Direction.IN || limit < 1) return ImmutableList.of();
         ImplicitKey key = (ImplicitKey) tx.getRelationType(types[0]);
         return ImmutableList.of(new StandardVertexProperty(0, key, v, key.computeProperty(v),
-                v.isNew() ? ElementLifeCycle.New : ElementLifeCycle.Loaded));
-    }
-
-    protected interface ResultConstructor<Q> {
-
-        Q getResult(InternalVertex v, BaseVertexCentricQuery bq);
-
-        Q emptyResult();
-
-    }
-
-    protected class RelationConstructor implements ResultConstructor<Iterable<? extends JanusGraphRelation>> {
-
-        @Override
-        public Iterable<? extends JanusGraphRelation> getResult(InternalVertex v, BaseVertexCentricQuery bq) {
-            return executeRelations(v, bq);
-        }
-
-        @Override
-        public Iterable<? extends JanusGraphRelation> emptyResult() {
-            return Collections.emptyList();
-        }
-
-    }
-
-    protected class VertexConstructor implements ResultConstructor<Iterable<JanusGraphVertex>> {
-
-        @Override
-        public Iterable<JanusGraphVertex> getResult(InternalVertex v, BaseVertexCentricQuery bq) {
-            return executeVertices(v, bq);
-        }
-
-        @Override
-        public Iterable<JanusGraphVertex> emptyResult() {
-            return Collections.emptyList();
-        }
-
-    }
-
-    protected class VertexIdConstructor implements ResultConstructor<VertexList> {
-
-        @Override
-        public VertexList getResult(InternalVertex v, BaseVertexCentricQuery bq) {
-            return executeVertexIds(v, bq);
-        }
-
-        @Override
-        public VertexList emptyResult() {
-            return new VertexArrayList(tx);
-        }
-
+                                                           v.isNew() ? ElementLifeCycle.New : ElementLifeCycle.Loaded));
     }
 
     List<InternalVertex> allRequiredRepresentatives(InternalVertex partitionedVertex) {
@@ -343,7 +356,7 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
                     Iterable<JanusGraphVertex> iterable = executeIndividualVertices(rep, baseQuery);
                     if (merge == null) merge = iterable;
                     else merge = ResultMergeSortIterator.mergeSort(merge, iterable,
-                            VertexArrayList.VERTEX_ID_COMPARATOR, false);
+                                                                   VertexArrayList.VERTEX_ID_COMPARATOR, false);
                 }
                 return ResultSetIterator.wrap(merge, baseQuery.getLimit());
             } else vertex = tx.getCanonicalVertex(vertex);
@@ -393,8 +406,6 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
      * ---------------------------------------------------------------
      */
 
-    private static final int HARD_MAX_LIMIT = 300000;
-
     /**
      * Constructs a VertexCentricQuery for this query builder. The query construction and optimization
      * logic is taken from #constructQuery(RelationCategory)
@@ -419,9 +430,9 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
             condition = newCondition;
         }
         VertexCentricQuery query = new VertexCentricQuery(vertex, condition, baseQuery.getDirection(),
-                baseQuery.getQueries(), baseQuery.getOrders(), baseQuery.getLimit());
+                                                          baseQuery.getQueries(), baseQuery.getOrders(), baseQuery.getLimit());
         Preconditions.checkArgument(!queryOnlyLoaded || query.isSimple(),
-                "Query-only-loaded only works on simple queries");
+                                    "Query-only-loaded only works on simple queries");
         return query;
     }
 
@@ -497,23 +508,23 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
                 InternalRelationType type = QueryUtil.getType(tx, typeName);
                 if (type == null) continue;
                 Preconditions.checkArgument(!querySystem || (type instanceof SystemRelationType),
-                        "Can only query for system types: %s", type);
+                                            "Can only query for system types: %s", type);
                 if (type instanceof ImplicitKey) {
                     throw new UnsupportedOperationException("Implicit types are not supported in complex queries: "
-                            + type);
+                                                                    + type);
                 }
                 ts.add(type);
 
                 Direction typeDir = dir;
                 if (type.isPropertyKey()) {
                     Preconditions.checkArgument(returnType != RelationCategory.EDGE,
-                            "Querying for edges but including a property key: " + type.name());
+                                                "Querying for edges but including a property key: " + type.name());
                     returnType = RelationCategory.PROPERTY;
                     typeDir = Direction.OUT;
                 }
                 if (type.isEdgeLabel()) {
                     Preconditions.checkArgument(returnType != RelationCategory.PROPERTY,
-                            "Querying for properties but including an edge label: " + type.name());
+                                                "Querying for properties but including an edge label: " + type.name());
                     returnType = RelationCategory.EDGE;
                     if (!type.isUnidirected(Direction.BOTH)) {
                         //Make sure unidirectionality lines up
@@ -599,8 +610,8 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
                         PropertyKey[] extendedSortKey = getExtendedSortKey(bestCandidate, direction, tx);
                         EdgeSerializer.TypedInterval[] sortKeyConstraints = new EdgeSerializer.TypedInterval[extendedSortKey.length];
                         constructSliceQueries(extendedSortKey, sortKeyConstraints, 0, bestCandidate, direction,
-                                intervalConstraints, sliceLimit, isIntervalFittedConditions, bestCandidateSupportsOrder,
-                                queries);
+                                              intervalConstraints, sliceLimit, isIntervalFittedConditions, bestCandidateSupportsOrder,
+                                              queries);
                     }
                 }
             }
@@ -633,8 +644,8 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
                             = Arrays.copyOf(sortKeyConstraints, sortKeyConstraints.length);
                     clonedSKC[position - 1] = new EdgeSerializer.TypedInterval(keyType, new PointInterval(point));
                     constructSliceQueries(extendedSortKey, clonedSKC, position,
-                            bestCandidate, direction, intervalConstraints, sliceLimit,
-                            isIntervalFittedConditions, bestCandidateSupportsOrder, queries);
+                                          bestCandidate, direction, intervalConstraints, sliceLimit,
+                                          isIntervalFittedConditions, bestCandidateSupportsOrder, queries);
                 }
                 return;
             }
@@ -652,29 +663,6 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         SliceQuery q = serializer.getQuery(bestCandidate, direction, sortKeyConstraints);
         q.setLimit(computeLimit(intervalConstraints.size() - position, sliceLimit));
         queries.add(new BackendQueryHolder<>(q, isFitted, bestCandidateSupportsOrder));
-    }
-
-
-    /**
-     * Returns the extended sort key of the given type. The extended sort key extends the type's primary sort key
-     * by ADJACENT_ID and ID depending on the multiplicity of the type in the given direction.
-     * It also converts the type ids to actual types.
-     */
-    private static PropertyKey[] getExtendedSortKey(InternalRelationType type, Direction dir, StandardJanusGraphTx
-            tx) {
-        int additional = 0;
-        if (!type.multiplicity().isUnique(dir)) {
-            if (!type.multiplicity().isConstrained()) additional++;
-            if (type.isEdgeLabel()) additional++;
-        }
-        PropertyKey[] entireKey = new PropertyKey[type.getSortKey().length + additional];
-        int i;
-        for (i = 0; i < type.getSortKey().length; i++) {
-            entireKey[i] = tx.getExistingPropertyKey(type.getSortKey()[i]);
-        }
-        if (type.isEdgeLabel() && !type.multiplicity().isUnique(dir)) entireKey[i++] = ImplicitKey.ADJACENT_ID;
-        if (!type.multiplicity().isConstrained()) entireKey[i] = ImplicitKey.JANUSGRAPHID;
-        return entireKey;
     }
 
     /**
@@ -716,52 +704,6 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         return isFitted;
     }
 
-    private static Interval intersectConstraints(Interval pint, RelationType type,
-                                                 JanusGraphPredicate predicate, Object value) {
-        Interval newInt;
-        if (predicate instanceof Cmp) {
-            switch ((Cmp) predicate) {
-                case EQUAL:
-                    if (value == null) return null;
-                    newInt = new PointInterval(value);
-                    break;
-                case NOT_EQUAL:
-                    return null;
-                case LESS_THAN:
-                    newInt = new RangeInterval().setEnd(value, false);
-                    break;
-                case LESS_THAN_EQUAL:
-                    newInt = new RangeInterval().setEnd(value, true);
-                    break;
-                case GREATER_THAN:
-                    newInt = new RangeInterval().setStart(value, false);
-                    break;
-                case GREATER_THAN_EQUAL:
-                    newInt = new RangeInterval().setStart(value, true);
-                    break;
-                default:
-                    throw new AssertionError();
-            }
-        } else return null;
-        return pint != null ? pint.intersect(newInt) : newInt;
-    }
-
-    /**
-     * Constructs a condition that is equivalent to the type constraints of this query if there are any.
-     */
-    private static Condition<JanusGraphRelation> getTypeCondition(Set<RelationType> types) {
-        if (types.size() == 1) {
-            return new RelationTypeCondition<>(types.iterator().next());
-        }
-
-        Or<JanusGraphRelation> typeCond = new Or<>(types.size());
-        for (RelationType type : types) {
-            typeCond.add(new RelationTypeCondition<>(type));
-        }
-
-        return typeCond;
-    }
-
     /**
      * Updates a given user limit based on the number of conditions that can not be fulfilled by the backend query, i.e.
      * the query is not fitted and these remaining conditions must be enforced by filtering in-memory. By filtering in
@@ -775,6 +717,56 @@ public abstract class BasicVertexCentricQueryBuilder<Q extends BaseVertexQuery<Q
         }
         baseLimit = Math.max(baseLimit, Math.min(HARD_MAX_LIMIT, QueryUtil.adjustLimitForTxModifications(tx, remainingConditions, baseLimit)));
         return baseLimit;
+    }
+
+    protected interface ResultConstructor<Q> {
+
+        Q getResult(InternalVertex v, BaseVertexCentricQuery bq);
+
+        Q emptyResult();
+
+    }
+
+    protected class RelationConstructor implements ResultConstructor<Iterable<? extends JanusGraphRelation>> {
+
+        @Override
+        public Iterable<? extends JanusGraphRelation> getResult(InternalVertex v, BaseVertexCentricQuery bq) {
+            return executeRelations(v, bq);
+        }
+
+        @Override
+        public Iterable<? extends JanusGraphRelation> emptyResult() {
+            return Collections.emptyList();
+        }
+
+    }
+
+    protected class VertexConstructor implements ResultConstructor<Iterable<JanusGraphVertex>> {
+
+        @Override
+        public Iterable<JanusGraphVertex> getResult(InternalVertex v, BaseVertexCentricQuery bq) {
+            return executeVertices(v, bq);
+        }
+
+        @Override
+        public Iterable<JanusGraphVertex> emptyResult() {
+            return Collections.emptyList();
+        }
+
+    }
+
+    protected class VertexIdConstructor implements ResultConstructor<VertexList> {
+
+        @Override
+        public VertexList getResult(InternalVertex v, BaseVertexCentricQuery bq) {
+            return executeVertexIds(v, bq);
+        }
+
+        @Override
+        public VertexList emptyResult() {
+            return new VertexArrayList(tx);
+        }
+
     }
 
 

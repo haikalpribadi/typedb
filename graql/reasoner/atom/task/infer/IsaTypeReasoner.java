@@ -32,6 +32,7 @@ import grakn.core.kb.concept.api.SchemaConcept;
 import grakn.core.kb.concept.api.Type;
 import grakn.core.kb.concept.manager.ConceptManager;
 import graql.lang.statement.Variable;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -44,16 +45,18 @@ public class IsaTypeReasoner implements TypeReasoner<IsaAtom> {
     @Override
     public IsaAtom inferTypes(IsaAtom atom, ConceptMap sub, ReasoningContext ctx) {
         if (atom.getTypePredicate() != null) return atom;
-        if (sub.containsVar(atom.getPredicateVariable())) return atom.addType(sub.get(atom.getPredicateVariable()).asType());
+        if (sub.containsVar(atom.getPredicateVariable()))
+            return atom.addType(sub.get(atom.getPredicateVariable()).asType());
         return atom;
     }
 
     @Override
-    public ImmutableList<Type> inferPossibleTypes(IsaAtom atom, ConceptMap sub, ReasoningContext ctx){
+    public ImmutableList<Type> inferPossibleTypes(IsaAtom atom, ConceptMap sub, ReasoningContext ctx) {
         ConceptManager conceptManager = ctx.conceptManager();
         SchemaConcept type = atom.getSchemaConcept();
         if (type != null) return ImmutableList.of(type.asType());
-        if (sub.containsVar(atom.getPredicateVariable())) return ImmutableList.of(sub.get(atom.getPredicateVariable()).asType());
+        if (sub.containsVar(atom.getPredicateVariable()))
+            return ImmutableList.of(sub.get(atom.getPredicateVariable()).asType());
 
         Variable varName = atom.getVarName();
         //determine compatible types from played roles
@@ -75,18 +78,18 @@ public class IsaTypeReasoner implements TypeReasoner<IsaAtom> {
                 .map(Concept::asType)
                 .collect(Collectors.toSet());
 
-        Set<Type> types = typesFromTypes.isEmpty()?
+        Set<Type> types = typesFromTypes.isEmpty() ?
                 typesFromRoles :
-                typesFromRoles.isEmpty()? typesFromTypes: Sets.intersection(typesFromRoles, typesFromTypes);
+                typesFromRoles.isEmpty() ? typesFromTypes : Sets.intersection(typesFromRoles, typesFromTypes);
 
-        return !types.isEmpty()?
+        return !types.isEmpty() ?
                 ImmutableList.copyOf(ConceptUtils.top(types)) :
                 conceptManager.getMetaConcept().subs().collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public List<Atom> atomOptions(IsaAtom atom, ConceptMap sub, ReasoningContext ctx) {
-        return inferPossibleTypes(atom, sub,ctx ).stream()
+        return inferPossibleTypes(atom, sub, ctx).stream()
                 .map(atom::addType)
                 .sorted(Comparator.comparing(Atom::isRuleResolvable))
                 .collect(Collectors.toList());

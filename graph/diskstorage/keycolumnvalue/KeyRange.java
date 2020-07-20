@@ -21,7 +21,6 @@ import grakn.core.graph.diskstorage.StaticBuffer;
 
 /**
  * A range of bytes between start and end where start is inclusive and end is exclusive.
- *
  */
 public class KeyRange {
 
@@ -39,10 +38,13 @@ public class KeyRange {
     }
 
     public StaticBuffer getAt(int position) {
-        switch(position) {
-            case 0: return start;
-            case 1: return end;
-            default: throw new IndexOutOfBoundsException("Exceed length of 2: " + position);
+        switch (position) {
+            case 0:
+                return start;
+            case 1:
+                return end;
+            default:
+                throw new IndexOutOfBoundsException("Exceed length of 2: " + position);
         }
     }
 

@@ -35,39 +35,23 @@ import java.time.Instant;
  */
 public class StandardTransactionBuilder implements TransactionConfiguration, TransactionBuilder {
 
-    private boolean isReadOnly = false;
-
-    private boolean hasEnabledBatchLoading = false;
-
     private final boolean assignIDsImmediately;
-
     private final DefaultSchemaMaker defaultSchemaMaker;
-
-    private boolean verifyExternalVertexExistence = true;
-
-    private boolean verifyInternalVertexExistence = false;
-
     private final boolean propertyPrefetching;
-
-    private boolean singleThreaded = false;
-
-    private boolean threadBound = false;
-
-    private int vertexCacheSize;
-
-    private int dirtyVertexSize;
-
-    private long indexCacheWeight;
-
-    private String logIdentifier;
-
-    private int[] restrictedPartitions = new int[0];
-
-    private Instant userCommitTime = null;
-
     private final Configuration customOptions;
-
     private final StandardJanusGraph graph;
+    private boolean isReadOnly = false;
+    private boolean hasEnabledBatchLoading = false;
+    private boolean verifyExternalVertexExistence = true;
+    private boolean verifyInternalVertexExistence = false;
+    private boolean singleThreaded = false;
+    private boolean threadBound = false;
+    private int vertexCacheSize;
+    private int dirtyVertexSize;
+    private long indexCacheWeight;
+    private String logIdentifier;
+    private int[] restrictedPartitions = new int[0];
+    private Instant userCommitTime = null;
 
     /**
      * Constructs a new JanusGraphTransaction configuration with default configuration parameters.
@@ -155,11 +139,6 @@ public class StandardTransactionBuilder implements TransactionConfiguration, Tra
     }
 
     @Override
-    public void setCommitTime(Instant time) {
-        throw new UnsupportedOperationException("Use setCommitTime(long,TimeUnit)");
-    }
-
-    @Override
     public StandardTransactionBuilder logIdentifier(String logName) {
         this.logIdentifier = logName;
         return this;
@@ -175,24 +154,23 @@ public class StandardTransactionBuilder implements TransactionConfiguration, Tra
     @Override
     public StandardJanusGraphTx start() {
         TransactionConfiguration immutable = new ImmutableTxCfg(isReadOnly, hasEnabledBatchLoading,
-                assignIDsImmediately, verifyExternalVertexExistence,
-                verifyInternalVertexExistence,
-                propertyPrefetching, singleThreaded, threadBound, getTimestampProvider(), userCommitTime,
-                indexCacheWeight, getVertexCacheSize(), getDirtyVertexSize(),
-                logIdentifier, restrictedPartitions,
-                defaultSchemaMaker, customOptions);
+                                                                assignIDsImmediately, verifyExternalVertexExistence,
+                                                                verifyInternalVertexExistence,
+                                                                propertyPrefetching, singleThreaded, threadBound, getTimestampProvider(), userCommitTime,
+                                                                indexCacheWeight, getVertexCacheSize(), getDirtyVertexSize(),
+                                                                logIdentifier, restrictedPartitions,
+                                                                defaultSchemaMaker, customOptions);
         return graph.newTransaction(immutable);
     }
-
-    /* ##############################################
-                    TransactionConfig
-    ############################################## */
-
 
     @Override
     public final boolean isReadOnly() {
         return isReadOnly;
     }
+
+    /* ##############################################
+                    TransactionConfig
+    ############################################## */
 
     @Override
     public final boolean hasAssignIDsImmediately() {
@@ -266,6 +244,11 @@ public class StandardTransactionBuilder implements TransactionConfiguration, Tra
     @Override
     public Instant getCommitTime() {
         return userCommitTime;
+    }
+
+    @Override
+    public void setCommitTime(Instant time) {
+        throw new UnsupportedOperationException("Use setCommitTime(long,TimeUnit)");
     }
 
     @Override

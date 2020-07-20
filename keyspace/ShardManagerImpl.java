@@ -35,7 +35,7 @@ public class ShardManagerImpl implements ShardManager {
     private final ConcurrentHashMap<Label, Set<String>> shardRequests;
     private final Set<String> lockCandidates;
 
-    public ShardManagerImpl(){
+    public ShardManagerImpl() {
         this.shardsEphemeral = CacheBuilder.newBuilder()
                 .expireAfterAccess(TIMEOUT_MINUTES_ATTRIBUTES_CACHE, TimeUnit.MINUTES)
                 .maximumSize(ATTRIBUTES_CACHE_MAX_SIZE)
@@ -45,8 +45,9 @@ public class ShardManagerImpl implements ShardManager {
     }
 
 
-    public Long getEphemeralShardCount(Label type){ return shardsEphemeral.getIfPresent(type);}
-    public void updateEphemeralShardCount(Label type, Long count){ shardsEphemeral.put(type, count);}
+    public Long getEphemeralShardCount(Label type) { return shardsEphemeral.getIfPresent(type);}
+
+    public void updateEphemeralShardCount(Label type, Long count) { shardsEphemeral.put(type, count);}
 
     @Override
     public void ackShardRequest(Label type, String txId) {
@@ -89,7 +90,7 @@ public class ShardManagerImpl implements ShardManager {
     }
 
     @Override
-    public boolean lockCandidatesPresent(){
+    public boolean lockCandidatesPresent() {
         return !lockCandidates.isEmpty();
     }
 

@@ -42,18 +42,18 @@ public class CQLTransaction extends AbstractStoreTransaction {
         this.writeConsistencyLevel = DefaultConsistencyLevel.valueOf(getConfiguration().getCustomOption(WRITE_CONSISTENCY));
     }
 
+    static CQLTransaction getTransaction(StoreTransaction storeTransaction) {
+        Preconditions.checkNotNull(storeTransaction);
+        Preconditions.checkArgument(storeTransaction instanceof CQLTransaction, "Unexpected transaction type %s", storeTransaction.getClass().getName());
+        return (CQLTransaction) storeTransaction;
+    }
+
     ConsistencyLevel getReadConsistencyLevel() {
         return this.readConsistencyLevel;
     }
 
     ConsistencyLevel getWriteConsistencyLevel() {
         return this.writeConsistencyLevel;
-    }
-
-    static CQLTransaction getTransaction(StoreTransaction storeTransaction) {
-        Preconditions.checkNotNull(storeTransaction);
-        Preconditions.checkArgument(storeTransaction instanceof CQLTransaction, "Unexpected transaction type %s", storeTransaction.getClass().getName());
-        return (CQLTransaction) storeTransaction;
     }
 
     @Override

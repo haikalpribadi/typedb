@@ -28,37 +28,36 @@ import grakn.core.graql.reasoner.tree.Node;
 import grakn.core.graql.reasoner.tree.ResolutionTree;
 import grakn.core.graql.reasoner.unifier.UnifierImpl;
 import grakn.core.kb.graql.reasoner.cache.QueryCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- *
  * <p>
  * Iterator for query answers maintaining the iterative behaviour of the QSQ scheme.
  * </p>
- *
- *
  */
 public class ResolutionIterator extends ReasonerQueryIterator {
 
-    private int iter = 0;
-    private long oldAns = 0;
+    private static final Logger LOG = LoggerFactory.getLogger(ResolutionIterator.class);
     private final ResolvableQuery query;
     private final Set<ConceptMap> answers = new HashSet<>();
     private final Set<ReasonerAtomicQuery> subGoalsCompleteOnFinalise = new HashSet();
     private final QueryCache queryCache;
     private final Stack<ResolutionState> states = new Stack<>();
     private final ResolutionTree logTree;
-
+    private int iter = 0;
+    private long oldAns = 0;
     private ConceptMap nextAnswer = null;
+    private Boolean reiterate = null;
+    private long startTime = System.currentTimeMillis();
+    private boolean resultsFinalised = false;
 
-    private static final Logger LOG = LoggerFactory.getLogger(ResolutionIterator.class);
-
-    public ResolutionIterator(ResolvableQuery q, Set<ReasonerAtomicQuery> subGoals, QueryCache queryCache){
+    public ResolutionIterator(ResolvableQuery q, Set<ReasonerAtomicQuery> subGoals, QueryCache queryCache) {
         this.query = q;
         this.queryCache = queryCache;
         ResolutionState rootState = query.resolutionState(new ConceptMap(), new UnifierImpl(), null, subGoals);
@@ -66,8 +65,8 @@ public class ResolutionIterator extends ReasonerQueryIterator {
         this.logTree = new ResolutionTree(rootState);
     }
 
-    private ConceptMap findNextAnswer(){
-        while(!states.isEmpty()) {
+    private ConceptMap findNextAnswer() {
+        while (!states.isEmpty()) {
             ResolutionState state = states.pop();
 
             LOG.trace("state: {}", state);
@@ -97,7 +96,7 @@ public class ResolutionIterator extends ReasonerQueryIterator {
     }
 
     @Override
-    public ConceptMap next(){
+    public ConceptMap next() {
         if (nextAnswer == null) throw new NoSuchElementException();
         answers.add(nextAnswer);
         ConceptMap toReturn = nextAnswer;
@@ -105,22 +104,18 @@ public class ResolutionIterator extends ReasonerQueryIterator {
         return toReturn;
     }
 
-    ResolutionTree getTree(){ return logTree;}
+    ResolutionTree getTree() { return logTree;}
 
-    private Boolean reiterate = null;
-
-    private boolean reiterate(){
+    private boolean reiterate() {
         if (reiterate == null) {
             reiterate = query.requiresReiteration();
         }
         return reiterate;
     }
 
-    private long startTime = System.currentTimeMillis();
-    private boolean resultsFinalised = false;
-
     /**
      * check whether answers available, if answers not fully computed compute more answers
+     *
      * @return true if answers available
      */
     @Override
@@ -143,12 +138,12 @@ public class ResolutionIterator extends ReasonerQueryIterator {
             }
         }
 
-        if(!resultsFinalised) finalise();
+        if (!resultsFinalised) finalise();
 
         return false;
     }
 
-    private void finalise(){
+    private void finalise() {
         MultilevelSemanticCache queryCache = CacheCasting.queryCacheCast(this.queryCache);
         subGoalsCompleteOnFinalise.forEach(queryCache::ackCompleteness);
         queryCache.propagateAnswers();

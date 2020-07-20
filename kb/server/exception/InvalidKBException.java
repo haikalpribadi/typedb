@@ -25,14 +25,13 @@ import java.util.List;
 
 /**
  * <p>
- *     Broken Knowledge Base Exception
+ * Broken Knowledge Base Exception
  * </p>
  *
  * <p>
- *     This exception is thrown on Transaction#commit() when the graph does not comply with the grakn
- *     validation rules. For a complete list of these rules please refer to the documentation
+ * This exception is thrown on Transaction#commit() when the graph does not comply with the grakn
+ * validation rules. For a complete list of these rules please refer to the documentation
  * </p>
- *
  */
 public class InvalidKBException extends GraknException {
 
@@ -42,11 +41,6 @@ public class InvalidKBException extends GraknException {
         super(message);
     }
 
-    @Override
-    public String getName() {
-        return NAME;
-    }
-
     public static InvalidKBException create(String message) {
         return new InvalidKBException(message);
     }
@@ -54,13 +48,18 @@ public class InvalidKBException extends GraknException {
     /**
      * Thrown on commit when validation errors are found
      */
-    public static InvalidKBException validationErrors(List<String> errors){
+    public static InvalidKBException validationErrors(List<String> errors) {
         StringBuilder message = new StringBuilder();
         message.append(ErrorMessage.VALIDATION.getMessage(errors.size()));
         for (String s : errors) {
             message.append(s);
         }
         return create(message.toString());
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 
 }

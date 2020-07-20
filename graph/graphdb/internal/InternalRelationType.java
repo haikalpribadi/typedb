@@ -26,7 +26,6 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 
 /**
  * Internal Type interface adding methods that should only be used by JanusGraph
- *
  */
 public interface InternalRelationType extends RelationType, InternalVertex {
 

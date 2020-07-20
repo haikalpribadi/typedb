@@ -59,26 +59,9 @@ public final class RelationIdentifier implements Serializable {
     static RelationIdentifier get(InternalRelation r) {
         if (r.hasId()) {
             return new RelationIdentifier(r.getVertex(0).longId(),
-                    r.getType().longId(),
-                    r.longId(), (r.isEdge() ? r.getVertex(1).longId() : 0));
+                                          r.getType().longId(),
+                                          r.longId(), (r.isEdge() ? r.getVertex(1).longId() : 0));
         } else return null;
-    }
-
-    public long getRelationId() {
-        return relationId;
-    }
-
-    public long getTypeId() {
-        return typeId;
-    }
-
-    public long getOutVertexId() {
-        return outVertexId;
-    }
-
-    public long getInVertexId() {
-        Preconditions.checkState(inVertexId != 0);
-        return inVertexId;
     }
 
     public static RelationIdentifier get(long[] ids) {
@@ -103,6 +86,38 @@ public final class RelationIdentifier implements Serializable {
             }
         }
         return new RelationIdentifier(ids[1], ids[2], ids[0], ids.length == 4 ? ids[3] : 0);
+    }
+
+    public static RelationIdentifier parse(String id) {
+        String[] elements = id.split(TOSTRING_DELIMITER);
+        if (elements.length != 3 && elements.length != 4) {
+            throw new IllegalArgumentException("Not a valid relation identifier: " + id);
+        }
+        try {
+            return new RelationIdentifier(Long.parseLong(elements[1]),
+                                          Long.parseLong(elements[2]),
+                                          Long.parseLong(elements[0]),
+                                          elements.length == 4 ? Long.parseLong(elements[3]) : 0);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid id - each token expected to be a number", e);
+        }
+    }
+
+    public long getRelationId() {
+        return relationId;
+    }
+
+    public long getTypeId() {
+        return typeId;
+    }
+
+    public long getOutVertexId() {
+        return outVertexId;
+    }
+
+    public long getInVertexId() {
+        Preconditions.checkState(inVertexId != 0);
+        return inVertexId;
     }
 
     public long[] getLongRepresentation() {
@@ -139,21 +154,6 @@ public final class RelationIdentifier implements Serializable {
             s.append(TOSTRING_DELIMITER).append(inVertexId);
         }
         return s.toString();
-    }
-
-    public static RelationIdentifier parse(String id) {
-        String[] elements = id.split(TOSTRING_DELIMITER);
-        if (elements.length != 3 && elements.length != 4) {
-            throw new IllegalArgumentException("Not a valid relation identifier: " + id);
-        }
-        try {
-            return new RelationIdentifier(Long.parseLong(elements[1]),
-                    Long.parseLong(elements[2]),
-                    Long.parseLong(elements[0]),
-                    elements.length == 4 ? Long.parseLong(elements[3]) : 0);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid id - each token expected to be a number", e);
-        }
     }
 
     JanusGraphRelation findRelation(JanusGraphTransaction tx) {

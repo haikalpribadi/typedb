@@ -48,12 +48,6 @@ public class RawQuery extends BaseQuery {
         this.orders = orders;
     }
 
-    public RawQuery setOffset(int offset) {
-        Preconditions.checkArgument(offset>=0,"Invalid offset: %s",offset);
-        this.offset=offset;
-        return this;
-    }
-
     @Override
     public RawQuery setLimit(int limit) {
         super.setLimit(limit);
@@ -62,6 +56,12 @@ public class RawQuery extends BaseQuery {
 
     public int getOffset() {
         return offset;
+    }
+
+    public RawQuery setOffset(int offset) {
+        Preconditions.checkArgument(offset >= 0, "Invalid offset: %s", offset);
+        this.offset = offset;
+        return this;
     }
 
     public String getStore() {

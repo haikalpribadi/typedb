@@ -19,7 +19,6 @@ package grakn.core.graph.graphdb.internal;
 
 /**
  * Constants to specify the ordering of a result set in queries.
- *
  */
 
 public enum Order {
@@ -32,6 +31,24 @@ public enum Order {
      * Decreasing
      */
     DESC;
+
+    /**
+     * The default order when none is specified
+     */
+    public static final Order DEFAULT = ASC;
+
+    public static Order convert(org.apache.tinkerpop.gremlin.process.traversal.Order order) {
+        switch (order) {
+            case asc:
+            case incr:
+                return ASC;
+            case desc:
+            case decr:
+                return DESC;
+            default:
+                throw new AssertionError();
+        }
+    }
 
     /**
      * Modulates the result of a Comparable#compareTo(Object) execution for this specific
@@ -48,24 +65,14 @@ public enum Order {
         }
     }
 
-    /**
-     * The default order when none is specified
-     */
-    public static final Order DEFAULT = ASC;
-
     public org.apache.tinkerpop.gremlin.process.traversal.Order getTP() {
         switch (this) {
-            case ASC :return org.apache.tinkerpop.gremlin.process.traversal.Order.asc;
-            case DESC: return org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
-            default: throw new AssertionError();
-        }
-    }
-
-    public static Order convert(org.apache.tinkerpop.gremlin.process.traversal.Order order) {
-        switch(order) {
-            case asc: case incr: return ASC;
-            case desc: case decr: return DESC;
-            default: throw new AssertionError();
+            case ASC:
+                return org.apache.tinkerpop.gremlin.process.traversal.Order.asc;
+            case DESC:
+                return org.apache.tinkerpop.gremlin.process.traversal.Order.desc;
+            default:
+                throw new AssertionError();
         }
     }
 

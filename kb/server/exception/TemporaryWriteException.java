@@ -23,31 +23,30 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 /**
  * <p>
- *     Mutation Exception
+ * Mutation Exception
  * </p>
  *
  * <p>
- *     This exception occurs when we are temporarily unable to write to the graph.
- *     This is typically caused by the persistence layer being overloaded.
- *     When this occurs the transaction should be retried
+ * This exception occurs when we are temporarily unable to write to the graph.
+ * This is typically caused by the persistence layer being overloaded.
+ * When this occurs the transaction should be retried
  * </p>
- *
  */
 public class TemporaryWriteException extends GraknException {
     private TemporaryWriteException(String error, Exception e) {
         super(error, e);
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getName();
-    }
-
     /**
      * Thrown when multiple transactions overlap in using an index. This results in incomplete vertices being shared
      * between transactions.
      */
-    public static TemporaryWriteException indexOverlap(Vertex vertex, Exception e){
+    public static TemporaryWriteException indexOverlap(Vertex vertex, Exception e) {
         return new TemporaryWriteException(String.format("Index overlap has led to the accidental sharing of a partially complete vertex {%s}", vertex), e);
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getName();
     }
 }

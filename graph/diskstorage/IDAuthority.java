@@ -26,7 +26,6 @@ import java.util.List;
 /**
  * Handles the unique allocation of ids. Returns blocks of ids that are uniquely allocated to the caller so that
  * they can be used to uniquely identify elements. *
- *
  */
 
 public interface IDAuthority {
@@ -45,13 +44,11 @@ public interface IDAuthority {
      * for the given partition as read from the IDBlockSizer set on this IDAuthority and that the
      * number of ids returned is equal to the block size of the IDBlockSizer.
      *
-     * @param partition
-     *            Partition for which to request an id block
+     * @param partition   Partition for which to request an id block
      * @param idNamespace namespace for ids within a partition
-     * @param timeout
-     *            When a call to this method is unable to return a id block
-     *            before this timeout elapses, the implementation must give up
-     *            and throw a {@code StorageException} ASAP
+     * @param timeout     When a call to this method is unable to return a id block
+     *                    before this timeout elapses, the implementation must give up
+     *                    and throw a {@code StorageException} ASAP
      * @return a range of ids for the {@code partition} parameter
      */
     IDBlock getIDBlock(int partition, int idNamespace, Duration timeout)

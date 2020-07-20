@@ -26,16 +26,20 @@ import java.util.HashMap;
 
 public interface StatisticsDelta {
     long delta(Label label);
+
     long deltaOwnership(Label label);
 
     void increment(Type type);
+
     void incrementOwnership(AttributeType<?> attribute);
 
     void decrement(Type type);
+
     void decrementOwnership(AttributeType<?> attribute);
 
     /**
      * Special case decrement for attribute deduplication
+     *
      * @param label
      */
     void decrementAttribute(Label label);

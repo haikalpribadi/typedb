@@ -44,15 +44,13 @@ import static grakn.core.graph.graphdb.configuration.GraphDatabaseConfiguration.
  */
 public class SimpleBulkPlacementStrategy implements IDPlacementStrategy {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SimpleBulkPlacementStrategy.class);
-
     public static final int PARTITION_FINDING_ATTEMPTS = 1000;
-
+    private static final Logger LOG = LoggerFactory.getLogger(SimpleBulkPlacementStrategy.class);
     private final Random random = new Random();
 
     private final int[] currentPartitions;
-    private List<PartitionIDRange> localPartitionIdRanges;
     private final Set<Integer> exhaustedPartitions;
+    private List<PartitionIDRange> localPartitionIdRanges;
 
     public SimpleBulkPlacementStrategy(int concurrentPartitions) {
         Preconditions.checkArgument(concurrentPartitions > 0);

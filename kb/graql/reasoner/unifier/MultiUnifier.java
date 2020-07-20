@@ -85,7 +85,6 @@ public interface MultiUnifier extends Iterable<Unifier> {
 
 
     /**
-     *
      * @param u multiunifier to compared with
      * @return true if for all unifiers ui of u, there exists a unifier in this multiunifier that contains all mappings of ui
      */

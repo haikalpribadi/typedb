@@ -22,9 +22,6 @@ import grakn.core.concept.answer.AnswerGroup;
 import grakn.core.concept.answer.ConceptMap;
 import grakn.core.concept.answer.Numeric;
 import grakn.core.concept.answer.Void;
-import grakn.core.kb.graql.planning.gremlin.GraqlTraversal;
-import graql.lang.pattern.Conjunction;
-import graql.lang.pattern.Pattern;
 import graql.lang.query.GraqlDefine;
 import graql.lang.query.GraqlDelete;
 import graql.lang.query.GraqlGet;
@@ -46,6 +43,7 @@ public interface QueryExecutor {
     Void delete(GraqlDelete query);
 
     Stream<ConceptMap> get(GraqlGet query);
+
     Stream<ConceptMap> get(GraqlGet query, boolean explain);
 
     Stream<Numeric> aggregate(GraqlGet.Aggregate query);

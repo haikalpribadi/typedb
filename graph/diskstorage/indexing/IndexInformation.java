@@ -21,13 +21,13 @@ import grakn.core.graph.graphdb.query.JanusGraphPredicate;
 
 /**
  * An IndexInformation gives basic information on what a particular IndexProvider supports.
- *
  */
 
 public interface IndexInformation {
 
     /**
      * Whether the index supports executing queries with the given predicate against a key with the given information
+     *
      * @param information
      * @param janusgraphPredicate
      * @return
@@ -36,6 +36,7 @@ public interface IndexInformation {
 
     /**
      * Whether the index supports indexing a key with the given information
+     *
      * @param information
      * @return
      */
@@ -57,6 +58,7 @@ public interface IndexInformation {
 
     /**
      * The features of this index
+     *
      * @return
      */
     IndexFeatures getFeatures();

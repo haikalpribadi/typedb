@@ -34,25 +34,26 @@ import java.util.Properties;
 
 /**
  * Singleton class used to read config file and make all the settings available to the Grakn Server classes.
- *
  */
 public class Config {
-
-    private final Properties prop;
 
     /**
      * The path to the config file currently in use. Default: ./server/conf/grakn.properties
      */
     private static final Path DEFAULT_CONFIG_FILE = Paths.get(".", "server", "conf", "grakn.properties");
     private static final Logger LOG = LoggerFactory.getLogger(Config.class);
-    private static Config defaultConfig = null;
     private static final Path PROJECT_PATH = Config.getProjectPath();
-
     public static final Path CONFIG_FILE_PATH = getConfigFilePath(PROJECT_PATH);
+    private static Config defaultConfig = null;
+    private final Properties prop;
 
+
+    private Config(Properties prop) {
+        this.prop = prop;
+    }
 
     public static Config create() {
-        if(defaultConfig == null){
+        if (defaultConfig == null) {
             defaultConfig = Config.read(CONFIG_FILE_PATH);
         }
         return defaultConfig;
@@ -79,7 +80,7 @@ public class Config {
         return read(inputStream);
     }
 
-    public static Config read(InputStream inputStream){
+    public static Config read(InputStream inputStream) {
         Properties prop = new Properties();
         try {
             prop.load(inputStream);
@@ -91,22 +92,8 @@ public class Config {
 
     public static Config of(Properties properties) {
         Properties localProps = new Properties();
-        properties.forEach((key, value)-> localProps.setProperty((String)key, (String)value));
+        properties.forEach((key, value) -> localProps.setProperty((String) key, (String) value));
         return new Config(localProps);
-    }
-
-    private Config(Properties prop) {
-        this.prop = prop;
-    }
-
-    public void write(File path) throws IOException {
-        try(FileOutputStream os = new FileOutputStream(path)) {
-            prop.store(os, null);
-        }
-    }
-
-    public <T> void setConfigProperty(ConfigKey<T> key, T value) {
-        prop.setProperty(key.name(), key.valueToString(value));
     }
 
     /**
@@ -122,6 +109,16 @@ public class Config {
             path = Paths.get(pathString);
         }
         return projectPath.resolve(path);
+    }
+
+    public void write(File path) throws IOException {
+        try (FileOutputStream os = new FileOutputStream(path)) {
+            prop.store(os, null);
+        }
+    }
+
+    public <T> void setConfigProperty(ConfigKey<T> key, T value) {
+        prop.setProperty(key.name(), key.valueToString(value));
     }
 
     public Properties properties() {

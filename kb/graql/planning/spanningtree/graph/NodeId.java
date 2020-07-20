@@ -26,22 +26,11 @@ import java.util.stream.Collectors;
 
 /**
  * The unique id of a node.
- *
  */
 public class NodeId {
 
-    /**
-     * The type of a node.
-     * If the node contains a var from the query, its type is VAR.
-     * If the node is an edge from the query, its type is the type of the fragment.
-     **/
-    public enum Type {
-        ISA, PLAYS, RELATES, SUB, HAS, KEY, ATTRIBUTE, VAR
-    }
-
     private final Type nodeIdType;
     private final Set<Variable> vars;
-
     private NodeId(Type nodeIdType, Set<Variable> vars) {
         this.nodeIdType = nodeIdType;
         this.vars = vars;
@@ -85,5 +74,14 @@ public class NodeId {
     public String toString() {
         String varNames = vars.stream().map(var -> var.symbol()).collect(Collectors.joining(","));
         return nodeIdType + varNames;
+    }
+
+    /**
+     * The type of a node.
+     * If the node contains a var from the query, its type is VAR.
+     * If the node is an edge from the query, its type is the type of the fragment.
+     **/
+    public enum Type {
+        ISA, PLAYS, RELATES, SUB, HAS, KEY, ATTRIBUTE, VAR
     }
 }

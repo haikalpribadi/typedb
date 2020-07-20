@@ -93,7 +93,7 @@ public class TypeImpl<T extends Type, V extends Thing> extends SchemaConceptImpl
 
 
     /**
-     *  retrieve all attributes owned directly and by all super types
+     * retrieve all attributes owned directly and by all super types
      */
     @Override
     public Stream<AttributeType<?>> has() {

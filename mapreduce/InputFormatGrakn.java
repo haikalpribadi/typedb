@@ -122,6 +122,27 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
     private String cfName;
     private IPartitioner partitioner;
 
+    static CqlSession getInputSession(String[] hosts, Configuration conf) {
+        int port = getInputNativePort(conf);
+        return getSession(hosts, conf, port);
+    }
+
+    private static int getInputNativePort(Configuration conf) {
+        return Integer.parseInt(conf.get(STORAGE_PORT.name(), "9042"));
+    }
+
+    // BIG TODO: add support for SSL stuff and friends
+    private static CqlSession getSession(String[] hosts, Configuration conf, int port) {
+        return CqlSession.builder()
+                .addContactPoints(
+                        Arrays.stream(hosts)
+                                .map(s -> new InetSocketAddress(s, port))
+                                .collect(Collectors.toList())
+                )
+                .withLocalDatacenter("datacenter1")
+                .build();
+    }
+
     public RecordReader<Long, Row> getRecordReader(InputSplit split, JobConf jobConf, Reporter reporter) throws IOException {
         TaskAttemptContext tac = HadoopCompat.newMapContext(
                 jobConf,
@@ -185,10 +206,10 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
                         throw new IllegalArgumentException("only start_key supported");
                     }
                     jobRange = new Range<>(partitioner.getToken(jobKeyRange.start_key),
-                            partitioner.getToken(jobKeyRange.end_key));
+                                           partitioner.getToken(jobKeyRange.end_key));
                 } else if (jobKeyRange.start_token != null) {
                     jobRange = new Range<>(partitioner.getTokenFactory().fromString(jobKeyRange.start_token),
-                            partitioner.getTokenFactory().fromString(jobKeyRange.end_token));
+                                           partitioner.getTokenFactory().fromString(jobKeyRange.end_token));
                 } else {
                     LOG.warn("ignoring jobKeyRange specified without start_key or start_token");
                 }
@@ -233,7 +254,7 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
     private TokenRange rangeToTokenRange(Metadata metadata, Range<Token> range) {
         TokenMap tokenMap = metadata.getTokenMap().get();
         return tokenMap.newTokenRange(tokenMap.parse(partitioner.getTokenFactory().toString(range.left)),
-                tokenMap.parse(partitioner.getTokenFactory().toString(range.right)));
+                                      tokenMap.parse(partitioner.getTokenFactory().toString(range.right)));
     }
 
     private Map<TokenRange, Long> getSubSplits(String keyspace, String cfName, TokenRange range, Configuration conf, CqlSession session) {
@@ -253,10 +274,10 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
 
     private Map<TokenRange, Long> describeSplits(String keyspace, String table, TokenRange tokenRange, int splitSize, int splitSizeMb, CqlSession session) {
         String query = String.format("SELECT mean_partition_size, partitions_count " +
-                        "FROM %s.%s " +
-                        "WHERE keyspace_name = ? AND table_name = ? AND range_start = ? AND range_end = ?",
-                SchemaConstants.SYSTEM_KEYSPACE_NAME,
-                SystemKeyspace.SIZE_ESTIMATES);
+                                             "FROM %s.%s " +
+                                             "WHERE keyspace_name = ? AND table_name = ? AND range_start = ? AND range_end = ?",
+                                     SchemaConstants.SYSTEM_KEYSPACE_NAME,
+                                     SystemKeyspace.SIZE_ESTIMATES);
 
         ResultSet resultSet = session.execute(session.prepare(query).bind(keyspace, table, tokenRange.getStart().toString(), tokenRange.getEnd().toString()));
 
@@ -301,90 +322,6 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
             oldInputSplits[i] = (ColumnFamilySplit) newInputSplits.get(i);
         }
         return oldInputSplits;
-    }
-
-    static CqlSession getInputSession(String[] hosts, Configuration conf) {
-        int port = getInputNativePort(conf);
-        return getSession(hosts, conf, port);
-    }
-
-    private static int getInputNativePort(Configuration conf) {
-        return Integer.parseInt(conf.get(STORAGE_PORT.name(), "9042"));
-    }
-
-
-    // BIG TODO: add support for SSL stuff and friends
-    private static CqlSession getSession(String[] hosts, Configuration conf, int port) {
-        return CqlSession.builder()
-                .addContactPoints(
-                        Arrays.stream(hosts)
-                                .map(s -> new InetSocketAddress(s, port))
-                                .collect(Collectors.toList())
-                )
-                .withLocalDatacenter("datacenter1")
-                .build();
-    }
-
-    /**
-     * Gets a token tokenRange and splits it up according to the suggested
-     * size into input splits that Hadoop can use.
-     */
-    private class SplitCallable implements Callable<List<org.apache.hadoop.mapreduce.InputSplit>> {
-
-        private final TokenRange tokenRange;
-        private final Set<Node> hosts;
-        private final Configuration conf;
-        private final CqlSession session;
-
-        SplitCallable(TokenRange tr, Set<Node> hosts, Configuration conf, CqlSession session) {
-            this.tokenRange = tr;
-            this.hosts = hosts;
-            this.conf = conf;
-            this.session = session;
-        }
-
-        public List<org.apache.hadoop.mapreduce.InputSplit> call() throws Exception {
-            ArrayList<org.apache.hadoop.mapreduce.InputSplit> splits = new ArrayList<>();
-            Map<TokenRange, Long> subSplits;
-            subSplits = getSubSplits(keyspace, cfName, tokenRange, conf, session);
-            // turn the sub-ranges into InputSplits
-            String[] endpoints = new String[hosts.size()];
-
-            // hadoop needs hostname, not ip
-            int endpointIndex = 0;
-            for (Node endpoint : hosts) {
-                endpoints[endpointIndex++] = endpoint.getListenAddress().get().getHostName();
-            }
-
-            boolean partitionerIsOpp = partitioner instanceof OrderPreservingPartitioner || partitioner instanceof ByteOrderedPartitioner;
-
-            for (Map.Entry<TokenRange, Long> subSplitEntry : subSplits.entrySet()) {
-                List<TokenRange> ranges = subSplitEntry.getKey().unwrap();
-                for (TokenRange subrange : ranges) {
-                    ColumnFamilySplit split;
-                    if (subrange instanceof Murmur3TokenRange) {
-                        Murmur3Token startToken = (Murmur3Token) subrange.getStart();
-                        Murmur3Token endToken = (Murmur3Token) subrange.getEnd();
-                        split = new ColumnFamilySplit(
-                                Long.toString(startToken.getValue()),
-                                Long.toString(endToken.getValue()),
-                                subSplitEntry.getValue(),
-                                endpoints);
-                    } else {
-                        split = new ColumnFamilySplit(
-                                partitionerIsOpp ? subrange.getStart().toString().substring(2) : subrange.getStart().toString(),
-                                partitionerIsOpp ? subrange.getEnd().toString().substring(2) : subrange.getEnd().toString(),
-                                subSplitEntry.getValue(),
-                                endpoints);
-                    }
-
-
-                    LOG.trace("adding {}", split);
-                    splits.add(split);
-                }
-            }
-            return splits;
-        }
     }
 
     /**
@@ -549,55 +486,72 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
         }
 
         /**
-         * CQL row iterator
-         * Input cql query
-         * 1) select clause must include key columns (if we use partition key based row count)
-         * 2) where clause must include token(partition_key1 ... partition_keyn) > ? and
-         * token(partition_key1 ... partition_keyn) <= ?
+         * Build a query for the reader of the form:
+         * <p>
+         * SELECT * FROM ks>cf token(pk1,...pkn)>? AND token(pk1,...pkn)<=? [AND user where clauses] [ALLOW FILTERING]
          */
-        private class RowIterator extends AbstractIterator<Pair<Long, Row>> {
-            private long keyId = 0L;
-            private Map<String, ByteBuffer> previousRowKey = new HashMap<>(); // previous CF row key
-            int totalRead = 0; // total number of cf rows read
-            Iterator<Row> rows;
+        private String buildQuery() {
+            fetchKeys();
 
-            public RowIterator() {
-                AbstractType type = partitioner.getTokenValidator();
-                ResultSet rs = session.execute(session.prepare(cqlQuery).bind(type.compose(type.fromString(split.getStartToken())), type.compose(type.fromString(split.getEndToken()))));
-                for (ColumnMetadata meta : session.getMetadata().getKeyspace(quote(keyspace)).get().getTable(quote(cfName)).get().getPartitionKey()) {
-                    partitionBoundColumns.put(meta.getName().toString(), Boolean.TRUE);
-                }
-                rows = rs.iterator();
+            List<String> columns = getSelectColumns();
+            String selectColumnList = columns.size() == 0 ? "*" : makeColumnList(columns);
+            String partitionKeyList = makeColumnList(partitionKeys);
+
+            return String.format("SELECT %s FROM %s.%s WHERE token(%s)>? AND token(%s)<=?" + getAdditionalWhereClauses(),
+                                 selectColumnList, quote(keyspace), quote(cfName), partitionKeyList, partitionKeyList);
+        }
+
+        private String getAdditionalWhereClauses() {
+            String whereClause = "";
+            if (StringUtils.isNotEmpty(userDefinedWhereClauses)) {
+                whereClause += " AND " + userDefinedWhereClauses;
             }
+            if (StringUtils.isNotEmpty(userDefinedWhereClauses)) {
+                whereClause += " ALLOW FILTERING";
+            }
+            return whereClause;
+        }
 
-            protected Pair<Long, Row> computeNext() {
-                if (rows == null || !rows.hasNext()) {
-                    return endOfData();
-                }
+        private List<String> getSelectColumns() {
+            List<String> selectColumns = new ArrayList<>();
 
-                Row row = rows.next();
-                Map<String, ByteBuffer> keyColumns = new HashMap<String, ByteBuffer>(partitionBoundColumns.size());
-                for (String column : partitionBoundColumns.keySet()) {
-                    keyColumns.put(column, row.getBytesUnsafe(column));
-                }
-
-                // increase total CF row read
-                if (previousRowKey.isEmpty() && !keyColumns.isEmpty()) {
-                    previousRowKey = keyColumns;
-                    totalRead++;
-                } else {
-                    for (String column : partitionBoundColumns.keySet()) {
-                        // this is not correct - but we don't seem to have easy access to better type information here
-                        if (ByteBufferUtil.compareUnsigned(keyColumns.get(column), previousRowKey.get(column)) != 0) {
-                            previousRowKey = keyColumns;
-                            totalRead++;
-                            break;
-                        }
+            if (StringUtils.isNotEmpty(inputColumns)) {
+                // We must select all the partition keys plus any other columns the user wants
+                selectColumns.addAll(partitionKeys);
+                for (String column : Splitter.on(',').split(inputColumns)) {
+                    if (!partitionKeys.contains(column)) {
+                        selectColumns.add(column);
                     }
                 }
-                keyId++;
-                return Pair.create(keyId, row);
             }
+            return selectColumns;
+        }
+
+        private String makeColumnList(Collection<String> columns) {
+            return Joiner.on(',').join(Iterables.transform(columns, new Function<String, String>() {
+                public String apply(String column) {
+                    return quote(column);
+                }
+            }));
+        }
+
+        private void fetchKeys() {
+            // get CF meta data
+            TableMetadata tableMetadata = session
+                    .getMetadata()
+                    .getKeyspace(keyspace).get()
+                    .getTable(cfName)
+                    .orElseThrow(() -> new RuntimeException("No table metadata found for " + keyspace + "." + cfName));
+
+            //Here we assume that tableMetadata.getPartitionKey() always
+            //returns the list of columns in order of component_index
+            for (ColumnMetadata partitionKey : tableMetadata.getPartitionKey()) {
+                partitionKeys.add(partitionKey.getName().toString());
+            }
+        }
+
+        private String quote(String identifier) {
+            return "\"" + identifier.replaceAll("\"", "\"\"") + "\"";
         }
 
         private static class WrappedRow implements Row {
@@ -669,72 +623,117 @@ public class InputFormatGrakn extends org.apache.hadoop.mapreduce.InputFormat<Lo
         }
 
         /**
-         * Build a query for the reader of the form:
-         * <p>
-         * SELECT * FROM ks>cf token(pk1,...pkn)>? AND token(pk1,...pkn)<=? [AND user where clauses] [ALLOW FILTERING]
+         * CQL row iterator
+         * Input cql query
+         * 1) select clause must include key columns (if we use partition key based row count)
+         * 2) where clause must include token(partition_key1 ... partition_keyn) > ? and
+         * token(partition_key1 ... partition_keyn) <= ?
          */
-        private String buildQuery() {
-            fetchKeys();
+        private class RowIterator extends AbstractIterator<Pair<Long, Row>> {
+            int totalRead = 0; // total number of cf rows read
+            Iterator<Row> rows;
+            private long keyId = 0L;
+            private Map<String, ByteBuffer> previousRowKey = new HashMap<>(); // previous CF row key
 
-            List<String> columns = getSelectColumns();
-            String selectColumnList = columns.size() == 0 ? "*" : makeColumnList(columns);
-            String partitionKeyList = makeColumnList(partitionKeys);
-
-            return String.format("SELECT %s FROM %s.%s WHERE token(%s)>? AND token(%s)<=?" + getAdditionalWhereClauses(),
-                    selectColumnList, quote(keyspace), quote(cfName), partitionKeyList, partitionKeyList);
-        }
-
-        private String getAdditionalWhereClauses() {
-            String whereClause = "";
-            if (StringUtils.isNotEmpty(userDefinedWhereClauses)) {
-                whereClause += " AND " + userDefinedWhereClauses;
+            public RowIterator() {
+                AbstractType type = partitioner.getTokenValidator();
+                ResultSet rs = session.execute(session.prepare(cqlQuery).bind(type.compose(type.fromString(split.getStartToken())), type.compose(type.fromString(split.getEndToken()))));
+                for (ColumnMetadata meta : session.getMetadata().getKeyspace(quote(keyspace)).get().getTable(quote(cfName)).get().getPartitionKey()) {
+                    partitionBoundColumns.put(meta.getName().toString(), Boolean.TRUE);
+                }
+                rows = rs.iterator();
             }
-            if (StringUtils.isNotEmpty(userDefinedWhereClauses)) {
-                whereClause += " ALLOW FILTERING";
-            }
-            return whereClause;
-        }
 
-        private List<String> getSelectColumns() {
-            List<String> selectColumns = new ArrayList<>();
+            protected Pair<Long, Row> computeNext() {
+                if (rows == null || !rows.hasNext()) {
+                    return endOfData();
+                }
 
-            if (StringUtils.isNotEmpty(inputColumns)) {
-                // We must select all the partition keys plus any other columns the user wants
-                selectColumns.addAll(partitionKeys);
-                for (String column : Splitter.on(',').split(inputColumns)) {
-                    if (!partitionKeys.contains(column)) {
-                        selectColumns.add(column);
+                Row row = rows.next();
+                Map<String, ByteBuffer> keyColumns = new HashMap<String, ByteBuffer>(partitionBoundColumns.size());
+                for (String column : partitionBoundColumns.keySet()) {
+                    keyColumns.put(column, row.getBytesUnsafe(column));
+                }
+
+                // increase total CF row read
+                if (previousRowKey.isEmpty() && !keyColumns.isEmpty()) {
+                    previousRowKey = keyColumns;
+                    totalRead++;
+                } else {
+                    for (String column : partitionBoundColumns.keySet()) {
+                        // this is not correct - but we don't seem to have easy access to better type information here
+                        if (ByteBufferUtil.compareUnsigned(keyColumns.get(column), previousRowKey.get(column)) != 0) {
+                            previousRowKey = keyColumns;
+                            totalRead++;
+                            break;
+                        }
                     }
                 }
+                keyId++;
+                return Pair.create(keyId, row);
             }
-            return selectColumns;
+        }
+    }
+
+    /**
+     * Gets a token tokenRange and splits it up according to the suggested
+     * size into input splits that Hadoop can use.
+     */
+    private class SplitCallable implements Callable<List<org.apache.hadoop.mapreduce.InputSplit>> {
+
+        private final TokenRange tokenRange;
+        private final Set<Node> hosts;
+        private final Configuration conf;
+        private final CqlSession session;
+
+        SplitCallable(TokenRange tr, Set<Node> hosts, Configuration conf, CqlSession session) {
+            this.tokenRange = tr;
+            this.hosts = hosts;
+            this.conf = conf;
+            this.session = session;
         }
 
-        private String makeColumnList(Collection<String> columns) {
-            return Joiner.on(',').join(Iterables.transform(columns, new Function<String, String>() {
-                public String apply(String column) {
-                    return quote(column);
+        public List<org.apache.hadoop.mapreduce.InputSplit> call() throws Exception {
+            ArrayList<org.apache.hadoop.mapreduce.InputSplit> splits = new ArrayList<>();
+            Map<TokenRange, Long> subSplits;
+            subSplits = getSubSplits(keyspace, cfName, tokenRange, conf, session);
+            // turn the sub-ranges into InputSplits
+            String[] endpoints = new String[hosts.size()];
+
+            // hadoop needs hostname, not ip
+            int endpointIndex = 0;
+            for (Node endpoint : hosts) {
+                endpoints[endpointIndex++] = endpoint.getListenAddress().get().getHostName();
+            }
+
+            boolean partitionerIsOpp = partitioner instanceof OrderPreservingPartitioner || partitioner instanceof ByteOrderedPartitioner;
+
+            for (Map.Entry<TokenRange, Long> subSplitEntry : subSplits.entrySet()) {
+                List<TokenRange> ranges = subSplitEntry.getKey().unwrap();
+                for (TokenRange subrange : ranges) {
+                    ColumnFamilySplit split;
+                    if (subrange instanceof Murmur3TokenRange) {
+                        Murmur3Token startToken = (Murmur3Token) subrange.getStart();
+                        Murmur3Token endToken = (Murmur3Token) subrange.getEnd();
+                        split = new ColumnFamilySplit(
+                                Long.toString(startToken.getValue()),
+                                Long.toString(endToken.getValue()),
+                                subSplitEntry.getValue(),
+                                endpoints);
+                    } else {
+                        split = new ColumnFamilySplit(
+                                partitionerIsOpp ? subrange.getStart().toString().substring(2) : subrange.getStart().toString(),
+                                partitionerIsOpp ? subrange.getEnd().toString().substring(2) : subrange.getEnd().toString(),
+                                subSplitEntry.getValue(),
+                                endpoints);
+                    }
+
+
+                    LOG.trace("adding {}", split);
+                    splits.add(split);
                 }
-            }));
-        }
-
-        private void fetchKeys() {
-            // get CF meta data
-            TableMetadata tableMetadata = session
-                    .getMetadata()
-                    .getKeyspace(keyspace).get()
-                    .getTable(cfName)
-                    .orElseThrow(() -> new RuntimeException("No table metadata found for " + keyspace + "." + cfName));
-
-            //Here we assume that tableMetadata.getPartitionKey() always
-            //returns the list of columns in order of component_index
-            for (ColumnMetadata partitionKey : tableMetadata.getPartitionKey()) {
-                partitionKeys.add(partitionKey.getName().toString());
             }
-        }
-
-        private String quote(String identifier) {
-            return "\"" + identifier.replaceAll("\"", "\"\"") + "\"";
+            return splits;
         }
     }
 }

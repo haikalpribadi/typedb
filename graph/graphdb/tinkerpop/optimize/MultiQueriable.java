@@ -20,7 +20,7 @@ package grakn.core.graph.graphdb.tinkerpop.optimize;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 
 
-public interface MultiQueriable<S,E> extends Step<S,E> {
+public interface MultiQueriable<S, E> extends Step<S, E> {
 
     void setUseMultiQuery(boolean useMultiQuery);
 

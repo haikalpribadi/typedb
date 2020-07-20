@@ -73,6 +73,19 @@ public class InputFormatCQL extends InputFormat<StaticBuffer, Iterable<Entry>> i
         return new RecordReaderCQL(recordReader);
     }
 
+    private SliceRange getSliceRange(int limit) {
+        SliceRange sliceRange = new SliceRange();
+        sliceRange.setStart(DEFAULT_SLICE_QUERY.getSliceStart().asByteBuffer());
+        sliceRange.setFinish(DEFAULT_SLICE_QUERY.getSliceEnd().asByteBuffer());
+        sliceRange.setCount(Math.min(limit, DEFAULT_SLICE_QUERY.getLimit()));
+        return sliceRange;
+    }
+
+    @Override
+    public Configuration getConf() {
+        return hadoopConf;
+    }
+
     @Override
     public void setConf(Configuration config) {
         this.hadoopConf = config;
@@ -107,24 +120,10 @@ public class InputFormatCQL extends InputFormat<StaticBuffer, Iterable<Entry>> i
         ConfigHelper.setInputSlicePredicate(config, predicate);
     }
 
-    private SliceRange getSliceRange(int limit) {
-        SliceRange sliceRange = new SliceRange();
-        sliceRange.setStart(DEFAULT_SLICE_QUERY.getSliceStart().asByteBuffer());
-        sliceRange.setFinish(DEFAULT_SLICE_QUERY.getSliceEnd().asByteBuffer());
-        sliceRange.setCount(Math.min(limit, DEFAULT_SLICE_QUERY.getLimit()));
-        return sliceRange;
-    }
-
-    @Override
-    public Configuration getConf() {
-        return hadoopConf;
-    }
-
     private static class RecordReaderCQL extends RecordReader<StaticBuffer, Iterable<Entry>> {
+        private final InputFormatGrakn.RecordReaderGrakn reader;
         private KV currentKV;
         private KV incompleteKV;
-
-        private final InputFormatGrakn.RecordReaderGrakn reader;
 
         RecordReaderCQL(InputFormatGrakn.RecordReaderGrakn reader) {
             this.reader = reader;

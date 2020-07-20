@@ -33,12 +33,12 @@ public class SimpleIndexCache implements IndexCache {
 
     @Override
     public void add(JanusGraphVertexProperty property) {
-        map.put(property.value(),property);
+        map.put(property.value(), property);
     }
 
     @Override
     public void remove(JanusGraphVertexProperty property) {
-        map.remove(property.value(),property);
+        map.remove(property.value(), property);
     }
 
     @Override

@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Interface for classes storing query answer sets.
  */
-public interface AnswerSet extends Iterable<ConceptMap>, Set<ConceptMap>{
+public interface AnswerSet extends Iterable<ConceptMap>, Set<ConceptMap> {
 
     Set<ConceptMap> get(ConceptMap partialAnswer);
 

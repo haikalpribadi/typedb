@@ -32,5 +32,5 @@ public class LookupExplanation extends Explanation {
     }
 
     @Override
-    public boolean isLookupExplanation(){ return true;}
+    public boolean isLookupExplanation() { return true;}
 }

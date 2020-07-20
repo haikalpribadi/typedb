@@ -88,15 +88,15 @@ public class EmptyVertex implements InternalVertex {
 
     @Override
     public <O> O valueOrNull(PropertyKey key) {
-        if (key instanceof ImplicitKey) return ((ImplicitKey)key).computeProperty(this);
+        if (key instanceof ImplicitKey) return ((ImplicitKey) key).computeProperty(this);
         return null;
     }
 
     @Override
     public <O> O value(String key) {
-        if (!tx().containsPropertyKey(key)) throw Property.Exceptions.propertyDoesNotExist(this,key);
+        if (!tx().containsPropertyKey(key)) throw Property.Exceptions.propertyDoesNotExist(this, key);
         O val = valueOrNull(tx().getPropertyKey(key));
-        if (val==null) throw Property.Exceptions.propertyDoesNotExist(this,key);
+        if (val == null) throw Property.Exceptions.propertyDoesNotExist(this, key);
         return val;
     }
 

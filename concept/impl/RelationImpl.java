@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  */
 public class RelationImpl extends ThingImpl<Relation, RelationType> implements Relation, ConceptVertex {
 
-    public RelationImpl(VertexElement vertexElement, ConceptManager conceptManager, ConceptNotificationChannel conceptNotificationChannel){
+    public RelationImpl(VertexElement vertexElement, ConceptManager conceptManager, ConceptNotificationChannel conceptNotificationChannel) {
         super(vertexElement, conceptManager, conceptNotificationChannel);
     }
 
@@ -125,6 +125,7 @@ public class RelationImpl extends ThingImpl<Relation, RelationType> implements R
                     conceptNotificationChannel.castingDeleted(casting);
                 });
     }
+
     private void addRolePlayer(Role role, Thing thing) {
         Objects.requireNonNull(role);
         Objects.requireNonNull(thing);

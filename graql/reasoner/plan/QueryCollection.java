@@ -25,56 +25,53 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- *
  * <p>
  * Helper class for collections of ReasonerQueryImpl queries with equality comparison ReasonerQueryEquivalence.
  * </p>
  *
  * @param <T> unwrapped collection type
  * @param <W> wrapped collection type
- *
- *
  */
-public abstract class QueryCollection<T extends Collection<ReasonerQueryImpl>, W extends Collection<Equivalence.Wrapper<ReasonerQueryImpl>>> extends QueryCollectionBase{
+public abstract class QueryCollection<T extends Collection<ReasonerQueryImpl>, W extends Collection<Equivalence.Wrapper<ReasonerQueryImpl>>> extends QueryCollectionBase {
 
     T collection;
     W wrappedCollection;
 
     @Override
-    public Stream<Equivalence.Wrapper<ReasonerQueryImpl>> wrappedStream(){ return wrappedCollection.stream(); }
+    public Stream<Equivalence.Wrapper<ReasonerQueryImpl>> wrappedStream() { return wrappedCollection.stream(); }
 
     @Override
     public Stream<ReasonerQueryImpl> stream() { return collection.stream(); }
 
     @Override
-    public String toString(){ return collection.toString();}
+    public String toString() { return collection.toString();}
 
-    public T toCollection(){ return collection;}
+    public T toCollection() { return collection;}
 
-    public W toWrappedCollection(){ return wrappedCollection;}
+    public W toWrappedCollection() { return wrappedCollection;}
 
-    public boolean contains(ReasonerQueryImpl q){
+    public boolean contains(ReasonerQueryImpl q) {
         return this.contains(equality().wrap(q));
     }
 
-    public boolean contains(Equivalence.Wrapper<ReasonerQueryImpl> q){
+    public boolean contains(Equivalence.Wrapper<ReasonerQueryImpl> q) {
         return wrappedCollection.contains(q);
     }
 
-    public boolean containsAll(QueryCollection<T, W> queries){
+    public boolean containsAll(QueryCollection<T, W> queries) {
         return queries.wrappedStream().allMatch(this::contains);
     }
 
-    public boolean add(ReasonerQueryImpl q){
+    public boolean add(ReasonerQueryImpl q) {
         return collection.add(q) && wrappedCollection.add(equality().wrap(q));
     }
 
-    public boolean add(Equivalence.Wrapper<ReasonerQueryImpl> q){
+    public boolean add(Equivalence.Wrapper<ReasonerQueryImpl> q) {
         return collection.add(q.get()) && wrappedCollection.add(q);
     }
 
-    public int size(){ return collection.size();}
+    public int size() { return collection.size();}
 
-    public boolean isEmpty(){ return collection.isEmpty() && wrappedCollection.isEmpty();}
+    public boolean isEmpty() { return collection.isEmpty() && wrappedCollection.isEmpty();}
 
 }

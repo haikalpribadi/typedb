@@ -44,14 +44,16 @@ public abstract class EdgeFragment extends FragmentImpl {
 
     protected Variable end;
 
-    abstract protected NodeId getMiddleNodeId();
-    abstract protected Node startNode();
-    abstract protected Node endNode();
-
     EdgeFragment(@Nullable VarProperty varProperty, Variable start, Variable end) {
         super(varProperty, start);
         this.end = end;
     }
+
+    abstract protected NodeId getMiddleNodeId();
+
+    abstract protected Node startNode();
+
+    abstract protected Node endNode();
 
     public Variable end() {
         return end;

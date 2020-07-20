@@ -40,7 +40,7 @@ public class ConjunctiveState extends AnswerPropagatorState<ReasonerQueryImpl> {
     }
 
     @Override
-    public String toString(){ return super.toString() + "\n" + getQuery() + "\n"; }
+    public String toString() { return super.toString() + "\n" + getQuery() + "\n"; }
 
     @Override
     Iterator<ResolutionState> generateChildStateIterator() {

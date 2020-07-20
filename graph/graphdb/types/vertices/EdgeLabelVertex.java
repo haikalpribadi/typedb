@@ -48,24 +48,24 @@ public class EdgeLabelVertex extends RelationTypeVertex implements EdgeLabel {
     @Override
     public Collection<PropertyKey> mappedProperties() {
         return StreamSupport.stream(getRelated(TypeDefinitionCategory.PROPERTY_KEY_EDGE, Direction.OUT).spliterator(), false)
-            .map(entry -> (PropertyKey) entry.getSchemaType())
-            .collect(Collectors.toList());
+                .map(entry -> (PropertyKey) entry.getSchemaType())
+                .collect(Collectors.toList());
     }
 
     @Override
     public Collection<Connection> mappedConnections() {
         String name = name();
         return StreamSupport.stream(getRelated(TypeDefinitionCategory.UPDATE_CONNECTION_EDGE, Direction.OUT).spliterator(), false)
-            .map(entry -> (JanusGraphSchemaVertex) entry.getSchemaType())
-            .flatMap(s -> StreamSupport.stream(s.getEdges(TypeDefinitionCategory.CONNECTION_EDGE, Direction.OUT).spliterator(), false))
-            .map(Connection::new)
-            .filter(s -> s.getEdgeLabel().equals(name))
-            .collect(Collectors.toList());
+                .map(entry -> (JanusGraphSchemaVertex) entry.getSchemaType())
+                .flatMap(s -> StreamSupport.stream(s.getEdges(TypeDefinitionCategory.CONNECTION_EDGE, Direction.OUT).spliterator(), false))
+                .map(Connection::new)
+                .filter(s -> s.getEdgeLabel().equals(name))
+                .collect(Collectors.toList());
     }
 
     @Override
     public boolean isUnidirected(Direction dir) {
-        return getDefinition().getValue(TypeDefinitionCategory.UNIDIRECTIONAL, Direction.class)==dir;
+        return getDefinition().getValue(TypeDefinitionCategory.UNIDIRECTIONAL, Direction.class) == dir;
     }
 
     @Override

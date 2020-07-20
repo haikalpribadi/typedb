@@ -36,6 +36,8 @@ import graql.lang.property.SubProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -43,7 +45,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 import static graql.lang.Graql.type;
 import static graql.lang.Graql.var;
@@ -52,25 +53,6 @@ import static graql.lang.Graql.var;
  * Class for defining different ontological Atoms - ones referring to ontological elements.
  */
 public class OntologicalAtom extends TypeAtom {
-
-    public enum OntologicalAtomType{
-        HasAtom(HasAttributeTypeProperty.class, (v, label) -> var(v.first()).has(type(label.getValue()))),
-        PlaysAtom(PlaysProperty.class, (v, label) -> var(v.first()).plays(var(v.second()))),
-        SubAtom(SubProperty.class, (v, label) -> var(v.first()).sub(var(v.second()))),
-        SubDirectAtom(SubProperty.class, (v, label) -> var(v.first()).subX(var(v.second()))),
-        RelatesAtom(RelatesProperty.class, (v, label) -> var(v.first()).relates(var(v.second())));
-
-        private final Class<? extends VarProperty> property;
-        private final BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction;
-
-        OntologicalAtomType(Class<? extends VarProperty> property, BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction){
-            this.property = property;
-            this.statementFunction = statementFunction;
-        }
-
-        public Class<? extends VarProperty> property(){ return property;}
-        public BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction(){ return statementFunction;}
-    }
 
     private final OntologicalAtomType atomType;
 
@@ -93,11 +75,11 @@ public class OntologicalAtom extends TypeAtom {
     }
 
     @Override
-    public Atomic copy(ReasonerQuery parent){
+    public Atomic copy(ReasonerQuery parent) {
         return create(this, parent);
     }
 
-    public OntologicalAtomType atomType(){ return atomType;}
+    public OntologicalAtomType atomType() { return atomType;}
 
     @Override
     public String toString() {
@@ -191,4 +173,24 @@ public class OntologicalAtom extends TypeAtom {
 
     @Override
     public Class<? extends VarProperty> getVarPropertyClass() {return atomType.property();}
+
+    public enum OntologicalAtomType {
+        HasAtom(HasAttributeTypeProperty.class, (v, label) -> var(v.first()).has(type(label.getValue()))),
+        PlaysAtom(PlaysProperty.class, (v, label) -> var(v.first()).plays(var(v.second()))),
+        SubAtom(SubProperty.class, (v, label) -> var(v.first()).sub(var(v.second()))),
+        SubDirectAtom(SubProperty.class, (v, label) -> var(v.first()).subX(var(v.second()))),
+        RelatesAtom(RelatesProperty.class, (v, label) -> var(v.first()).relates(var(v.second())));
+
+        private final Class<? extends VarProperty> property;
+        private final BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction;
+
+        OntologicalAtomType(Class<? extends VarProperty> property, BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction) {
+            this.property = property;
+            this.statementFunction = statementFunction;
+        }
+
+        public Class<? extends VarProperty> property() { return property;}
+
+        public BiFunction<Pair<Variable, Variable>, Label, Statement> statementFunction() { return statementFunction;}
+    }
 }

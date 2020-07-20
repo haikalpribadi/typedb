@@ -57,8 +57,8 @@ public class TTLKCVSManager implements KeyColumnValueStoreManager {
         this.manager = manager;
         Preconditions.checkArgument(manager.getFeatures().hasCellTTL());
         Preconditions.checkArgument(!manager.getFeatures().hasStoreTTL(),
-                "Using TTLKCVSManager with %s is redundant: underlying implementation already supports store-level ttl",
-                manager);
+                                    "Using TTLKCVSManager with %s is redundant: underlying implementation already supports store-level ttl",
+                                    manager);
         this.features = new StandardStoreFeatures.Builder(manager.getFeatures()).storeTTL(true).build();
     }
 
@@ -75,6 +75,12 @@ public class TTLKCVSManager implements KeyColumnValueStoreManager {
      */
     public static boolean supportsAnyTTL(StoreFeatures features) {
         return features.hasCellTTL() || features.hasStoreTTL();
+    }
+
+    public static void applyTTL(Collection<Entry> additions, int ttl) {
+        for (Entry entry : additions) {
+            ((MetaAnnotatable) entry).setMetaData(EntryMetaData.TTL, ttl);
+        }
     }
 
     @Override
@@ -105,13 +111,6 @@ public class TTLKCVSManager implements KeyColumnValueStoreManager {
         }
         manager.mutateMany(mutations, txh);
     }
-
-    public static void applyTTL(Collection<Entry> additions, int ttl) {
-        for (Entry entry : additions) {
-            ((MetaAnnotatable) entry).setMetaData(EntryMetaData.TTL, ttl);
-        }
-    }
-
 
     @Override
     public StoreTransaction beginTransaction(BaseTransactionConfig config) throws BackendException {

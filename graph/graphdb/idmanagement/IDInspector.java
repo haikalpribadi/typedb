@@ -19,7 +19,6 @@ package grakn.core.graph.graphdb.idmanagement;
 
 /**
  * Interface for determining the type of element a particular id refers to.
- *
  */
 public interface IDInspector {
 

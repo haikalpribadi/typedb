@@ -22,7 +22,6 @@ import grakn.core.graph.graphdb.types.system.BaseKey;
 
 /**
  * Connection contains schema constraints from outgoing vertex to incoming vertex through an edge.
- *
  */
 public class Connection {
     private final VertexLabel incomingVertexLabel;
@@ -47,7 +46,6 @@ public class Connection {
     }
 
     /**
-     *
      * @return a label from an EdgeLabel.
      */
     public String getEdgeLabel() {
@@ -55,7 +53,6 @@ public class Connection {
     }
 
     /**
-     *
      * @return a outgoing VertexLabel.
      */
     public VertexLabel getOutgoingVertexLabel() {
@@ -63,7 +60,6 @@ public class Connection {
     }
 
     /**
-     *
      * @return a incoming VertexLabel.
      */
     public VertexLabel getIncomingVertexLabel() {
@@ -72,7 +68,6 @@ public class Connection {
 
 
     /**
-     *
      * @return a internal connection edge is used for update.
      */
     public JanusGraphEdge getConnectionEdge() {

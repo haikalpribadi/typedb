@@ -19,7 +19,6 @@
 package grakn.core.graql.reasoner.cache;
 
 import com.google.common.annotations.VisibleForTesting;
-import grakn.core.core.Schema;
 import grakn.core.graql.reasoner.query.ReasonerQueryFactory;
 import grakn.core.graql.reasoner.rule.InferenceRule;
 import grakn.core.kb.concept.api.Concept;
@@ -109,8 +108,7 @@ public class RuleCacheImpl implements RuleCache {
     }
 
     /**
-     *
-     * @param type of interest
+     * @param type   of interest
      * @param direct true if type hierarchy shouldn't be included
      * @return relevant part (direct only or subs) of the type hierarchy of a type
      */
@@ -140,10 +138,11 @@ public class RuleCacheImpl implements RuleCache {
 
     /**
      * acknowledge addition of an instance of a specific type
+     *
      * @param type to be acked
      */
     @Override
-    public void ackTypeInstanceInsertion(Type type){
+    public void ackTypeInstanceInsertion(Type type) {
         checkedTypes.add(type);
         absentTypes.remove(type);
     }
@@ -170,7 +169,7 @@ public class RuleCacheImpl implements RuleCache {
         return rules.stream();
     }
 
-    private boolean instancePresent(Type type){
+    private boolean instancePresent(Type type) {
         boolean instanceCountPresent = type.subs()
                 .anyMatch(t -> keyspaceStatistics.count(conceptManager, t.label()) != 0);
         if (instanceCountPresent) return true;
@@ -180,12 +179,12 @@ public class RuleCacheImpl implements RuleCache {
         return type.instances().findFirst().isPresent();
     }
 
-    private boolean typeHasInstances(Type type){
+    private boolean typeHasInstances(Type type) {
         if (checkedTypes.contains(type)) return !absentTypes.contains(type);
         checkedTypes.add(type);
-        boolean instancePresent =instancePresent(type)
+        boolean instancePresent = instancePresent(type)
                 || type.subs().flatMap(SchemaConcept::thenRules).anyMatch(this::isRuleMatchable);
-        if (!instancePresent){
+        if (!instancePresent) {
             absentTypes.add(type);
             type.whenRules()
                     .filter(rule -> rule.whenPositiveTypes().anyMatch(pt -> pt.equals(type)))
@@ -195,11 +194,10 @@ public class RuleCacheImpl implements RuleCache {
     }
 
     /**
-     *
      * @param rule to be checked for matchability
      * @return true if rule is matchable (can provide answers)
      */
-    private boolean isRuleMatchable(Rule rule){
+    private boolean isRuleMatchable(Rule rule) {
         if (unmatchableRules.contains(rule)) return false;
         if (checkedRules.contains(rule)) return true;
         checkedRules.add(rule);
@@ -208,7 +206,7 @@ public class RuleCacheImpl implements RuleCache {
     }
 
     /**
-     * @param rule      for which the parsed rule should be retrieved
+     * @param rule for which the parsed rule should be retrieved
      * @return parsed rule object
      */
     public InferenceRule getRule(Rule rule) {

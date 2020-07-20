@@ -34,7 +34,6 @@ import java.util.Objects;
 /**
  * A fragment representing a negation.
  * Used for concept comparison, not attribute values
- *
  */
 public class NeqFragment extends FragmentImpl {
 

@@ -26,11 +26,11 @@ import grakn.core.graph.core.VertexLabel;
 public interface TypeInspector {
 
     default PropertyKey getExistingPropertyKey(long id) {
-        return (PropertyKey)getExistingRelationType(id);
+        return (PropertyKey) getExistingRelationType(id);
     }
 
     default EdgeLabel getExistingEdgeLabel(long id) {
-        return (EdgeLabel)getExistingRelationType(id);
+        return (EdgeLabel) getExistingRelationType(id);
     }
 
     RelationType getExistingRelationType(long id);

@@ -19,7 +19,6 @@ package grakn.core.graph.core;
 
 /**
  * Represents an entity that can be uniquely identified by a String name.
- *
  */
 public interface Namifiable {
 

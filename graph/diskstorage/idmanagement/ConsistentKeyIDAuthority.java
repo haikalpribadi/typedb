@@ -162,7 +162,7 @@ public class ConsistentKeyIDAuthority implements BackendOperation.TransactionalP
             randomizeUniqueId = true;
             randomUniqueIDLimit = config.get(IDAUTHORITY_CAV_RETRIES);
             Preconditions.checkArgument(randomUniqueIDLimit < uniqueIDUpperBound, "Cannot have more uid retries [%d] than available values [%d]",
-                    randomUniqueIDLimit, uniqueIDUpperBound);
+                                        randomUniqueIDLimit, uniqueIDUpperBound);
             uniqueId = -1;
             storeTxConfigBuilder.customOptions(manager.getFeatures().getKeyConsistentTxConfig());
         } else {
@@ -194,7 +194,7 @@ public class ConsistentKeyIDAuthority implements BackendOperation.TransactionalP
         long blockSize = blockSizer.getBlockSize(idNamespace);
         Preconditions.checkArgument(blockSize > 0, "Invalid block size: %s", blockSize);
         Preconditions.checkArgument(blockSize < getIdUpperBound(idNamespace),
-                "Block size [%s] cannot be larger than upper bound [%s] for partition [%s]", blockSize, getIdUpperBound(idNamespace), idNamespace);
+                                    "Block size [%s] cannot be larger than upper bound [%s] for partition [%s]", blockSize, getIdUpperBound(idNamespace), idNamespace);
         return blockSize;
     }
 
@@ -284,16 +284,16 @@ public class ConsistentKeyIDAuthority implements BackendOperation.TransactionalP
                 long nextStart = getCurrentID(partitionKey);
                 if (idBlockUpperBound - blockSize <= nextStart) {
                     LOG.debug("ID overflow detected on partition({})-namespace({}) with uniqueid {}. Current id {}, block size {}, and upper bound {} for bit width {}.",
-                            partition, idNamespace, uniquePID, nextStart, blockSize, idBlockUpperBound, uniqueIdBitWidth);
+                              partition, idNamespace, uniquePID, nextStart, blockSize, idBlockUpperBound, uniqueIdBitWidth);
                     if (randomizeUniqueId) {
                         exhaustedUniquePIDs.add(uniquePID);
                         if (exhaustedUniquePIDs.size() == randomUniqueIDLimit) {
                             throw new IDPoolExhaustedException(String.format("Exhausted %d uniqueid(s) on partition(%d)-namespace(%d): %s",
-                                    exhaustedUniquePIDs.size(), partition, idNamespace, Joiner.on(",").join(exhaustedUniquePIDs)));
+                                                                             exhaustedUniquePIDs.size(), partition, idNamespace, Joiner.on(",").join(exhaustedUniquePIDs)));
                         } else {
                             throw new UniqueIDExhaustedException(
                                     String.format("Exhausted ID partition(%d)-namespace(%d) with uniqueid %d (uniqueid attempt %d/%d)",
-                                            partition, idNamespace, uniquePID, exhaustedUniquePIDs.size(), randomUniqueIDLimit));
+                                                  partition, idNamespace, uniquePID, exhaustedUniquePIDs.size(), randomUniqueIDLimit));
                         }
                     }
                     throw new IDPoolExhaustedException("Exhausted id block for partition(" + partition + ")-namespace(" + idNamespace + ") with upper bound: " + idBlockUpperBound);
@@ -385,7 +385,7 @@ public class ConsistentKeyIDAuthority implements BackendOperation.TransactionalP
         }
 
         throw new TemporaryBackendException(String.format("Reached timeout %d (%s elapsed) when attempting to allocate id block on partition(%d)-namespace(%d)",
-                timeout.getNano(), methodTime.toString(), partition, idNamespace));
+                                                          timeout.getNano(), methodTime.toString(), partition, idNamespace));
     }
 
 

@@ -30,7 +30,7 @@ import graql.lang.statement.Variable;
 
 import java.util.Set;
 
-public class RegexExecutor  implements PropertyExecutor.Definable {
+public class RegexExecutor implements PropertyExecutor.Definable {
 
     private final Variable var;
     private final RegexProperty property;

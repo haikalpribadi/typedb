@@ -29,7 +29,6 @@ import java.util.Set;
 
 /**
  * see EquivalentFragmentSets#notInternalFragmentSet(VarProperty, Variable)
- *
  */
 class NotShardFragmentSet extends EquivalentFragmentSetImpl {
 

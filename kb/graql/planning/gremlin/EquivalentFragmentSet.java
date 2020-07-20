@@ -30,7 +30,6 @@ import java.util.stream.Stream;
  * <p>
  * A {@code EquivalentFragmentSet} may contain only one {@code Fragment} (e.g. checking the 'id' property), while others may
  * be comprised of two fragments (e.g. $x isa $y, which may start from $x or $y).
- *
  */
 public interface EquivalentFragmentSet extends Iterable<Fragment> {
 

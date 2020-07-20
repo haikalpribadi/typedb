@@ -42,6 +42,8 @@ import graql.lang.property.IsaProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +51,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /**
  * TypeAtom corresponding to graql a IsaProperty property.
@@ -68,7 +69,7 @@ public class IsaAtom extends TypeAtom {
 
     public static IsaAtom create(Variable var, Variable predicateVar, @Nullable Label label, boolean isDirect, ReasonerQuery parent,
                                  ReasoningContext ctx) {
-        Statement pattern = isDirect?
+        Statement pattern = isDirect ?
                 new Statement(var).isaX(new Statement(predicateVar)) :
                 new Statement(var).isa(new Statement(predicateVar));
         return new IsaAtom(var, pattern, parent, label, predicateVar, ctx);
@@ -79,12 +80,12 @@ public class IsaAtom extends TypeAtom {
     }
 
     @Override
-    public Atomic copy(ReasonerQuery parent){
+    public Atomic copy(ReasonerQuery parent) {
         return create(this, parent);
     }
 
     @Override
-    public IsaAtom toIsaAtom(){ return this; }
+    public IsaAtom toIsaAtom() { return this; }
 
     @Override
     public Class<? extends VarProperty> getVarPropertyClass() {
@@ -112,23 +113,23 @@ public class IsaAtom extends TypeAtom {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         Label typeLabel = getTypeLabel();
-        String typeString = (typeLabel != null? typeLabel : "") + "(" + getVarName() + ")";
+        String typeString = (typeLabel != null ? typeLabel : "") + "(" + getVarName() + ")";
         return typeString +
-                (getPredicateVariable().isReturned()? "(" + getPredicateVariable() + ")" : "") +
-                (isDirect()? "!" : "") +
+                (getPredicateVariable().isReturned() ? "(" + getPredicateVariable() + ")" : "") +
+                (isDirect() ? "!" : "") +
                 getPredicates().map(Predicate::toString).collect(Collectors.joining(""));
     }
 
     @Override
-    protected Pattern createCombinedPattern(){
+    protected Pattern createCombinedPattern() {
         if (getPredicateVariable().isReturned()) return super.createCombinedPattern();
-        return getTypeLabel() == null?
+        return getTypeLabel() == null ?
                 new Statement(getVarName()).isa(new Statement(getPredicateVariable())) :
-                isDirect()?
+                isDirect() ?
                         new Statement(getVarName()).isaX(getTypeLabel().getValue()) :
-                        new Statement(getVarName()).isa(getTypeLabel().getValue()) ;
+                        new Statement(getVarName()).isa(getTypeLabel().getValue());
     }
 
     @Override
@@ -138,7 +139,7 @@ public class IsaAtom extends TypeAtom {
     }
 
     @Override
-    public void checkValid(){
+    public void checkValid() {
         super.checkValid();
         (new IsaAtomValidator()).checkValid(this, context());
     }
@@ -187,9 +188,9 @@ public class IsaAtom extends TypeAtom {
     }
 
     @Override
-    public Set<TypeAtom> unify(Unifier u){
+    public Set<TypeAtom> unify(Unifier u) {
         Collection<Variable> vars = u.get(getVarName());
-        return vars.isEmpty()?
+        return vars.isEmpty() ?
                 Collections.singleton(this) :
                 vars.stream()
                         .map(v -> IsaAtom.create(v, getPredicateVariable(), getTypeLabel(), this.isDirect(), this.getParentQuery(), this.context()))

@@ -22,7 +22,6 @@ import grakn.core.graph.diskstorage.keycolumnvalue.StoreManager;
 
 /**
  * StoreManager for KeyValueStore.
- *
  */
 public interface KeyValueStoreManager extends StoreManager {
 
@@ -33,10 +32,8 @@ public interface KeyValueStoreManager extends StoreManager {
      *
      * @param name Name of database
      * @return Database Handle
-     *
      */
     KeyValueStore openDatabase(String name) throws BackendException;
-
 
 
 }

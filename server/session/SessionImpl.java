@@ -28,7 +28,6 @@ import grakn.core.kb.keyspace.ShardManager;
 import grakn.core.kb.server.Session;
 import grakn.core.kb.server.Transaction;
 import grakn.core.kb.server.TransactionProvider;
-import grakn.core.kb.server.exception.GraknServerException;
 import grakn.core.kb.server.exception.SessionException;
 import grakn.core.kb.server.exception.TransactionException;
 import grakn.core.kb.server.keyspace.Keyspace;
@@ -57,10 +56,9 @@ public class SessionImpl implements Session {
     private final KeyspaceStatistics keyspaceStatistics;
     private final AttributeManager attributeManager;
     private final ShardManager shardManager;
-    private Consumer<Session> onClose;
-
-    private boolean isOpen = true;
     private final TransactionProvider transactionProvider;
+    private Consumer<Session> onClose;
+    private boolean isOpen = true;
 
     /**
      * Instantiates SessionImpl specific for internal use (within Grakn Server),
@@ -120,7 +118,7 @@ public class SessionImpl implements Session {
      * TODO should the `createMetaConcepts` live in SessionImpl rather than TransactionImpl?
      */
     private void initialiseMetaConcepts(Transaction tx) {
-        ((TransactionImpl)tx).createMetaConcepts();
+        ((TransactionImpl) tx).createMetaConcepts();
     }
 
     /**

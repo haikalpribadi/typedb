@@ -33,5 +33,6 @@ package grakn.core.kb.graql.executor;
  */
 public interface ExecutorFactory {
     ComputeExecutor compute();
+
     QueryExecutor transactional(boolean infer);
 }

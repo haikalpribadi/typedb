@@ -37,74 +37,6 @@ public class IDHandler {
 
     public static final StaticBuffer MIN_KEY = BufferUtil.getLongBuffer(0);
     public static final StaticBuffer MAX_KEY = BufferUtil.getLongBuffer(-1);
-
-    public enum DirectionID {
-
-        PROPERTY_DIR(0),  //00b
-        EDGE_OUT_DIR(2),  //10b
-        EDGE_IN_DIR(3);   //11b
-
-        private final int id;
-
-        DirectionID(int id) {
-            this.id = id;
-        }
-
-        private int getRelationType() {
-            return id >>> 1;
-        }
-
-        private int getDirectionInt() {
-            return id & 1;
-        }
-
-        public RelationCategory getRelationCategory() {
-            switch (this) {
-                case PROPERTY_DIR:
-                    return RelationCategory.PROPERTY;
-                case EDGE_IN_DIR:
-                case EDGE_OUT_DIR:
-                    return RelationCategory.EDGE;
-                default:
-                    throw new AssertionError();
-            }
-        }
-
-        public Direction getDirection() {
-            switch (this) {
-                case PROPERTY_DIR:
-                case EDGE_OUT_DIR:
-                    return Direction.OUT;
-                case EDGE_IN_DIR:
-                    return Direction.IN;
-                default:
-                    throw new AssertionError();
-            }
-        }
-
-        private int getPrefix(boolean invisible, boolean systemType) {
-            return ((systemType ? 0 : invisible ? 2 : 1) << 1) + getRelationType();
-        }
-
-        private static DirectionID getDirectionID(int relationType, int direction) {
-            return forId((relationType << 1) + direction);
-        }
-
-        private static DirectionID forId(int id) {
-            switch (id) {
-                case 0:
-                    return PROPERTY_DIR;
-                case 2:
-                    return EDGE_OUT_DIR;
-                case 3:
-                    return EDGE_IN_DIR;
-                default:
-                    throw new AssertionError("Invalid id: " + id);
-            }
-        }
-    }
-
-
     private static final int PREFIX_BIT_LEN = 3;
 
     private static int relationTypeLength(long relationTypeId) {
@@ -139,18 +71,6 @@ public class IDHandler {
         }
         return new RelationTypeParse(typeId, dirID);
     }
-
-    public static class RelationTypeParse {
-
-        public final long typeId;
-        public final DirectionID dirID;
-
-        RelationTypeParse(long typeId, DirectionID dirID) {
-            this.typeId = typeId;
-            this.dirID = dirID;
-        }
-    }
-
 
     public static void writeInlineRelationType(WriteBuffer out, long relationTypeId) {
         long compressId = IDManager.stripRelationTypePadding(relationTypeId);
@@ -188,6 +108,83 @@ public class IDHandler {
         }
         end++;
         return new StaticBuffer[]{getPrefixed(start), getPrefixed(end)};
+    }
+
+    public enum DirectionID {
+
+        PROPERTY_DIR(0),  //00b
+        EDGE_OUT_DIR(2),  //10b
+        EDGE_IN_DIR(3);   //11b
+
+        private final int id;
+
+        DirectionID(int id) {
+            this.id = id;
+        }
+
+        private static DirectionID getDirectionID(int relationType, int direction) {
+            return forId((relationType << 1) + direction);
+        }
+
+        private static DirectionID forId(int id) {
+            switch (id) {
+                case 0:
+                    return PROPERTY_DIR;
+                case 2:
+                    return EDGE_OUT_DIR;
+                case 3:
+                    return EDGE_IN_DIR;
+                default:
+                    throw new AssertionError("Invalid id: " + id);
+            }
+        }
+
+        private int getRelationType() {
+            return id >>> 1;
+        }
+
+        private int getDirectionInt() {
+            return id & 1;
+        }
+
+        public RelationCategory getRelationCategory() {
+            switch (this) {
+                case PROPERTY_DIR:
+                    return RelationCategory.PROPERTY;
+                case EDGE_IN_DIR:
+                case EDGE_OUT_DIR:
+                    return RelationCategory.EDGE;
+                default:
+                    throw new AssertionError();
+            }
+        }
+
+        public Direction getDirection() {
+            switch (this) {
+                case PROPERTY_DIR:
+                case EDGE_OUT_DIR:
+                    return Direction.OUT;
+                case EDGE_IN_DIR:
+                    return Direction.IN;
+                default:
+                    throw new AssertionError();
+            }
+        }
+
+        private int getPrefix(boolean invisible, boolean systemType) {
+            return ((systemType ? 0 : invisible ? 2 : 1) << 1) + getRelationType();
+        }
+    }
+
+    public static class RelationTypeParse {
+
+        public final long typeId;
+        public final DirectionID dirID;
+
+        RelationTypeParse(long typeId, DirectionID dirID) {
+            this.typeId = typeId;
+            this.dirID = dirID;
+        }
     }
 
 }

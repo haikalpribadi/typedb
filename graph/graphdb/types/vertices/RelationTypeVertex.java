@@ -36,6 +36,10 @@ import java.util.List;
 
 public abstract class RelationTypeVertex extends JanusGraphSchemaVertex implements InternalRelationType {
 
+    private ConsistencyModifier consistency = null;
+    private Integer ttl = null;
+    private List<IndexType> indexes = null;
+
     public RelationTypeVertex(StandardJanusGraphTx tx, long id, byte lifecycle) {
         super(tx, id, lifecycle);
     }
@@ -65,16 +69,12 @@ public abstract class RelationTypeVertex extends JanusGraphSchemaVertex implemen
         return getDefinition().getValue(TypeDefinitionCategory.MULTIPLICITY, Multiplicity.class);
     }
 
-    private ConsistencyModifier consistency = null;
-
     public ConsistencyModifier getConsistencyModifier() {
         if (consistency == null) {
             consistency = TypeUtil.getConsistencyModifier(this);
         }
         return consistency;
     }
-
-    private Integer ttl = null;
 
     @Override
     public Integer getTTL() {
@@ -99,8 +99,6 @@ public abstract class RelationTypeVertex extends JanusGraphSchemaVertex implemen
             }
         }));
     }
-
-    private List<IndexType> indexes = null;
 
     public Iterable<IndexType> getKeyIndexes() {
         List<IndexType> result = indexes;

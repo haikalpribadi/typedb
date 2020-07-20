@@ -28,33 +28,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *
  * <p>
  * Static class defining different equivalence comparisons for reasoner queries (ReasonerQuery).
  *
  * </p>
- *
  */
 public abstract class ReasonerQueryEquivalence extends Equivalence<ReasonerQuery> {
-
-    abstract public AtomicEquivalence atomicEquivalence();
-    public String name(){ return atomicEquivalence().name();}
-
-    private static <B extends Atomic, S extends B> boolean equivalence(ReasonerQuery q1, ReasonerQuery q2, Class<S> atomType, Equivalence<B> equiv) {
-        //NB: this check is too simple for general queries - variable binding patterns are not recognised
-        Set<S> atoms = q1.getAtoms(atomType).collect(Collectors.toSet());
-        Set<S> otherAtoms = q2.getAtoms(atomType).collect(Collectors.toSet());
-        return AtomicEquivalence.equivalence(atoms, otherAtoms, equiv);
-    }
-
-    private static <B extends Atomic, S extends B> int equivalenceHash(ReasonerQuery q, Class<S> atomType, Equivalence<B> equiv) {
-        return AtomicEquivalence.equivalenceHash(q.getAtoms(atomType), equiv);
-    }
 
     /**
      * Equality - two queries are equal if they contain the same Atomics of which all corresponding pairs are equal.
      */
-    public final static ReasonerQueryEquivalence Equality = new ReasonerQueryEquivalence(){
+    public final static ReasonerQueryEquivalence Equality = new ReasonerQueryEquivalence() {
 
         @Override
         public AtomicEquivalence atomicEquivalence() { return AtomicEquivalence.Equality; }
@@ -69,12 +53,11 @@ public abstract class ReasonerQueryEquivalence extends Equivalence<ReasonerQuery
             return equivalenceHash(q, Atomic.class, atomicEquivalence());
         }
     };
-
     /**
      * Alpha equivalence - two queries are alpha-equivalent if they are equal up to the choice of free variables.
      * NB: two queries are alpha-equivalent iff their answer sets are equal.
      */
-    public final static ReasonerQueryEquivalence AlphaEquivalence = new ReasonerQueryEquivalence(){
+    public final static ReasonerQueryEquivalence AlphaEquivalence = new ReasonerQueryEquivalence() {
 
         @Override
         public AtomicEquivalence atomicEquivalence() { return AtomicEquivalence.AlphaEquivalence; }
@@ -89,12 +72,11 @@ public abstract class ReasonerQueryEquivalence extends Equivalence<ReasonerQuery
             return equivalenceHash(q, Atomic.class, atomicEquivalence());
         }
     };
-
     /**
      * Structural equivalence - two queries are structurally equivalent if they are equal up to the choice of free variables and partial substitutions (id predicates).
      * * NB: two queries are structurally-equivalent iff after id transformation, their answer sets are equal.
      */
-    public final static ReasonerQueryEquivalence StructuralEquivalence = new ReasonerQueryEquivalence(){
+    public final static ReasonerQueryEquivalence StructuralEquivalence = new ReasonerQueryEquivalence() {
 
         @Override
         public AtomicEquivalence atomicEquivalence() { return AtomicEquivalence.StructuralEquivalence; }
@@ -109,4 +91,19 @@ public abstract class ReasonerQueryEquivalence extends Equivalence<ReasonerQuery
             return equivalenceHash(q, Atom.class, atomicEquivalence());
         }
     };
+
+    private static <B extends Atomic, S extends B> boolean equivalence(ReasonerQuery q1, ReasonerQuery q2, Class<S> atomType, Equivalence<B> equiv) {
+        //NB: this check is too simple for general queries - variable binding patterns are not recognised
+        Set<S> atoms = q1.getAtoms(atomType).collect(Collectors.toSet());
+        Set<S> otherAtoms = q2.getAtoms(atomType).collect(Collectors.toSet());
+        return AtomicEquivalence.equivalence(atoms, otherAtoms, equiv);
+    }
+
+    private static <B extends Atomic, S extends B> int equivalenceHash(ReasonerQuery q, Class<S> atomType, Equivalence<B> equiv) {
+        return AtomicEquivalence.equivalenceHash(q.getAtoms(atomType), equiv);
+    }
+
+    abstract public AtomicEquivalence atomicEquivalence();
+
+    public String name() { return atomicEquivalence().name();}
 }

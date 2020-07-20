@@ -42,7 +42,6 @@ import static grakn.core.core.Schema.EdgeProperty.RELATION_TYPE_LABEL_ID;
 
 /**
  * A fragment representing traversing an isa edge from instance to type.
- *
  */
 
 public class OutIsaFragment extends EdgeFragment {

@@ -47,12 +47,12 @@ public class InstanceNode extends Node {
         return INSTANCE_NODE_PRIORTIY;
     }
 
-    public void setInstanceLabel(Label instanceTypeLabel) {
-        this.instanceTypeLabel = instanceTypeLabel;
-    }
-
     public Label getInstanceLabel() {
         return instanceTypeLabel;
+    }
+
+    public void setInstanceLabel(Label instanceTypeLabel) {
+        this.instanceTypeLabel = instanceTypeLabel;
     }
 
 }

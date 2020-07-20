@@ -53,13 +53,13 @@ public class BaseVertexCentricQuery extends BaseQuery implements ProfileObservab
      */
     protected final List<BackendQueryHolder<SliceQuery>> queries;
     /**
-     * The result order of this query (if any)
-     */
-    private final OrderList orders;
-    /**
      * The direction condition of this query. This is duplicated from the condition for efficiency reasons.
      */
     protected final Direction direction;
+    /**
+     * The result order of this query (if any)
+     */
+    private final OrderList orders;
 
     public BaseVertexCentricQuery(Condition<JanusGraphRelation> condition, Direction direction,
                                   List<BackendQueryHolder<SliceQuery>> queries, OrderList orders,

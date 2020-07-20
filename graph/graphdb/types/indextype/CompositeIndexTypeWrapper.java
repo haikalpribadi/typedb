@@ -34,6 +34,9 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 
 public class CompositeIndexTypeWrapper extends IndexTypeWrapper implements CompositeIndexType {
 
+    IndexField[] fields = null;
+    private ConsistencyModifier consistency = null;
+
     public CompositeIndexTypeWrapper(SchemaSource base) {
         super(base);
     }
@@ -57,8 +60,6 @@ public class CompositeIndexTypeWrapper extends IndexTypeWrapper implements Compo
     public SchemaStatus getStatus() {
         return base.getStatus();
     }
-
-    IndexField[] fields = null;
 
     @Override
     public IndexField[] getFieldKeys() {
@@ -89,8 +90,6 @@ public class CompositeIndexTypeWrapper extends IndexTypeWrapper implements Compo
     public Cardinality getCardinality() {
         return base.getDefinition().getValue(TypeDefinitionCategory.INDEX_CARDINALITY, Cardinality.class);
     }
-
-    private ConsistencyModifier consistency = null;
 
     public ConsistencyModifier getConsistencyModifier() {
         if (consistency == null) {

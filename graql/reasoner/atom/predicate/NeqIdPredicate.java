@@ -29,12 +29,9 @@ import graql.lang.statement.Variable;
 import java.util.stream.Collectors;
 
 /**
- *
  * <p>
  * Predicate implementation specialising it to be an inequality predicate. Corresponds to graql NeqProperty.
  * </p>
- *
- *
  */
 
 public class NeqIdPredicate extends VariablePredicate {
@@ -46,6 +43,7 @@ public class NeqIdPredicate extends VariablePredicate {
     public static NeqIdPredicate create(Statement pattern, ReasonerQuery parent) {
         return new NeqIdPredicate(pattern.var(), extractPredicateVariable(pattern), pattern, parent);
     }
+
     public static NeqIdPredicate create(Variable varName, NeqProperty prop, ReasonerQuery parent) {
         Statement pattern = new Statement(varName).not(prop);
         return create(pattern, parent);
@@ -59,12 +57,12 @@ public class NeqIdPredicate extends VariablePredicate {
     public Atomic copy(ReasonerQuery parent) { return create(this.getPattern(), parent);}
 
     @Override
-    public String toString(){
+    public String toString() {
         IdPredicate idPredicate = this.getIdPredicate(this.getVarName());
         IdPredicate refIdPredicate = this.getIdPredicate(this.getPredicate());
         return "[" + getVarName() + "!=" + getPredicate() + "]" +
-                (idPredicate != null? idPredicate : "" ) +
-                (refIdPredicate != null? refIdPredicate : "");
+                (idPredicate != null ? idPredicate : "") +
+                (refIdPredicate != null ? refIdPredicate : "");
     }
 
     /**

@@ -99,7 +99,7 @@ public class RelationTypeInference {
                 Statement labelVar = inferredLabels.get(label);
                 IsaProperty isaProperty = new IsaProperty(labelVar);
                 EquivalentFragmentSet isaEquivalentFragmentSet = EquivalentFragmentSets.isa(isaProperty,
-                        relationVar, labelVar.var());
+                                                                                            relationVar, labelVar.var());
                 inferredFragments.addAll(isaEquivalentFragmentSet.fragments());
             }
         });
@@ -149,7 +149,7 @@ public class RelationTypeInference {
 
         allFragments.stream()
                 .filter(OutRolePlayerFragment.class::isInstance)
-                .filter(fragment -> ! instanceVarTypeMap.containsKey(fragment.start())) // filter out known rel types
+                .filter(fragment -> !instanceVarTypeMap.containsKey(fragment.start())) // filter out known rel types
                 .forEach(fragment -> {
                     Variable relation = fragment.start();
 
@@ -172,8 +172,8 @@ public class RelationTypeInference {
     private static void addAllPossibleRelations(Multimap<Type, RelationType> relationMap, Type metaType) {
         metaType.subs()
                 .forEach(type ->
-                    type.playing().flatMap(Role::relations)
-                            .forEach(relationType -> relationMap.put(type, relationType))
+                                 type.playing().flatMap(Role::relations)
+                                         .forEach(relationType -> relationMap.put(type, relationType))
                 );
     }
 

@@ -44,7 +44,7 @@ public interface JanusGraphVertexProperty<V> extends JanusGraphRelation, VertexP
 
     @Override
     default PropertyKey propertyKey() {
-        return (PropertyKey)getType();
+        return (PropertyKey) getType();
     }
 
 }

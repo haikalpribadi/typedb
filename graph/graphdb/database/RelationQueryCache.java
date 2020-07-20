@@ -73,11 +73,11 @@ public class RelationQueryCache {
                 both = out;
             } else {
                 out = edgeSerializer.getQuery(t, Direction.OUT,
-                        new EdgeSerializer.TypedInterval[t.getSortKey().length]);
+                                              new EdgeSerializer.TypedInterval[t.getSortKey().length]);
                 in = edgeSerializer.getQuery(t, Direction.IN,
-                        new EdgeSerializer.TypedInterval[t.getSortKey().length]);
+                                             new EdgeSerializer.TypedInterval[t.getSortKey().length]);
                 both = edgeSerializer.getQuery(t, Direction.BOTH,
-                        new EdgeSerializer.TypedInterval[t.getSortKey().length]);
+                                               new EdgeSerializer.TypedInterval[t.getSortKey().length]);
             }
         }
 
