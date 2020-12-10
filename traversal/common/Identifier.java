@@ -91,7 +91,7 @@ public abstract class Identifier {
             else if (o == null || getClass() != o.getClass()) return false;
 
             final Scoped that = (Scoped) o;
-            return this.scope == that.scope && this.id == that.id;
+            return this.scope.equals(that.scope) && this.id == that.id;
         }
 
         @Override
