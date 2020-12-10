@@ -310,7 +310,7 @@ public class TraversalTest {
     @Test
     public void traversal_5_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             try {
                 traversal_5();
                 success++;
