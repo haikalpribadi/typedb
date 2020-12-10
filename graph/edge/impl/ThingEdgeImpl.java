@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static grakn.core.common.collection.Bytes.join;
+import static grakn.core.graph.util.Encoding.Prefix.VERTEX_ROLE;
 import static grakn.core.graph.util.Encoding.Status.BUFFERED;
 import static java.util.Objects.hash;
 
@@ -235,7 +236,9 @@ public abstract class ThingEdgeImpl implements ThingEdge {
                 outIID = EdgeIID.Thing.of(iid.end(), iid.infix().outwards(), iid.start(), iid.suffix());
             }
             if (!iid.suffix().isEmpty()) {
-                optimisedIID = VertexIID.Thing.of(join(iid.infix().asRolePlayer().tail().bytes(), iid.suffix().bytes()));
+                optimisedIID = VertexIID.Thing.of(join(
+                        VERTEX_ROLE.bytes(), iid.infix().asRolePlayer().tail().bytes(), iid.suffix().bytes()
+                ));
             } else {
                 optimisedIID = null;
             }
