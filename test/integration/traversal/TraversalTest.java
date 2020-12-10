@@ -108,7 +108,7 @@ public class TraversalTest {
         int success = 0, fail = 0;
         for (int i = 0; i < 10; i++) {
             try {
-                traversal_3();
+                traversal_1();
                 success++;
             } catch (AssertionError e) {
                 fail++;
@@ -123,7 +123,7 @@ public class TraversalTest {
 
             System.out.println("------------");
             final String queryString = "match $x isa person, has name 'alice'; " +
-                    "$y isa person, has name 'bob';" +
+                    "$y isa person, has age > 21;" +
                     "(friend: $x, friend: $y) isa friendship; ";
             final GraqlMatch query = Graql.parseQuery(queryString);
             Instant start = Instant.now();
@@ -159,7 +159,7 @@ public class TraversalTest {
         int success = 0, fail = 0;
         for (int i = 0; i < 10; i++) {
             try {
-                traversal_3();
+                traversal_2();
                 success++;
             } catch (AssertionError e) {
                 fail++;
@@ -356,7 +356,7 @@ public class TraversalTest {
             } while (answers.hasNext());
             Instant endTotal = startIter;
             System.out.println(String.format("Duration of the first answer            : %s (ms)", Duration.between(startTotal, endFirst).toMillis()));
-            System.out.println(String.format("Average duration of every 'next' answer : %s (ms)", Duration.between(endFirst, endTotal).toMillis()/(count-1)));
+            if (count > 1) System.out.println(String.format("Average duration of every 'next' answer : %s (ms)", Duration.between(endFirst, endTotal).toMillis()/(count-1)));
             System.out.println(String.format("Duration for all answers                : %s (ms)", Duration.between(startTotal, endTotal).toMillis()));
             System.out.println("------------");
         }
