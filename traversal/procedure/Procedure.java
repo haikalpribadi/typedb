@@ -19,6 +19,7 @@
 package grakn.core.traversal.procedure;
 
 import grakn.core.common.exception.GraknException;
+import grakn.core.common.iterator.ResourceIterator;
 import grakn.core.common.producer.Producer;
 import grakn.core.graph.GraphManager;
 import grakn.core.traversal.Traversal;
@@ -27,10 +28,14 @@ import grakn.core.traversal.common.VertexMap;
 import grakn.core.traversal.planner.Planner;
 import grakn.core.traversal.planner.PlannerEdge;
 import grakn.core.traversal.planner.PlannerVertex;
+import grakn.core.traversal.producer.GraphIterator;
 import grakn.core.traversal.producer.GraphProducer;
 import grakn.core.traversal.producer.VertexProducer;
+import graql.lang.pattern.variable.Reference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,17 +43,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static grakn.common.collection.Collections.map;
+import static grakn.common.collection.Collections.pair;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_STATE;
 
 public class Procedure {
 
     private final Map<Identifier, ProcedureVertex<?, ?>> vertices;
-    private final ArrayList<ProcedureEdge<?, ?>> edges;
+    private final ProcedureEdge<?, ?>[] edges;
     private ProcedureVertex<?, ?> startVertex;
 
     private Procedure(int edgeSize) {
         vertices = new HashMap<>();
-        edges = new ArrayList<>(edgeSize);
+        edges = new ProcedureEdge<?, ?>[edgeSize];
     }
 
     public static Procedure create(Planner planner) {
@@ -63,16 +70,24 @@ public class Procedure {
         return vertices.values().stream();
     }
 
+    public ProcedureVertex<?, ?> startVertex() {
+        if (startVertex == null) {
+            startVertex = this.vertices().filter(ProcedureVertex::isStartingVertex)
+                    .findAny().orElseThrow(() -> GraknException.of(ILLEGAL_STATE));
+        }
+        return startVertex;
+    }
+
     public ProcedureVertex<?, ?> vertex(Identifier identifier) {
         return vertices.get(identifier);
     }
 
     public ProcedureEdge<?, ?> edge(int pos) {
-        return edges.get(pos - 1);
+        return edges[pos - 1];
     }
 
     public int edgesCount() {
-        return edges.size();
+        return edges.length;
     }
 
     private void registerVertex(PlannerVertex<?> plannerVertex, Set<PlannerVertex<?>> registeredVertices,
@@ -104,7 +119,7 @@ public class Procedure {
         ProcedureVertex<?, ?> from = vertex(plannerEdge.from());
         ProcedureVertex<?, ?> to = vertex(plannerEdge.to());
         ProcedureEdge<?, ?> edge = ProcedureEdge.of(from, to, plannerEdge);
-        edges.set(edge.order() - 1, edge);
+        edges[edge.order() - 1] = edge;
         from.out(edge);
         to.in(edge);
     }
@@ -128,16 +143,41 @@ public class Procedure {
         ).asType();
     }
 
-    public Producer<VertexMap> execute(GraphManager graphMgr, Traversal.Parameters parameters, int parallelisation) {
-        if (edgesCount() == 0) return new VertexProducer(graphMgr, this, parameters);
-        else return new GraphProducer(graphMgr, this, parameters, parallelisation);
+    public Producer<VertexMap> producer(GraphManager graphMgr, Traversal.Parameters params, int parallelisation) {
+        if (edgesCount() == 0) return new VertexProducer(graphMgr, this, params);
+        else return new GraphProducer(graphMgr, this, params, parallelisation);
     }
 
-    public ProcedureVertex<?, ?> startVertex() {
-        if (startVertex == null) {
-            startVertex = this.vertices().filter(ProcedureVertex::isStartingVertex)
-                    .findAny().orElseThrow(() -> GraknException.of(ILLEGAL_STATE));
+    public ResourceIterator<VertexMap> iterator(GraphManager graphMgr, Traversal.Parameters params) {
+        System.out.println(toString());
+        if (edgesCount() == 0) {
+            ProcedureVertex<?, ?> sv = startVertex();
+            Reference ref = sv.id().asVariable().reference();
+            return sv.iterator(graphMgr, params).map(v -> VertexMap.of(map(pair(ref, v))));
+        } else {
+            return startVertex().iterator(graphMgr, params)
+                    .flatMap(sv -> new GraphIterator(graphMgr, sv, this, params)).distinct();
         }
-        return startVertex;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        List<ProcedureEdge<?, ?>> procedureEdges = Arrays.asList(edges);
+        procedureEdges.sort(Comparator.comparing(ProcedureEdge::order));
+        List<ProcedureVertex<?, ?>> procedureVertices = new ArrayList<>(vertices.values());
+        procedureVertices.sort(Comparator.comparing(v -> v.id().toString()));
+
+        str.append("\n");
+        str.append("Edges:\n");
+        for (ProcedureEdge<?, ?> e : procedureEdges) {
+            str.append(e).append("\n");
+        }
+        str.append("\n");
+        str.append("Vertices:\n");
+        for (ProcedureVertex<?, ?> v : procedureVertices) {
+            str.append(v).append("\n");
+        }
+        return str.toString();
     }
 }

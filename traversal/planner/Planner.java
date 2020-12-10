@@ -226,7 +226,9 @@ public class Planner {
                 hasPotentialStartingVertex = true;
             }
         }
-        if (!hasPotentialStartingVertex) throw GraknException.of(ILLEGAL_STATE);
+        if (!hasPotentialStartingVertex) {
+            throw GraknException.of(ILLEGAL_STATE);
+        }
     }
 
     private void initialiseConstraintsForEdges() {

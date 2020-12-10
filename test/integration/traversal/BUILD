@@ -19,14 +19,13 @@ load("@graknlabs_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
 load("@graknlabs_dependencies//builder/java:rules.bzl", "host_compatible_java_test")
 
 host_compatible_java_test(
-    name = "test-basic",
-    srcs = ["BasicTest.java"],
-    test_class = "grakn.core.test.integration.BasicTest",
+    name = "test-traversal",
+    srcs = ["TraversalTest.java"],
+    test_class = "grakn.core.traversal.TraversalTest",
     native_libraries_deps = [
         "//rocks:rocks",
         "//:grakn",
         "//concept:concept",
-        "//logic:logic",
     ],
     deps = [
         # Internal dependencies
@@ -34,35 +33,13 @@ host_compatible_java_test(
         "//common:common",
 
         # External dependencies from Grakn Labs
-        "@graknlabs_graql//java/pattern:pattern",
         "@graknlabs_graql//java:graql",
+        "@graknlabs_graql//java/query:query",
     ],
     resources = [
         "//common/test:logback"
     ],
     resource_strip_prefix = "common/test",
-    size = "large",
-)
-
-host_compatible_java_test(
-    name = "test-query",
-    srcs = ["QueryTest.java"],
-    test_class = "grakn.core.test.integration.QueryTest",
-    native_libraries_deps = [
-        "//rocks:rocks",
-        "//:grakn",
-        "//concept:concept",
-    ],
-    deps = [
-        # Internal dependencies
-        "//test/integration/util:util",
-        "//common:common",
-
-        # External dependencies from Grakn Labs
-        "@graknlabs_graql//java/query:query",
-        "@graknlabs_graql//java:graql",
-    ],
-    data = [":schema.gql"],
 )
 
 checkstyle_test(

@@ -52,6 +52,11 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
     }
 
     @Override
+    public String toString() {
+        return operator + " " + argument;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -120,6 +125,12 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
 
     public static abstract class Operator {
 
+        private final GraqlToken.Predicate token;
+
+        protected Operator(GraqlToken.Predicate token) {
+            this.token = token;
+        }
+
         public static Operator of(GraqlToken.Predicate token) {
             if (token.isEquality()) return Equality.of(token.asEquality());
             else if (token.isSubString()) return SubString.of(token.asSubString());
@@ -138,7 +149,16 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
             throw GraknException.of(ILLEGAL_CAST, className(this.getClass()), className(SubString.class));
         }
 
+        @Override
+        public String toString() {
+            return token.toString();
+        }
+
         public static abstract class Equality extends Operator {
+
+            public Equality(GraqlToken.Predicate.Equality token) {
+                super(token);
+            }
 
             abstract boolean apply(int comparisonResult);
 
@@ -150,7 +170,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
             @Override
             Operator.Equality asEquality() { return this; }
 
-            public static final Equality EQ = new Equality() {
+            public static final Equality EQ = new Equality(GraqlToken.Predicate.Equality.EQ) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult == 0; }
 
@@ -158,7 +178,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 Equality reflection() { return this; }
             };
 
-            public static final Equality NEQ = new Equality() {
+            public static final Equality NEQ = new Equality(GraqlToken.Predicate.Equality.NEQ) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult != 0; }
 
@@ -166,7 +186,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 Equality reflection() { return this; }
             };
 
-            public static final Equality GT = new Equality() {
+            public static final Equality GT = new Equality(GraqlToken.Predicate.Equality.GT) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult > 0; }
 
@@ -174,7 +194,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 Equality reflection() { return LTE; }
             };
 
-            public static final Equality GTE = new Equality() {
+            public static final Equality GTE = new Equality(GraqlToken.Predicate.Equality.LTE) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult >= 0; }
 
@@ -182,7 +202,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 Equality reflection() { return LT; }
             };
 
-            public static final Equality LT = new Equality() {
+            public static final Equality LT = new Equality(GraqlToken.Predicate.Equality.LT) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult < 0; }
 
@@ -190,7 +210,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 Equality reflection() { return GTE; }
             };
 
-            public static final Equality LTE = new Equality() {
+            public static final Equality LTE = new Equality(GraqlToken.Predicate.Equality.LTE) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult <= 0; }
 
@@ -214,6 +234,10 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
 
         public static abstract class SubString extends Operator {
 
+            public SubString(GraqlToken.Predicate.SubString token) {
+                super(token);
+            }
+
             abstract boolean apply(String vertexValue, Traversal.Parameters.Value predicateValue);
 
             @Override
@@ -222,7 +246,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
             @Override
             Operator.SubString asSubString() { return this; }
 
-            private static final SubString CONTAINS = new SubString() {
+            private static final SubString CONTAINS = new SubString(GraqlToken.Predicate.SubString.CONTAINS) {
                 @Override
                 boolean apply(String vertexValue, Traversal.Parameters.Value predicateValue) {
                     assert predicateValue.isString();
@@ -230,7 +254,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 }
             };
 
-            private static final SubString LIKE = new SubString() {
+            private static final SubString LIKE = new SubString(GraqlToken.Predicate.SubString.LIKE) {
                 @Override
                 boolean apply(String vertexValue, Traversal.Parameters.Value predicateValue) {
                     assert predicateValue.isRegex();
@@ -251,7 +275,22 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
 
     public abstract static class Argument {
 
+        private final String name;
+
+        protected Argument(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return "<" + name + ">";
+        }
+
         public static abstract class Value<ARG_VAL_OP extends Operator, ARG_VAL_TYPE> extends Argument {
+
+            public Value(String name) {
+                super(name);
+            }
 
             public abstract boolean apply(ARG_VAL_OP operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value);
 
@@ -264,7 +303,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 else return res;
             }
 
-            public static Value<Operator.Equality, Boolean> BOOLEAN = new Value<Operator.Equality, Boolean>() {
+            public static Value<Operator.Equality, Boolean> BOOLEAN = new Value<Operator.Equality, Boolean>("boolean") {
                 @Override
                 public boolean apply(Operator.Equality operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
                     assert value.isBoolean();
@@ -279,7 +318,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 }
             };
 
-            public static Value<Operator.Equality, Long> LONG = new Value<Operator.Equality, Long>() {
+            public static Value<Operator.Equality, Long> LONG = new Value<Operator.Equality, Long>("long") {
                 @Override
                 public boolean apply(Operator.Equality operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
                     assert value.isLong();
@@ -298,7 +337,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 }
             };
 
-            public static Value<Operator.Equality, Double> DOUBLE = new Value<Operator.Equality, Double>() {
+            public static Value<Operator.Equality, Double> DOUBLE = new Value<Operator.Equality, Double>("double") {
                 @Override
                 public boolean apply(Operator.Equality operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
                     assert value.isDouble();
@@ -318,7 +357,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 }
             };
 
-            public static Value<Operator.Equality, LocalDateTime> DATETIME = new Value<Operator.Equality, LocalDateTime>() {
+            public static Value<Operator.Equality, LocalDateTime> DATETIME = new Value<Operator.Equality, LocalDateTime>("datetime") {
                 @Override
                 public boolean apply(Operator.Equality operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
                     assert value.isDateTime();
@@ -334,7 +373,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 }
             };
 
-            public static Value<Operator, String> STRING = new Value<Operator, String>() {
+            public static Value<Operator, String> STRING = new Value<Operator, String>("string") {
                 @Override
                 public boolean apply(Operator operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
                     assert value.isString();
@@ -354,6 +393,10 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
         public static class Variable extends Argument {
 
             public static Variable VARIABLE = new Variable();
+
+            public Variable() {
+                super("var");
+            }
 
             public boolean apply(Operator.Equality operator, AttributeVertex<?> from, AttributeVertex<?> to) {
                 if (!from.valueType().comparableTo(to.valueType())) return false;

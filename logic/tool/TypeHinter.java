@@ -271,7 +271,7 @@ public class TypeHinter {
         Conjunction varHintsConjunction = new Conjunction(varHints, Collections.emptySet());
         return cache.get(varHintsConjunction, conjunction -> {
             Map<Reference, Set<Label>> mapping = new HashMap<>();
-            buffer(traversalEng.execute(conjunction.traversal(), parallelisation)).iterator().forEachRemaining(
+            buffer(traversalEng.producer(conjunction.traversal(), parallelisation)).iterator().forEachRemaining(
                     result -> result.forEach((ref, vertex) -> {
                         mapping.putIfAbsent(ref, new HashSet<>());
                         mapping.get(ref).add(Label.of(vertex.asType().label(), vertex.asType().scope()));
