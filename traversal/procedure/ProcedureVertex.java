@@ -38,11 +38,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
+import static grakn.common.collection.Collections.list;
 import static grakn.common.collection.Collections.set;
 import static grakn.common.util.Objects.className;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_CAST;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_STATE;
 import static grakn.core.common.iterator.Iterators.iterate;
+import static grakn.core.common.iterator.Iterators.link;
 import static grakn.core.common.iterator.Iterators.single;
 import static grakn.core.graph.util.Encoding.ValueType.STRING;
 import static grakn.core.traversal.common.Predicate.Operator.Equality.EQ;
@@ -246,7 +248,8 @@ public abstract class ProcedureVertex<VERTEX extends Vertex<?, ?>, PROPERTIES ex
             if (props().valueType().isPresent()) iterator = iterateOrFilterValueTypes(graphMgr, iterator);
             if (props().isAbstract()) iterator = iterateOrFilterAbstract(graphMgr, iterator);
             if (props().regex().isPresent()) iterator = iterateAndFilterRegex(graphMgr, iterator);
-            if (iterator == null) iterator = graphMgr.schema().thingTypes();
+            if (iterator == null) iterator = link(list(graphMgr.schema().entityTypes(), graphMgr.schema().relationTypes(),
+                                                       graphMgr.schema().attributeTypes()));// graphMgr.schema().roleTypes())); // TODO discuss ramifications
             return iterator;
         }
 

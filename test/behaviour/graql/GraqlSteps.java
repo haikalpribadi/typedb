@@ -18,6 +18,7 @@
 
 package grakn.core.test.behaviour.graql;
 
+import grakn.common.collection.Bytes;
 import grakn.core.concept.Concept;
 import grakn.core.concept.answer.AnswerGroup;
 import grakn.core.concept.answer.ConceptMap;
@@ -462,11 +463,11 @@ public class GraqlSteps {
                 Concept concept = templateFiller.get(requiredVariable);
                 if (!concept.isThing())
                     throw new ScenarioDefinitionException("Cannot apply IID templating to Type concepts");
-                String conceptId = Arrays.toString(concept.asThing().getIID());
+                String conceptId = Bytes.bytesToHexString(concept.asThing().getIID());
                 builder.append(conceptId);
 
             } else {
-                throw new ScenarioDefinitionException(String.format("No ID available for template placeholder: %s", matched));
+                throw new ScenarioDefinitionException(String.format("No IID available for template placeholder: %s", matched));
             }
             i = matcher.end();
         }
@@ -475,8 +476,8 @@ public class GraqlSteps {
     }
 
     private String variableFromTemplatePlaceholder(String placeholder) {
-        if (placeholder.endsWith(".id")) {
-            final String stripped = placeholder.replace(".id", "");
+        if (placeholder.endsWith(".iid")) {
+            final String stripped = placeholder.replace(".iid", "");
             final String withoutPrefix = stripped.replace("answer.", "");
             return withoutPrefix;
         } else {
