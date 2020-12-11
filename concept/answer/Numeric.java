@@ -16,28 +16,20 @@
  *
  */
 
-package grakn.core.traversal.graph;
+package grakn.core.concept.answer;
 
-public abstract class TraversalEdge<VERTEX_FROM extends TraversalVertex<?, ?>, VERTEX_TO extends TraversalVertex<?, ?>> {
+/**
+ * A type of Answer object that contains a Number. Will either be a long or a double
+ */
+public class Numeric implements Answer {
 
-    protected final VERTEX_FROM from;
-    protected final VERTEX_TO to;
+    private final Number number;
 
-    public TraversalEdge(VERTEX_FROM from, VERTEX_TO to) {
-        this.from = from;
-        this.to = to;
+    public Numeric(Number number) {
+        this.number = number;
     }
 
-    public VERTEX_FROM from() {
-        return from;
-    }
-
-    public VERTEX_TO to() {
-        return to;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("(%s --> %s)", from.id(), to.id());
+    public Number number() {
+        return number;
     }
 }

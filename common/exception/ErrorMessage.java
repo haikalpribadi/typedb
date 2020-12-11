@@ -69,22 +69,24 @@ public abstract class ErrorMessage extends grakn.common.exception.ErrorMessage {
     public static class Internal extends ErrorMessage {
         public static final Internal ILLEGAL_STATE =
                 new Internal(1, "Illegal internal state!");
-        public static final Internal UNRECOGNISED_VALUE =
-                new Internal(2, "Unrecognised encoding value!");
-        public static final Internal DIRTY_INITIALISATION =
-                new Internal(3, "Invalid Database Initialisation.");
+        public static final Internal ILLEGAL_CAST =
+                new Internal(2, "Illegal casting operation from '%s' to '%s'.");
+        public static final Internal ILLEGAL_OPERATION =
+                new Internal(3, "Illegal internal operation! This method should not have been called.");
         public static final Internal ILLEGAL_ARGUMENT =
                 new Internal(4, "Illegal argument provided.");
-        public static final Internal ILLEGAL_CAST =
-                new Internal(5, "Illegal casting operation from '%s' to '%s'.");
+        public static final Internal UNRECOGNISED_VALUE =
+                new Internal(5, "Unrecognised encoding value!");
+        public static final Internal DIRTY_INITIALISATION =
+                new Internal(6, "Invalid Database Initialisation.");
         public static final Internal GRAKN_CLOSED =
-                new Internal(6, "Attempted to open a session on a closed Grakn backend.");
+                new Internal(7, "Attempted to open a session on a closed Grakn backend.");
         public static final Internal OUT_OF_BOUNDS =
-                new Internal(7, "Resource out of bounds.");
+                new Internal(8, "Resource out of bounds.");
         public static final Internal UNEXPECTED_INTERRUPTION =
-                new Internal(8, "Unexpected thread interruption!");
+                new Internal(9, "Unexpected thread interruption!");
         public static final Internal UNEXPECTED_PLANNING_ERROR =
-                new Internal(9, "Unexpected error during traversal plan optimisation.");
+                new Internal(10, "Unexpected error during traversal planning and/or optimisation.");
 
         private static final String codePrefix = "INT";
         private static final String messagePrefix = "Invalid Internal State";

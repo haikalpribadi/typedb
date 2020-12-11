@@ -34,7 +34,7 @@ public abstract class IID {
         return bytes;
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return bytes.length == 0;
     }
 

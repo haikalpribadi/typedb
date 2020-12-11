@@ -53,8 +53,8 @@ public class Structure {
         return vertices.computeIfAbsent(identifier, StructureVertex.Type::new).asType();
     }
 
-    public Identifier.Generated newIdentifier() {
-        return Identifier.Generated.of(generatedIdentifierCount++);
+    public Identifier.Scoped newIdentifier(Identifier.Variable scope) {
+        return Identifier.Scoped.of(scope, generatedIdentifierCount++);
     }
 
     public Collection<StructureVertex<?>> vertices() {
@@ -103,8 +103,8 @@ public class Structure {
             while (!vertices.isEmpty()) {
                 Structure newStructure = new Structure();
                 splitGraph(vertices.values().iterator().next(), newStructure);
-                if (newStructure.vertices().size() == 1 &&
-                        !newStructure.vertices().iterator().next().id().isNamedReference()) {
+                if (newStructure.vertices().size() > 1 ||
+                        newStructure.vertices().iterator().next().id().isNamedReference()) {
                     structures.add(newStructure);
                 }
             }

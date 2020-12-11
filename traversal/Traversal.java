@@ -20,6 +20,7 @@ package grakn.core.traversal;
 
 import grakn.common.collection.Pair;
 import grakn.core.common.cache.CommonCache;
+import grakn.core.common.iterator.ResourceIterator;
 import grakn.core.common.parameters.Label;
 import grakn.core.common.producer.Producer;
 import grakn.core.graph.GraphManager;
@@ -77,23 +78,40 @@ public class Traversal {
         parameters = new Parameters();
     }
 
-    public Identifier.Generated newIdentifier() {
-        return structure.newIdentifier();
+    public Identifier.Scoped newIdentifier(Identifier.Variable scope) {
+        return structure.newIdentifier(scope);
     }
 
     void initialisePlanner(CommonCache<Structure, Planner> cache) {
         planners = structure.asGraphs().stream().map(s -> cache.get(s, Planner::create)).collect(toList());
     }
 
-    Producer<VertexMap> execute(GraphManager graphMgr, int parallelisation) {
+    ResourceIterator<VertexMap> iterator(GraphManager graphMgr) {
         assert !planners.isEmpty();
         if (planners.size() == 1) {
             planners.get(0).optimise(graphMgr);
-            return planners.get(0).procedure().execute(graphMgr, parameters, parallelisation);
+            return planners.get(0).procedure().iterator(graphMgr, parameters);
+        } else {
+            return cartesian(planners.parallelStream().map(planner -> {
+                planner.optimise(graphMgr);
+                return planner.procedure().iterator(graphMgr, parameters);
+            }).collect(toList())).map(partialAnswers -> {
+                Map<Reference, Vertex<?, ?>> combinedAnswers = new HashMap<>();
+                partialAnswers.forEach(p -> combinedAnswers.putAll(p.map()));
+                return VertexMap.of(combinedAnswers);
+            });
+        }
+    }
+
+    Producer<VertexMap> producer(GraphManager graphMgr, int parallelisation) {
+        assert !planners.isEmpty();
+        if (planners.size() == 1) {
+            planners.get(0).optimise(graphMgr);
+            return planners.get(0).procedure().producer(graphMgr, parameters, parallelisation);
         } else {
             return produce(cartesian(planners.parallelStream().map(planner -> {
                 planner.optimise(graphMgr);
-                return planner.procedure().execute(graphMgr, parameters, parallelisation);
+                return planner.procedure().producer(graphMgr, parameters, parallelisation);
             }).map(p -> buffer(p).iterator()).collect(toList())).map(partialAnswers -> {
                 Map<Reference, Vertex<?, ?>> combinedAnswers = new HashMap<>();
                 partialAnswers.forEach(p -> combinedAnswers.putAll(p.map()));
@@ -122,11 +140,11 @@ public class Traversal {
         structure.nativeEdge(structure.thingVertex(thing), structure.typeVertex(type), ISA, isTransitive);
     }
 
-    public void relating(Identifier.Variable relation, Identifier.Generated role) {
+    public void relating(Identifier.Variable relation, Identifier.Scoped role) {
         structure.nativeEdge(structure.thingVertex(relation), structure.thingVertex(role), RELATING);
     }
 
-    public void playing(Identifier.Variable thing, Identifier.Generated role) {
+    public void playing(Identifier.Variable thing, Identifier.Scoped role) {
         structure.nativeEdge(structure.thingVertex(thing), structure.thingVertex(role), PLAYING);
     }
 

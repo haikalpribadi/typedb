@@ -15,36 +15,37 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-
-package(default_visibility = ["//visibility:__subpackages__"])
 load("@graknlabs_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
+load("@graknlabs_dependencies//builder/java:rules.bzl", "host_compatible_java_test")
 
-java_test(
-    name = "test",
-    srcs = [
-        "UndefineTest.java",
+host_compatible_java_test(
+    name = "test-traversal",
+    srcs = ["TraversalTest.java"],
+    test_class = "grakn.core.traversal.TraversalTest",
+    native_libraries_deps = [
+        "//rocks:rocks",
+        "//:grakn",
+        "//concept:concept",
     ],
-    test_class = "grakn.core.test.behaviour.graql.language.undefine.UndefineTest",
     deps = [
-        # External dependencies from Maven
-        "@maven//:io_cucumber_cucumber_junit",
+        # Internal dependencies
+        "//test/integration/util:util",
+        "//common:common",
+
+        # External dependencies from Grakn Labs
+        "@graknlabs_graql//java:graql",
+        "@graknlabs_graql//java/query:query",
     ],
-    runtime_deps = [
-        "//test/behaviour/graql:steps",
-        "//test/behaviour/connection:steps",
-        "//test/behaviour/connection/session:steps",
-        "//test/behaviour/config:parameters",
+    resources = [
+        "//common/test:logback"
     ],
-    data = [
-        "@graknlabs_behaviour//graql/language:undefine.feature",
-    ],
-    classpath_resources = ["//test/conf:logback"],
-    size = "medium",
-    visibility = ["//visibility:public"]
+    resource_strip_prefix = "common/test",
 )
 
 checkstyle_test(
     name = "checkstyle",
-    include = glob(["*"]),
+    include = glob([
+        "*",
+    ]),
     license_type = "agpl",
 )
