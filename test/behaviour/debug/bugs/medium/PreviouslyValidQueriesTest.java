@@ -16,7 +16,7 @@
  *
  */
 
-package grakn.core.test.behaviour.debug.bugs;
+package grakn.core.test.behaviour.debug.bugs.medium;
 
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;

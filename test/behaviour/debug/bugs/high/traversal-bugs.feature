@@ -58,21 +58,6 @@ Feature: Graql Match Query
   # SCHEMA QUERIES #
   ##################
 
-  # TODO this is buggy  if the QP starts from $x, as `relation:role` is not included as a starting point
-  Scenario: 'plays' can be used to match roles that a particular type can play
-    When get answers of graql query
-      """
-      match person plays $x;
-      """
-    And concept identifiers are
-      |     | check | value               |
-      | FRI | label | friendship:friend   |
-      | EMP | label | employment:employee |
-    Then uniquely identify answer concepts
-      | x   |
-      | FRI |
-      | EMP |
-
 
   # TODO this fails because we use relation:someplayer as a `label` property to create an iterator over. This label does
   # TODO not exist as a type!
@@ -106,41 +91,6 @@ Feature: Graql Match Query
     Then uniquely identify answer concepts
       | x    | r    |
       | REF0 | REF1 |
-
-
-  # TODO this fails because we use relation:someplayer as a `label` property to create an iterator over. This label does
-  # TODO not exist as a type!
-  Scenario: duplicate role players are retrieved singly when queried singly
-    Given graql define
-      """
-      define
-      some-entity sub entity, plays symmetric:player, owns ref @key;
-      symmetric sub relation, relates player, owns ref @key;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given connection close all sessions
-    Given connection open data session for database: grakn
-    Given session opens transaction of type: write
-    Given graql insert
-      """
-      insert $x isa some-entity, has ref 0; (player: $x, player: $x) isa symmetric, has ref 1;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
-    When get answers of graql query
-      """
-      match $r (player: $x) isa relation;
-      """
-    And concept identifiers are
-      |      | check | value |
-      | REF0 | key   | ref:0 |
-      | REF1 | key   | ref:1 |
-    Then uniquely identify answer concepts
-      | x    | r    |
-      | REF0 | REF1 |
-
 
   # TODO traversal bug - requires traversal language, very nondeterministically failing
   # TODO note: can reproduce bug sometimes with only the query: `match (sender: $a, recipient: $b) isa gift-delivery`
@@ -199,73 +149,6 @@ Feature: Graql Match Query
         (sender: $c, recipient: $d) isa gift-delivery;
       """
     Then answer size is: 0
-
-
-  # TODO NullPtr exception in the Predicates.getValue(...) --- query caching bug haikal is working on??
-  Scenario: value comparisons can be performed between a 'double' and a 'long'
-    Given graql define
-      """
-      define
-      house-number sub attribute, value long;
-      length sub attribute, value double;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given connection close all sessions
-    Given connection open data session for database: grakn
-    Given session opens transaction of type: write
-    Given graql insert
-      """
-      insert
-      $x 1 isa house-number;
-      $y 2.0 isa length;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
-    When get answers of graql query
-      """
-      match
-        $x isa house-number;
-        $x = 1.0;
-      """
-    Then answer size is: 1
-    When get answers of graql query
-      """
-      match
-        $x isa length;
-        $x = 2;
-      """
-    Then answer size is: 1
-    When get answers of graql query
-      """
-      match
-        $x isa house-number;
-        $x 1.0;
-      """
-    Then answer size is: 1
-    When get answers of graql query
-      """
-      match
-        $x isa length;
-        $x 2;
-      """
-    Then answer size is: 1
-    When get answers of graql query
-      """
-      match
-        $x isa attribute;
-        $x >= 1;
-      """
-    Then answer size is: 2
-    When get answers of graql query
-      """
-      match
-        $x isa attribute;
-        $x < 2.0;
-      """
-    Then answer size is: 1
-
 
 
   # TODO traversal bug, no answers

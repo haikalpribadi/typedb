@@ -16,7 +16,7 @@
 #
 
 #noinspection CucumberUndefinedStep
-Feature: Vertex Procedure (should be fixed with specific vertex procedure)
+Feature: Graql Match Query
 
   Background: Open connection and create a simple extensible schema
     Given connection has been opened
@@ -58,47 +58,33 @@ Feature: Vertex Procedure (should be fixed with specific vertex procedure)
   # SCHEMA QUERIES #
   ##################
 
-  # TODO out of order query plan exception -- should be fixed with vertex procedure
-  Scenario: 'type' matches only the specified type, and does not match subtypes
-    Given graql define
-      """
-      define
-      writer sub person;
-      scifi-writer sub writer;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
+  # TODO fails because it does not find Roles when using $x as starting point.
+  # TODO Discuss starting at all Types including vs excluding Role Types. This may have implications for `match $x sub thing`
+  Scenario: 'relates' can be used to retrieve all the roles of a relation type
     When get answers of graql query
       """
-      match $x type person;
+      match employment relates $x;
       """
     And concept identifiers are
-      |     | check | value  |
-      | PER | label | person |
+      |     | check | value               |
+      | EME | label | employment:employee |
+      | EMR | label | employment:employer |
     Then uniquely identify answer concepts
       | x   |
-      | PER |
+      | EME |
+      | EMR |
 
-
-  # TODO will be fixed by splitting vertex procedure from graph procedure
-  Scenario: 'iid' matches the instance with the specified internal iid
-    Given connection close all sessions
-    Given connection open data session for database: grakn
-    Given session opens transaction of type: write
-    Given graql insert
-      """
-      insert
-      $x isa person, has ref 0;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
+    # TODO this is buggy  if the QP starts from $x, as `relation:role` is not included as a starting point
+  Scenario: 'plays' can be used to match roles that a particular type can play
     When get answers of graql query
       """
-      match $x isa person;
+      match person plays $x;
       """
-    Then each answer satisfies
-      """
-      match $x iid <answer.x.iid>;
-      """
+    And concept identifiers are
+      |     | check | value               |
+      | FRI | label | friendship:friend   |
+      | EMP | label | employment:employee |
+    Then uniquely identify answer concepts
+      | x   |
+      | FRI |
+      | EMP |
