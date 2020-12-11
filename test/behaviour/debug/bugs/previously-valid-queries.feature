@@ -326,3 +326,32 @@ Feature: Graql Match Query
       | x   |
       | PIR |
       | MRB |
+
+
+  # TODO works if including `isa attribute`
+  Scenario: 'like' matches strings that match the specified regex
+    Given connection close all sessions
+    Given connection open data session for database: grakn
+    Given session opens transaction of type: write
+    Given graql insert
+      """
+      insert
+      $x "ABC123" isa name;
+      $y "123456" isa name;
+      $z "9" isa name;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    When get answers of graql query
+      """
+      match $x like "^[0-9]+$";
+      """
+    And concept identifiers are
+      |     | check | value       |
+      | ONE | value | name:123456 |
+      | NIN | value | name:9      |
+    Then uniquely identify answer concepts
+      | x   |
+      | ONE |
+      | NIN |

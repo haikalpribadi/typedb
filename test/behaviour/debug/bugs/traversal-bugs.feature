@@ -201,37 +201,6 @@ Feature: Graql Match Query
     Then answer size is: 0
 
 
-  # TODO works if including
-  # TODO public boolean apply(Operator operator, AttributeVertex<?> vertex, Traversal.Parameters.Value value) {
-  # TODO assert value.isString() || value.isRegex(); < -- the isRegex() in assertion
-  Scenario: 'like' matches strings that match the specified regex
-    Given connection close all sessions
-    Given connection open data session for database: grakn
-    Given session opens transaction of type: write
-    Given graql insert
-      """
-      insert
-      $x "ABC123" isa name;
-      $y "123456" isa name;
-      $z "9" isa name;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
-    When get answers of graql query
-      """
-      match $x like "^[0-9]+$";
-      """
-    And concept identifiers are
-      |     | check | value       |
-      | ONE | value | name:123456 |
-      | NIN | value | name:9      |
-    Then uniquely identify answer concepts
-      | x   |
-      | ONE |
-      | NIN |
-
-
   # TODO NullPtr exception in the Predicates.getValue(...) --- query caching bug haikal is working on??
   Scenario: value comparisons can be performed between a 'double' and a 'long'
     Given graql define
