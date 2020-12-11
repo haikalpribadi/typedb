@@ -183,7 +183,7 @@ public class QueryTest {
                     assertFalse(analysis.isAbstract());
                     assertTrue(analysis.getOwns().noneMatch(att -> att.equals(created)));
                     assertTrue(analysis.getPlays().noneMatch(rol -> rol.equals(commitAnalysisAnalysis)));
-                    assertTrue(performanceTracker.getRelates().noneMatch(rol -> rol.getLabel().equals("tracker")));
+                    assertTrue(performanceTracker.getRelates().noneMatch(rol -> rol.getLabel().name().equals("tracker")));
                     assertNull(email.getRegex());
 
                     final AttributeType index = tx.concepts().getAttributeType("index");

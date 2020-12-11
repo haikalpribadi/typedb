@@ -505,7 +505,7 @@ public class GraqlSteps {
         @Override
         public boolean check(Concept concept) {
             if (concept instanceof Type) {
-                return label.equals(concept.asType().getLabel());
+                return label.equals(concept.asType().getLabel().toString());
             }
 
             throw new ScenarioDefinitionException("Concept was checked for label uniqueness, but it is not a Type.");
@@ -540,7 +540,7 @@ public class GraqlSteps {
 
             final Attribute attribute = concept.asThing().asAttribute();
 
-            if (!type.equals(attribute.getType().getLabel())) {
+            if (!type.equals(attribute.getType().getLabel().toString())) {
                 return false;
             }
 
@@ -598,7 +598,7 @@ public class GraqlSteps {
                         throw new GraqlSteps.ScenarioDefinitionException("Unrecognised value type " + key.getType().getValueType());
                 }
 
-                keyMap.put(key.getType().getLabel(), keyValue);
+                keyMap.put(key.getType().getLabel().toString(), keyValue);
             }
             return value.equals(keyMap.get(type));
         }
