@@ -107,6 +107,12 @@ public abstract class TraversalVertex<EDGE extends TraversalEdge<?, ?>, PROPERTI
         @Override
         public abstract String toString();
 
+        @Override
+        public abstract boolean equals(Object o);
+
+        @Override
+        public abstract int hashCode();
+
         public static class Thing extends Properties {
 
             private boolean hasIID;
@@ -147,12 +153,28 @@ public abstract class TraversalVertex<EDGE extends TraversalEdge<?, ?>, PROPERTI
                 return String.format("[thing] { hasIID: %s, types: %s, predicates: %s }",
                                      hasIID, types, predicates);
             }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+
+                Properties.Thing that = (Properties.Thing) o;
+                return (this.hasIID == that.hasIID &&
+                        this.types.equals(that.types) &&
+                        this.predicates.equals(that.predicates));
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(this.hasIID, this.types, this.predicates);
+            }
         }
 
         public static class Type extends Properties {
 
-            private final Set<Label> labels;
             private boolean isAbstract;
+            private final Set<Label> labels;
             private Encoding.ValueType valueType;
             private String regex;
 
@@ -202,6 +224,23 @@ public abstract class TraversalVertex<EDGE extends TraversalEdge<?, ?>, PROPERTI
             public String toString() {
                 return String.format("[type] { labels: %s, abstract: %s, value: %s, regex: %s }",
                                      labels, isAbstract, valueType, regex);
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+
+                Properties.Type that = (Properties.Type) o;
+                return (this.isAbstract == that.isAbstract &&
+                        this.labels == that.labels &&
+                        this.valueType.equals(that.valueType) &&
+                        this.regex.equals(that.regex));
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(this.isAbstract, this.labels, this.valueType, this.regex);
             }
         }
     }

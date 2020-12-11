@@ -184,6 +184,18 @@ public abstract class ProcedureVertex<VERTEX extends Vertex<?, ?>, PROPERTIES ex
                     iterator.filter(ThingVertex::isAttribute).<AttributeVertex<?>>map(ThingVertex::asAttribute);
             for (Predicate.Value<?> predicate : props().predicates()) {
                 if (Objects.equals(predicate, exclude)) break;
+                if (parameters == null) {
+                    System.out.println();
+                }
+                if (predicate == null) {
+                    System.out.println();
+                }
+                if (id() == null) {
+                    System.out.println();
+                }
+                if (parameters.getValues(id().asVariable(), predicate) == null) {
+                    System.out.println();
+                }
                 for (Traversal.Parameters.Value value : parameters.getValues(id().asVariable(), predicate)) {
                     attributes = attributes.filter(a -> predicate.apply(a, value));
                 }

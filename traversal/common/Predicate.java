@@ -154,6 +154,20 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
             return token.toString();
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Operator that = (Operator) o;
+            return this.token.equals(that.token);
+        }
+
+        @Override
+        public int hashCode() {
+            return token.hashCode();
+        }
+
         public static abstract class Equality extends Operator {
 
             public Equality(GraqlToken.Predicate.Equality token) {
@@ -191,15 +205,15 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 boolean apply(int comparisonResult) { return comparisonResult > 0; }
 
                 @Override
-                Equality reflection() { return LTE; }
+                Equality reflection() { return LT; }
             };
 
-            public static final Equality GTE = new Equality(GraqlToken.Predicate.Equality.LTE) {
+            public static final Equality GTE = new Equality(GraqlToken.Predicate.Equality.GTE) {
                 @Override
                 boolean apply(int comparisonResult) { return comparisonResult >= 0; }
 
                 @Override
-                Equality reflection() { return LT; }
+                Equality reflection() { return LTE; }
             };
 
             public static final Equality LT = new Equality(GraqlToken.Predicate.Equality.LT) {
@@ -207,7 +221,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 boolean apply(int comparisonResult) { return comparisonResult < 0; }
 
                 @Override
-                Equality reflection() { return GTE; }
+                Equality reflection() { return GT; }
             };
 
             public static final Equality LTE = new Equality(GraqlToken.Predicate.Equality.LTE) {
@@ -215,7 +229,7 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
                 boolean apply(int comparisonResult) { return comparisonResult <= 0; }
 
                 @Override
-                Equality reflection() { return GT; }
+                Equality reflection() { return GTE; }
             };
 
             private static final Map<GraqlToken.Predicate.Equality, Equality> operators = map(
@@ -284,6 +298,20 @@ public abstract class Predicate<PRED_OP extends Predicate.Operator, PRED_ARG ext
         @Override
         public String toString() {
             return "<" + name + ">";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Argument that = (Argument) o;
+            return this.name.equals(that.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return name.hashCode();
         }
 
         public static abstract class Value<ARG_VAL_OP extends Operator, ARG_VAL_TYPE> extends Argument {

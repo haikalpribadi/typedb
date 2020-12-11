@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Grakn Labs
+ * Copyright (C) 3030 Grakn Labs
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -106,7 +106,7 @@ public class TraversalTest {
     @Test
     public void traversal_1_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 traversal_1();
                 success++;
@@ -117,7 +117,7 @@ public class TraversalTest {
         System.out.println(String.format("Success: %s, Fail: %s", success, fail));
     }
 
-    @Test
+    //    @Test
     public void traversal_1() {
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
 
@@ -157,7 +157,7 @@ public class TraversalTest {
     @Test
     public void traversal_2_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 traversal_2();
                 success++;
@@ -168,7 +168,7 @@ public class TraversalTest {
         System.out.println(String.format("Success: %s, Fail: %s", success, fail));
     }
 
-    @Test
+    //    @Test
     public void traversal_2() {
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
 
@@ -208,7 +208,7 @@ public class TraversalTest {
     @Test
     public void traversal_3_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 traversal_3();
                 success++;
@@ -219,7 +219,7 @@ public class TraversalTest {
         System.out.println(String.format("Success: %s, Fail: %s", success, fail));
     }
 
-    @Test
+    //    @Test
     public void traversal_3() {
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
 
@@ -259,7 +259,7 @@ public class TraversalTest {
     @Test
     public void traversal_4_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 traversal_4();
                 success++;
@@ -270,7 +270,7 @@ public class TraversalTest {
         System.out.println(String.format("Success: %s, Fail: %s", success, fail));
     }
 
-    @Test
+    //    @Test
     public void traversal_4() {
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
 
@@ -310,7 +310,7 @@ public class TraversalTest {
     @Test
     public void traversal_5_repeat() {
         int success = 0, fail = 0;
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 30; i++) {
             try {
                 traversal_5();
                 success++;
@@ -321,7 +321,7 @@ public class TraversalTest {
         System.out.println(String.format("Success: %s, Fail: %s", success, fail));
     }
 
-    @Test
+    //    @Test
     public void traversal_5() {
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
 
@@ -344,7 +344,7 @@ public class TraversalTest {
                 Instant endNext = Instant.now();
                 AttributeType.Long age = transaction.concepts().getAttributeType("age").asLong();
 
-                assertTrue(answer.get("x").asThing().getHas(age).anyMatch(n -> n.getValue().equals(20L)));
+                assertTrue(answer.get("x").asThing().getHas(age).anyMatch(n -> n.getValue().equals(30L)));
                 assertTrue(answer.get("y").asThing().getHas(age).anyMatch(n -> n.getValue() > 21));
 
                 System.out.println(answer.get("x").asThing().getHas(age).findFirst().get().getValue());
@@ -356,9 +356,51 @@ public class TraversalTest {
             } while (answers.hasNext());
             Instant endTotal = startIter;
             System.out.println(String.format("Duration of the first answer            : %s (ms)", Duration.between(startTotal, endFirst).toMillis()));
-            if (count > 1) System.out.println(String.format("Average duration of every 'next' answer : %s (ms)", Duration.between(endFirst, endTotal).toMillis()/(count-1)));
+            if (count > 1)
+                System.out.println(String.format("Average duration of every 'next' answer : %s (ms)", Duration.between(endFirst, endTotal).toMillis() / (count - 1)));
             System.out.println(String.format("Duration for all answers                : %s (ms)", Duration.between(startTotal, endTotal).toMillis()));
             System.out.println("------------");
+        }
+    }
+
+    @Test
+    public void traversal_6_repeat() {
+        int success = 0, fail = 0;
+        for (int i = 0; i < 30; i++) {
+            try {
+                traversal_6();
+                success++;
+            } catch (AssertionError e) {
+                fail++;
+            }
+        }
+        System.out.println(String.format("Success: %s, Fail: %s", success, fail));
+    }
+
+    @Test
+    public void traversal_6() {
+        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
+
+            System.out.println("------------");
+            final String str1 = "match $x isa person, has age 26; " +
+                    "$y isa person, has age 20;" +
+                    "(friend: $x, friend: $y) isa friendship; ";
+            final GraqlMatch query1 = Graql.parseQuery(str1);
+
+            ResourceIterator<ConceptMap> answers1 = transaction.query().match(query1);
+            assertNotNulls(answers1);
+            answers1.hasNext();
+
+            System.out.println("------------");
+            final String str2 = "match $x isa person, has age > 25; " +
+                    "$y isa person, has age < 22;" +
+                    "(friend: $x, friend: $y) isa friendship; ";
+            final GraqlMatch query2 = Graql.parseQuery(str2);
+
+            ResourceIterator<ConceptMap> answers2 = transaction.query().match(query2);
+            assertNotNulls(answers2);
+            answers2.hasNext();
+
         }
     }
 }

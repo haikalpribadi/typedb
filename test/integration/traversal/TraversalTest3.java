@@ -62,8 +62,11 @@ public class TraversalTest3 {
                                     "has user_email 'admin@opencti.io';"
                     )
             ).toList();
+            transaction.commit();
+        }
 
-            List<ConceptMap> token = transaction.query().insert(
+        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
+            transaction.query().insert(
                     Graql.parseQuery(
                             "insert $entity isa Token, " +
                                     "has internal_id 'ti1', " +
@@ -73,8 +76,11 @@ public class TraversalTest3 {
                                     "has revoked false;"
                     )
             ).toList();
+            transaction.commit();
+        }
 
-            List<ConceptMap> authorisation = transaction.query().insert(
+        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
+            transaction.query().insert(
                     Graql.parseQuery(
                             "match " +
                                     "$from isa thing; " +
@@ -87,7 +93,6 @@ public class TraversalTest3 {
                                     "has entity_type 'authorized-by';"
                     )
             ).toList();
-
             transaction.commit();
         }
 

@@ -19,7 +19,6 @@
 package grakn.core.traversal;
 
 import grakn.common.collection.Pair;
-import grakn.core.common.cache.CommonCache;
 import grakn.core.common.iterator.ResourceIterator;
 import grakn.core.common.parameters.Label;
 import grakn.core.common.producer.Producer;
@@ -82,8 +81,10 @@ public class Traversal {
         return structure.newIdentifier(scope);
     }
 
-    void initialisePlanner(CommonCache<Structure, Planner> cache) {
-        planners = structure.asGraphs().stream().map(s -> cache.get(s, Planner::create)).collect(toList());
+    void initialisePlanner(TraversalCache cache) {
+        planners = structure.asGraphs().stream().map(s -> {
+            return cache.get(s, Planner::create);
+        }).collect(toList());
     }
 
     ResourceIterator<VertexMap> iterator(GraphManager graphMgr) {
@@ -241,7 +242,7 @@ public class Traversal {
     public static class Parameters {
 
         private final Map<Identifier.Variable, VertexIID.Thing> iid;
-        private final Map<Pair<Identifier, Predicate.Value<?>>, Set<Value>> values;
+        private final Map<Pair<Identifier.Variable, Predicate.Value<?>>, Set<Value>> values;
 
         public Parameters() {
             iid = new HashMap<>();
