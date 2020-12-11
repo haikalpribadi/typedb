@@ -58,12 +58,56 @@ Feature: Graql Match Query
   # SCHEMA QUERIES #
   ##################
 
-   # TODO this just throws an exception
-  Scenario: when matching by a concept iid that doesn't exist, an empty result is returned
+  # TODO fails with planning exception
+  Scenario: 'owns' can match types that can own themselves
+    Given graql define
+      """
+      define
+      unit sub attribute, value string, owns unit;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
     When get answers of graql query
       """
-      match
-        $x iid 0x830cb2;
-        $y iid 0x4b0a92;
+      match $x owns $x;
       """
-    Then answer size is: 0
+    And concept identifiers are
+      |      | check | value  |
+      | UNIT | label | unit   |
+    Then uniquely identify answer concepts
+      | x    |
+      | UNIT |
+
+
+  # TODO query planning error
+  Scenario: when things own attributes of different types but the same value, they match by equality
+    Given graql define
+      """
+      define
+      start-date sub attribute, value datetime;
+      graduation-date sub attribute, value datetime;
+      person owns graduation-date;
+      employment owns start-date;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given connection close all sessions
+    Given connection open data session for database: grakn
+    Given session opens transaction of type: write
+    Given graql insert
+      """
+      insert
+      $x isa person, has name "James", has ref 0, has graduation-date 2009-07-16;
+      $r (employee: $x) isa employment, has start-date 2009-07-16, has ref 1;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    Then get answers of graql query
+      """
+      match
+        $x isa person, has graduation-date $date;
+        $r (employee: $x) isa employment, has start-date = $date;
+      """
+    Then answer size is: 1

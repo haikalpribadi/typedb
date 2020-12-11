@@ -58,39 +58,45 @@ Feature: Graql Match Query
   # SCHEMA QUERIES #
   ##################
 
-  # TODO fails because "employee" is a scoped label without a scope, so it never gets matched by a vertex that does have a scoped label
-  Scenario: 'relates' matches relation types where the specified role can be played
+  # TODO fails because it does not find Roles when using $x as starting point.
+  # TODO Discuss starting at all Types including vs excluding Role Types. This may have implications for `match $x sub thing`
+  Scenario: 'relates' can be used to retrieve all the roles of a relation type
     When get answers of graql query
       """
-      match $x relates employee;
+      match employment relates $x;
       """
     And concept identifiers are
-      |     | check | value      |
-      | EMP | label | employment |
+      |     | check | value               |
+      | EME | label | employment:employee |
+      | EMR | label | employment:employer |
     Then uniquely identify answer concepts
       | x   |
-      | EMP |
+      | EME |
+      | EMR |
 
-
-
-  # TODO fails because "friend" is a scoped label without a scope, so it never gets matched by a vertex that does have a scoped label
-  Scenario: 'relates' without 'as' does not match relation types that override the specified roleplayer
+  # TODO fails because it does not find Roles when using $x as starting point.
+  # TODO Discuss starting at all Types including vs excluding Role Types. This may have implications for `match $x sub thing`
+  Scenario: 'sub' can be used to match the specified type and all its subtypes, including indirect subtypes
     Given graql define
       """
       define
-      close-friendship sub friendship, relates close-friend as friend;
-      friendly-person sub entity, plays close-friendship:close-friend;
+      writer sub person;
+      scifi-writer sub writer;
       """
     Given transaction commits
     Given the integrity is validated
     Given session opens transaction of type: read
     When get answers of graql query
       """
-      match $x relates friend;
+      match $x sub person;
       """
     And concept identifiers are
-      |     | check | value      |
-      | FRE | label | friendship |
+      |     | check | value        |
+      | PER | label | person       |
+      | WRI | label | writer       |
+      | SCW | label | scifi-writer |
     Then uniquely identify answer concepts
       | x   |
-      | FRE |
+      | PER |
+      | WRI |
+      | SCW |

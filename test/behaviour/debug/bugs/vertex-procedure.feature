@@ -16,7 +16,7 @@
 #
 
 #noinspection CucumberUndefinedStep
-Feature: Graql Match Query
+Feature: Vertex Procedure (should be fixed with specific vertex procedure)
 
   Background: Open connection and create a simple extensible schema
     Given connection has been opened
@@ -58,8 +58,8 @@ Feature: Graql Match Query
   # SCHEMA QUERIES #
   ##################
 
-  # TODO discuss all Types vs all types including RoleTypes as starting points
-  Scenario: 'sub' can be used to match the specified type and all its subtypes, including indirect subtypes
+  # TODO out of order query plan exception -- should be fixed with vertex procedure
+  Scenario: 'type' matches only the specified type, and does not match subtypes
     Given graql define
       """
       define
@@ -71,15 +71,34 @@ Feature: Graql Match Query
     Given session opens transaction of type: read
     When get answers of graql query
       """
-      match $x sub person;
+      match $x type person;
       """
     And concept identifiers are
-      |     | check | value        |
-      | PER | label | person       |
-      | WRI | label | writer       |
-      | SCW | label | scifi-writer |
+      |     | check | value  |
+      | PER | label | person |
     Then uniquely identify answer concepts
       | x   |
       | PER |
-      | WRI |
-      | SCW |
+
+
+  # TODO will be fixed by splitting vertex procedure from graph procedure
+  Scenario: 'iid' matches the instance with the specified internal iid
+    Given connection close all sessions
+    Given connection open data session for database: grakn
+    Given session opens transaction of type: write
+    Given graql insert
+      """
+      insert
+      $x isa person, has ref 0;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    When get answers of graql query
+      """
+      match $x isa person;
+      """
+    Then each answer satisfies
+      """
+      match $x iid <answer.x.iid>;
+      """

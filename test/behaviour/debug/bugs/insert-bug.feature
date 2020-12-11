@@ -53,34 +53,36 @@ Feature: Graql Match Query
     Given the integrity is validated
     Given session opens transaction of type: write
 
+  # TODO recurses infinitely on inserting the self-ownership, good for @alex
+  Scenario: 'has' can match instances that have themselves
+    Given graql define
+      """
+      define
+      unit sub attribute, value string, owns unit owns ref;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given connection close all sessions
+    Given connection open data session for database: grakn
+    Given session opens transaction of type: write
+    Given graql insert
+      """
+      insert
+      $x "meter" isa unit, has $x, has ref 0;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    When get answers of graql query
+      """
+      match $x has $x;
+      """
+    And concept identifiers are
+      |       | check | value  |
+      | METER | key   | ref:0  |
+    Then uniquely identify answer concepts
+      | x     |
+      | METER |
 
-  ##################
-  # SCHEMA QUERIES #
-  ##################
 
-    # TODO this does not work on types anymore - types cannot be specified by IID
-#  Scenario: subtype hierarchy satisfies transitive sub assertions
-#    Given graql define
-#      """
-#      define
-#      sub1 sub entity;
-#      sub2 sub sub1;
-#      sub3 sub sub1;
-#      sub4 sub sub2;
-#      sub5 sub sub4;
-#      sub6 sub sub5;
-#      """
-#    Given transaction commits
-#    Given the integrity is validated
-#    Given session opens transaction of type: read
-#    When get answers of graql query
-#      """
-#      match
-#        $x sub $y;
-#        $y sub $z;
-#        $z sub sub1;
-#      """
-#    Then each answer satisfies
-#      """
-#      match $x sub $z; $x iid <answer.x.iid>; $z iid <answer.z.iid>;
-#      """
+  # TODO probably also fails if you try to insert a relation playing a role in itself

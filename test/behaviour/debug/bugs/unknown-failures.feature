@@ -54,21 +54,38 @@ Feature: Graql Match Query
     Given session opens transaction of type: write
 
 
-  ##################
-  # SCHEMA QUERIES #
-  ##################
-
-  # TODO this is buggy  if the QP starts from $x, as `relation:role` is not included as a starting point
-#  Scenario: 'plays' can be used to match roles that a particular type can play
-#    When get answers of graql query
-#      """
-#      match person plays $x;
-#      """
-#    And concept identifiers are
-#      |     | check | value               |
-#      | FRI | label | friendship:friend   |
-#      | EMP | label | employment:employee |
-#    Then uniquely identify answer concepts
-#      | x   |
-#      | FRI |
-#      | EMP |
+  # TODO unknown reason for failure
+  Scenario: a relation is matchable from role players without specifying relation type
+    Given connection close all sessions
+    Given connection open data session for database: grakn
+    Given session opens transaction of type: write
+    Given graql insert
+      """
+      insert
+      $x isa person, has ref 0;
+      $y isa company, has ref 1;
+      $r (employee: $x, employer: $y) isa employment,
+         has ref 2;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    Then get answers of graql query
+      """
+      match $x isa person; $r (employee: $x) isa relation;
+      """
+    And concept identifiers are
+      |      | check | value |
+      | REF0 | key   | ref:0 |
+      | REF1 | key   | ref:1 |
+      | REF2 | key   | ref:2 |
+    Then uniquely identify answer concepts
+      | x    | r    |
+      | REF0 | REF2 |
+    When get answers of graql query
+      """
+      match $y isa company; $r (employer: $y) isa relation;
+      """
+    Then uniquely identify answer concepts
+      | y    | r    |
+      | REF1 | REF2 |

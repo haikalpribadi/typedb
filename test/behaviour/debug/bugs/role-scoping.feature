@@ -16,7 +16,7 @@
 #
 
 #noinspection CucumberUndefinedStep
-Feature: Graql Match Query
+Feature: Role Scoping
 
   Background: Open connection and create a simple extensible schema
     Given connection has been opened
@@ -58,17 +58,41 @@ Feature: Graql Match Query
   # SCHEMA QUERIES #
   ##################
 
-  # TODO can be fixed by including ROLE when starting at $x and visiting all types (same as "plays" failing tests)
-  Scenario: 'relates' can be used to retrieve all the roles of a relation type
+  # TODO fails to find answers because "employee" is a scoped label without a scope, so it never gets matched by a
+  # TODO vertex that does have a scoped label
+  Scenario: 'relates' matches relation types where the specified role can be played
     When get answers of graql query
       """
-      match employment relates $x;
+      match $x relates employee;
       """
     And concept identifiers are
-      |     | check | value               |
-      | EME | label | employment:employee |
-      | EMR | label | employment:employer |
+      |     | check | value      |
+      | EMP | label | employment |
     Then uniquely identify answer concepts
       | x   |
-      | EME |
-      | EMR |
+      | EMP |
+
+
+
+  # TODO fails to find answers because "friend" is a scoped label without a scope, so it never gets matched by a
+  # TODO vertex that does have a scoped label
+  Scenario: 'relates' without 'as' does not match relation types that override the specified roleplayer
+    Given graql define
+      """
+      define
+      close-friendship sub friendship, relates close-friend as friend;
+      friendly-person sub entity, plays close-friendship:close-friend;
+      """
+    Given transaction commits
+    Given the integrity is validated
+    Given session opens transaction of type: read
+    When get answers of graql query
+      """
+      match $x relates friend;
+      """
+    And concept identifiers are
+      |     | check | value      |
+      | FRE | label | friendship |
+    Then uniquely identify answer concepts
+      | x   |
+      | FRE |
