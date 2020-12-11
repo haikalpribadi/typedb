@@ -25,7 +25,7 @@ import grakn.core.graph.GraphManager;
 import grakn.core.graph.vertex.Vertex;
 import grakn.core.traversal.Traversal;
 import grakn.core.traversal.common.VertexMap;
-import grakn.core.traversal.procedure.Procedure;
+import grakn.core.traversal.procedure.GraphProcedure;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +41,7 @@ public class GraphProducer implements Producer<VertexMap> {
 
     private final int parallelisation;
     private final GraphManager graphMgr;
-    private final Procedure procedure;
+    private final GraphProcedure procedure;
     private final Traversal.Parameters params;
     private final SynchronisedIterator<? extends Vertex<?, ?>> start;
     private final ConcurrentMap<ResourceIterator<VertexMap>, CompletableFuture<Void>> futures;
@@ -49,7 +49,7 @@ public class GraphProducer implements Producer<VertexMap> {
     private final AtomicBoolean isDone;
     private final AtomicInteger runningJobs;
 
-    public GraphProducer(GraphManager graphMgr, Procedure procedure, Traversal.Parameters params, int parallelisation) {
+    public GraphProducer(GraphManager graphMgr, GraphProcedure procedure, Traversal.Parameters params, int parallelisation) {
         assert parallelisation > 0;
         this.graphMgr = graphMgr;
         this.procedure = procedure;

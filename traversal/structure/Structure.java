@@ -61,6 +61,10 @@ public class Structure {
         return vertices.values();
     }
 
+    public Set<StructureEdge<?, ?>> edges() {
+        return edges;
+    }
+
     public void equalEdge(StructureVertex<?> from, StructureVertex<?> to) {
         StructureEdge.Equal edge = new StructureEdge.Equal(from, to);
         edges.add(edge);

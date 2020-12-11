@@ -28,14 +28,14 @@ import grakn.core.traversal.graph.TraversalVertex;
 import static grakn.common.util.Objects.className;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_CAST;
 import static grakn.core.traversal.common.Predicate.Operator.Equality.EQ;
-import static grakn.core.traversal.planner.Planner.OBJECTIVE_VARIABLE_COST_MAX_CHANGE;
-import static grakn.core.traversal.planner.Planner.OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE;
+import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_COST_MAX_CHANGE;
+import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE;
 
 @SuppressWarnings("NonAtomicOperationOnVolatileField") // Because Planner.optimise() is synchronised
 public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Properties>
         extends TraversalVertex<PlannerEdge.Directional<?, ?>, PROPERTIES> {
 
-    final Planner planner;
+    final GraphPlanner planner;
 
     private final String varPrefix = "vertex::var::" + id() + "::";
     private final String conPrefix = "vertex::con::" + id() + "::";
@@ -51,11 +51,9 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
     MPVariable varIsEndingVertex;
     MPVariable varHasIncomingEdges;
     MPVariable varHasOutgoingEdges;
-    MPVariable varUnselectedIncomingEdges;
-    MPVariable varUnselectedOutgoingEdges;
     boolean isPotentialStartingVertex;
 
-    PlannerVertex(Identifier identifier, Planner planner) {
+    PlannerVertex(Identifier identifier, GraphPlanner planner) {
         super(identifier);
         this.planner = planner;
         isPotentialStartingVertex = false;
@@ -125,7 +123,7 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
     }
 
     private void initialiseConstraintsForIncomingEdges() {
-        varUnselectedIncomingEdges = planner.solver().makeIntVar(0, ins().size(), varPrefix + "unselected_incoming_edges");
+        MPVariable varUnselectedIncomingEdges = planner.solver().makeIntVar(0, ins().size(), varPrefix + "unselected_incoming_edges");
         MPConstraint conUnSelectedIncomingEdges = planner.solver().makeConstraint(ins().size(), ins().size(), conPrefix + "unselected_incoming_edges");
         conUnSelectedIncomingEdges.setCoefficient(varUnselectedIncomingEdges, 1);
         ins().forEach(edge -> conUnSelectedIncomingEdges.setCoefficient(edge.varIsSelected, 1));
@@ -135,7 +133,7 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
     }
 
     private void initialiseConstraintsForOutGoingEdges() {
-        varUnselectedOutgoingEdges = planner.solver().makeIntVar(0, outs().size(), varPrefix + "unselected_outgoing_edges");
+        MPVariable varUnselectedOutgoingEdges = planner.solver().makeIntVar(0, outs().size(), varPrefix + "unselected_outgoing_edges");
         MPConstraint conUnselectedOutgoingEdges = planner.solver().makeConstraint(outs().size(), outs().size(), conPrefix + "unselected_outgoing_edges");
         conUnselectedOutgoingEdges.setCoefficient(varUnselectedOutgoingEdges, 1);
         outs().forEach(edge -> conUnselectedOutgoingEdges.setCoefficient(edge.varIsSelected, 1));
@@ -194,7 +192,7 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
 
     public static class Thing extends PlannerVertex<Properties.Thing> {
 
-        Thing(Identifier identifier, Planner planner) {
+        Thing(Identifier identifier, GraphPlanner planner) {
             super(identifier, planner);
         }
 
@@ -233,7 +231,7 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
 
     public static class Type extends PlannerVertex<Properties.Type> {
 
-        Type(Identifier identifier, Planner planner) {
+        Type(Identifier identifier, GraphPlanner planner) {
             super(identifier, planner);
             this.isPotentialStartingVertex = true; // VertexProperty.Type is always indexed
         }

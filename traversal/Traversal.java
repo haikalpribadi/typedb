@@ -89,11 +89,11 @@ public class Traversal {
     ResourceIterator<VertexMap> iterator(GraphManager graphMgr) {
         assert !planners.isEmpty();
         if (planners.size() == 1) {
-            planners.get(0).optimise(graphMgr);
+            planners.get(0).tryOptimise(graphMgr);
             return planners.get(0).procedure().iterator(graphMgr, parameters);
         } else {
             return cartesian(planners.parallelStream().map(planner -> {
-                planner.optimise(graphMgr);
+                planner.tryOptimise(graphMgr);
                 return planner.procedure().iterator(graphMgr, parameters);
             }).collect(toList())).map(partialAnswers -> {
                 Map<Reference, Vertex<?, ?>> combinedAnswers = new HashMap<>();
@@ -106,11 +106,11 @@ public class Traversal {
     Producer<VertexMap> producer(GraphManager graphMgr, int parallelisation) {
         assert !planners.isEmpty();
         if (planners.size() == 1) {
-            planners.get(0).optimise(graphMgr);
+            planners.get(0).tryOptimise(graphMgr);
             return planners.get(0).procedure().producer(graphMgr, parameters, parallelisation);
         } else {
             return produce(cartesian(planners.parallelStream().map(planner -> {
-                planner.optimise(graphMgr);
+                planner.tryOptimise(graphMgr);
                 return planner.procedure().producer(graphMgr, parameters, parallelisation);
             }).map(p -> buffer(p).iterator()).collect(toList())).map(partialAnswers -> {
                 Map<Reference, Vertex<?, ?>> combinedAnswers = new HashMap<>();

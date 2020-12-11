@@ -22,7 +22,7 @@ import grakn.core.common.iterator.ResourceIterator;
 import grakn.core.common.producer.Producer;
 import grakn.core.graph.GraphManager;
 import grakn.core.traversal.common.VertexMap;
-import grakn.core.traversal.procedure.Procedure;
+import grakn.core.traversal.procedure.GraphProcedure;
 
 public class TraversalEngine {
 
@@ -48,7 +48,7 @@ public class TraversalEngine {
         return traversal.iterator(graphMgr);
     }
 
-    public ResourceIterator<VertexMap> iterator(Procedure procedure, Traversal.Parameters params) {
+    public ResourceIterator<VertexMap> iterator(GraphProcedure procedure, Traversal.Parameters params) {
         return procedure.iterator(graphMgr, params);
     }
 }

@@ -54,15 +54,15 @@ import static grakn.core.graph.util.Encoding.Edge.Type.PLAYS;
 import static grakn.core.graph.util.Encoding.Edge.Type.RELATES;
 import static grakn.core.graph.util.Encoding.Edge.Type.SUB;
 import static grakn.core.traversal.common.Predicate.Operator.Equality.EQ;
-import static grakn.core.traversal.planner.Planner.OBJECTIVE_VARIABLE_COST_MAX_CHANGE;
-import static grakn.core.traversal.planner.Planner.OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE;
+import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_COST_MAX_CHANGE;
+import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE;
 import static java.util.stream.Collectors.toSet;
 
 @SuppressWarnings("NonAtomicOperationOnVolatileField") // Because Planner.optimise() is synchronised
 public abstract class PlannerEdge<VERTEX_FROM extends PlannerVertex<?>, VERTEX_TO extends PlannerVertex<?>>
         extends TraversalEdge<VERTEX_FROM, VERTEX_TO> {
 
-    protected final Planner planner;
+    protected final GraphPlanner planner;
     protected Directional<VERTEX_FROM, VERTEX_TO> forward;
     protected Directional<VERTEX_TO, VERTEX_FROM> backward;
 
@@ -131,7 +131,7 @@ public abstract class PlannerEdge<VERTEX_FROM extends PlannerVertex<?>, VERTEX_T
         private int valueOrderNumber;
         private final String varPrefix;
         private final String conPrefix;
-        private final Planner planner;
+        private final GraphPlanner planner;
         private final PlannerEdge<?, ?> parent;
         private final Encoding.Direction.Edge direction;
         private double costPrevious;

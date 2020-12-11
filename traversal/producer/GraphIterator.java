@@ -27,7 +27,7 @@ import grakn.core.graph.vertex.Vertex;
 import grakn.core.traversal.Traversal;
 import grakn.core.traversal.common.Identifier;
 import grakn.core.traversal.common.VertexMap;
-import grakn.core.traversal.procedure.Procedure;
+import grakn.core.traversal.procedure.GraphProcedure;
 import grakn.core.traversal.procedure.ProcedureEdge;
 
 import java.util.HashMap;
@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toMap;
 
 public class GraphIterator implements ResourceIterator<VertexMap> {
 
-    private final Procedure procedure;
+    private final GraphProcedure procedure;
     private final Traversal.Parameters parameters;
     private final Map<Identifier, ResourceIterator<? extends Vertex<?, ?>>> iterators;
     private final Map<Identifier, Vertex<?, ?>> answer;
@@ -55,7 +55,8 @@ public class GraphIterator implements ResourceIterator<VertexMap> {
 
     enum State {INIT, EMPTY, FETCHED, COMPLETED}
 
-    public GraphIterator(GraphManager graphMgr, Vertex<?, ?> start, Procedure procedure, Traversal.Parameters parameters) {
+    public GraphIterator(GraphManager graphMgr, Vertex<?, ?> start,
+                         GraphProcedure procedure, Traversal.Parameters parameters) {
         assert procedure.edgesCount() > 0;
         this.graphMgr = graphMgr;
         this.procedure = procedure;
