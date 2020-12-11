@@ -92,11 +92,19 @@ public class TraversalTest3 {
         }
 
         try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
-            ResourceIterator<ConceptMap> tokens = transaction.query().match(Graql.parseQuery("match $entity isa Token; $entity has internal_id 'ti1';").asMatch());
+            ResourceIterator<ConceptMap> tokens = transaction.query().match(
+                    Graql.parseQuery("match $entity isa Token; $entity has internal_id 'ti1';").asMatch()
+            );
             assertEquals(1, tokens.toList().size());
-            ResourceIterator<ConceptMap> users = transaction.query().match(Graql.parseQuery("match $entity isa User; $entity has standard_id 'us1';").asMatch());
+
+            ResourceIterator<ConceptMap> users = transaction.query().match(
+                    Graql.parseQuery("match $entity isa User; $entity has standard_id 'us1';").asMatch()
+            );
             assertEquals(1, users.toList().size());
-            ResourceIterator<ConceptMap> authorisations = transaction.query().match(Graql.parseQuery("match $rel isa authorized-by;").asMatch());
+
+            ResourceIterator<ConceptMap> authorisations = transaction.query().match(
+                    Graql.parseQuery("match $rel isa authorized-by;").asMatch()
+            );
             assertEquals(1, authorisations.toList().size());
         }
     }
