@@ -184,18 +184,6 @@ public abstract class ProcedureVertex<VERTEX extends Vertex<?, ?>, PROPERTIES ex
                     iterator.filter(ThingVertex::isAttribute).<AttributeVertex<?>>map(ThingVertex::asAttribute);
             for (Predicate.Value<?> predicate : props().predicates()) {
                 if (Objects.equals(predicate, exclude)) break;
-                if (parameters == null) {
-                    System.out.println();
-                }
-                if (predicate == null) {
-                    System.out.println();
-                }
-                if (id() == null) {
-                    System.out.println();
-                }
-                if (parameters.getValues(id().asVariable(), predicate) == null) {
-                    System.out.println();
-                }
                 for (Traversal.Parameters.Value value : parameters.getValues(id().asVariable(), predicate)) {
                     attributes = attributes.filter(a -> predicate.apply(a, value));
                 }
@@ -260,8 +248,9 @@ public abstract class ProcedureVertex<VERTEX extends Vertex<?, ?>, PROPERTIES ex
             if (props().valueType().isPresent()) iterator = iterateOrFilterValueTypes(graphMgr, iterator);
             if (props().isAbstract()) iterator = iterateOrFilterAbstract(graphMgr, iterator);
             if (props().regex().isPresent()) iterator = iterateAndFilterRegex(graphMgr, iterator);
-            if (iterator == null) iterator = link(list(graphMgr.schema().entityTypes(), graphMgr.schema().relationTypes(),
-                                                       graphMgr.schema().attributeTypes()));// graphMgr.schema().roleTypes())); // TODO discuss ramifications
+            if (iterator == null)
+                iterator = link(list(graphMgr.schema().entityTypes(), graphMgr.schema().relationTypes(),
+                                     graphMgr.schema().attributeTypes()));// graphMgr.schema().roleTypes())); // TODO discuss ramifications
             return iterator;
         }
 

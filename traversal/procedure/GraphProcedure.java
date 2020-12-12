@@ -30,6 +30,8 @@ import grakn.core.traversal.planner.PlannerEdge;
 import grakn.core.traversal.planner.PlannerVertex;
 import grakn.core.traversal.producer.GraphIterator;
 import grakn.core.traversal.producer.GraphProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,6 +46,8 @@ import java.util.stream.Stream;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_STATE;
 
 public class GraphProcedure implements Procedure {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GraphProcedure.class);
 
     private final Map<Identifier, ProcedureVertex<?, ?>> vertices;
     private final ProcedureEdge<?, ?>[] edges;
@@ -141,13 +145,13 @@ public class GraphProcedure implements Procedure {
 
     @Override
     public Producer<VertexMap> producer(GraphManager graphMgr, Traversal.Parameters params, int parallelisation) {
-        System.out.println(toString()); // TODO: remove this
+        LOG.debug(toString()); // TODO: remove this
         return new GraphProducer(graphMgr, this, params, parallelisation);
     }
 
     @Override
     public ResourceIterator<VertexMap> iterator(GraphManager graphMgr, Traversal.Parameters params) {
-        System.out.println(toString()); // TODO: remove this
+        LOG.debug(toString()); // TODO: remove this
         return startVertex().iterator(graphMgr, params).flatMap(
                 sv -> new GraphIterator(graphMgr, sv, this, params)
         ).distinct();

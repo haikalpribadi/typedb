@@ -26,12 +26,15 @@ import grakn.core.traversal.common.VertexMap;
 import grakn.core.traversal.producer.VertexProducer;
 import grakn.core.traversal.structure.StructureVertex;
 import graql.lang.pattern.variable.Reference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static grakn.common.collection.Collections.map;
 import static grakn.common.collection.Collections.pair;
 
 public class VertexProcedure implements Procedure {
 
+    private static final Logger LOG = LoggerFactory.getLogger(VertexProcedure.class);
     private final ProcedureVertex<?, ?> vertex;
 
     private VertexProcedure(StructureVertex<?> structureVertex) {
@@ -48,13 +51,13 @@ public class VertexProcedure implements Procedure {
 
     @Override
     public Producer<VertexMap> producer(GraphManager graphMgr, Traversal.Parameters params, int parallelisation) {
-        System.out.println(toString()); // TODO: remove this
+        LOG.debug(toString()); // TODO: remove this
         return new VertexProducer(graphMgr, vertex, params);
     }
 
     @Override
     public ResourceIterator<VertexMap> iterator(GraphManager graphMgr, Traversal.Parameters params) {
-        System.out.println(toString()); // TODO: remove this
+        LOG.debug(toString()); // TODO: remove this
         Reference ref = vertex.id().asVariable().reference();
         return vertex.iterator(graphMgr, params).map(v -> VertexMap.of(map(pair(ref, v))));
     }

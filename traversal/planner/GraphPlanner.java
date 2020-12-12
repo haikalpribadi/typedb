@@ -30,6 +30,8 @@ import grakn.core.traversal.procedure.GraphProcedure;
 import grakn.core.traversal.structure.Structure;
 import grakn.core.traversal.structure.StructureEdge;
 import grakn.core.traversal.structure.StructureVertex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.ortools.linearsolver.MPSolver.ResultStatus.ABNORMAL;
 import static com.google.ortools.linearsolver.MPSolver.ResultStatus.FEASIBLE;
@@ -56,6 +57,8 @@ import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_STATE;
 import static grakn.core.common.exception.ErrorMessage.Internal.UNEXPECTED_PLANNING_ERROR;
 
 public class GraphPlanner implements Planner {
+
+    private static final Logger LOG = LoggerFactory.getLogger(GraphPlanner.class);
 
     static final long TIME_LIMIT_MILLIS = 100;
     static final double OBJECTIVE_PLANNER_COST_MAX_CHANGE = 0.2;
@@ -269,7 +272,7 @@ public class GraphPlanner implements Planner {
                 edges.forEach(PlannerEdge::recordCost);
             }
         }
-        System.out.println(solver.exportModelAsLpFormat());
+        LOG.trace(solver.exportModelAsLpFormat());
     }
 
     void updateCostNext(double costPrevious, double costNext) {
@@ -305,7 +308,7 @@ public class GraphPlanner implements Planner {
     @SuppressWarnings("NonAtomicOperationOnVolatileField")
     void optimise(GraphManager graph) {
         if (isOptimising.compareAndSet(false, true)) {
-            Instant s = Instant.now(); // TODO: remove
+            Instant s = Instant.now();
             updateObjective(graph);
             if (!isUpToDate() || !isOptimal()) {
                 do {
@@ -323,8 +326,7 @@ public class GraphPlanner implements Planner {
             }
             isOptimising.set(false);
             Instant e = Instant.now();
-            // TODO: remove
-            System.out.println(String.format("[%s] optimisation duration: %s (ms)", toString(), Duration.between(s, e).toMillis()));
+            LOG.trace(String.format("[%s] optimisation duration: %s (ms)", toString(), Duration.between(s, e).toMillis()));
         }
     }
 
