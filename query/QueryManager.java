@@ -84,8 +84,10 @@ public class QueryManager {
         try (ThreadTrace ignored = traceOnThread(TRACE_PREFIX + "insert")) {
             final Context.Query context = new Context.Query(transactionCtx, options);
             if (query.match().isPresent()) {
-                final List<ConceptMap> matched = match(query.match().get()).toList();
-                return iterate(matched).map(answer -> Inserter.create(conceptMgr, query.variables(), answer, context).execute());
+                List<ConceptMap> matched = match(query.match().get()).toList();
+                return iterate(iterate(matched).map(answer -> Inserter.create(
+                        conceptMgr, query.variables(), answer, context
+                ).execute()).toList());
             } else {
                 return iterate(list(Inserter.create(conceptMgr, query.variables(), context).execute()));
             }

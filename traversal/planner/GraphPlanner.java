@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.ortools.linearsolver.MPSolver.ResultStatus.ABNORMAL;
 import static com.google.ortools.linearsolver.MPSolver.ResultStatus.FEASIBLE;
@@ -60,7 +61,6 @@ public class GraphPlanner implements Planner {
     static final double OBJECTIVE_PLANNER_COST_MAX_CHANGE = 0.2;
     static final double OBJECTIVE_VARIABLE_COST_MAX_CHANGE = 2.0;
     static final double OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE = 0.02;
-    double branchingFactor;
 
     private final MPSolver solver;
     private final MPSolverParameters parameters;
@@ -76,7 +76,8 @@ public class GraphPlanner implements Planner {
     private volatile long snapshot;
 
     volatile double totalCostPrevious;
-    volatile double totalCostNext;
+    double totalCostNext;
+    double branchingFactor;
 
     private GraphPlanner() {
         solver = MPSolver.createSolver("SCIP");
@@ -93,6 +94,7 @@ public class GraphPlanner implements Planner {
         totalDuration = 0L;
         totalCostPrevious = 0.01;
         totalCostNext = 0.01;
+        branchingFactor = 0.01;
         snapshot = 0L;
     }
 
@@ -255,10 +257,11 @@ public class GraphPlanner implements Planner {
     private void updateObjective(GraphManager graph) {
         if (snapshot < graph.data().stats().snapshot()) {
             snapshot = graph.data().stats().snapshot();
-            totalCostNext = 0.0;
+            totalCostNext = 0.1;
             setBranchingFactor(graph);
             computeTotalCostNext(graph);
 
+            assert !Double.isNaN(totalCostNext) && !Double.isNaN(totalCostPrevious) && totalCostPrevious > 0;
             if (totalCostNext / totalCostPrevious >= OBJECTIVE_PLANNER_COST_MAX_CHANGE) setOutOfDate();
             if (!isUpToDate) {
                 totalCostPrevious = totalCostNext;
@@ -266,12 +269,32 @@ public class GraphPlanner implements Planner {
                 edges.forEach(PlannerEdge::recordCost);
             }
         }
+        System.out.println(solver.exportModelAsLpFormat());
+    }
+
+    void updateCostNext(double costPrevious, double costNext) {
+        assert !Double.isNaN(totalCostNext);
+        assert !Double.isNaN(totalCostPrevious);
+        assert !Double.isNaN(costPrevious);
+        assert !Double.isNaN(costNext);
+        assert costPrevious > 0 && totalCostPrevious > 0;
+
+        totalCostNext += costNext;
+        assert !Double.isNaN(totalCostNext);
+
+        if (costNext / costPrevious >= OBJECTIVE_VARIABLE_COST_MAX_CHANGE &&
+                costNext / totalCostPrevious >= OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE) {
+            setOutOfDate();
+        }
     }
 
     private void setBranchingFactor(GraphManager graph) {
         // TODO: We can refine the branching factor by not strictly considering entities being the only divisor
-        branchingFactor = (double) graph.data().stats().thingVertexTransitiveCount(graph.schema().rootRoleType()) /
-                graph.data().stats().thingVertexTransitiveCount(graph.schema().rootEntityType());
+        double entities = graph.data().stats().thingVertexTransitiveCount(graph.schema().rootEntityType());
+        double roles = graph.data().stats().thingVertexTransitiveCount(graph.schema().rootRoleType());
+        if (roles == 0) roles += 1;
+        if (entities > 0) branchingFactor = roles / entities;
+        assert !Double.isNaN(branchingFactor);
     }
 
     private void computeTotalCostNext(GraphManager graph) {
@@ -282,6 +305,7 @@ public class GraphPlanner implements Planner {
     @SuppressWarnings("NonAtomicOperationOnVolatileField")
     void optimise(GraphManager graph) {
         if (isOptimising.compareAndSet(false, true)) {
+            Instant s = Instant.now(); // TODO: remove
             updateObjective(graph);
             if (!isUpToDate() || !isOptimal()) {
                 do {
@@ -298,6 +322,9 @@ public class GraphPlanner implements Planner {
                 isUpToDate = true;
             }
             isOptimising.set(false);
+            Instant e = Instant.now();
+            // TODO: remove
+            System.out.println(String.format("[%s] optimisation duration: %s (ms)", toString(), Duration.between(s, e).toMillis()));
         }
     }
 

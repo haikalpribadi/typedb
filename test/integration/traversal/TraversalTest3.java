@@ -7,7 +7,6 @@ import grakn.core.rocks.RocksGrakn;
 import grakn.core.rocks.RocksSession;
 import grakn.core.rocks.RocksTransaction;
 import grakn.core.test.integration.util.Util;
-import graql.lang.Graql;
 import graql.lang.query.GraqlDefine;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -16,10 +15,13 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import static grakn.core.common.parameters.Arguments.Session.Type.DATA;
+import static grakn.core.common.parameters.Arguments.Transaction.Type.READ;
+import static grakn.core.common.parameters.Arguments.Transaction.Type.WRITE;
+import static graql.lang.Graql.parseQuery;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TraversalTest3 {
     private static Path directory = Paths.get(System.getProperty("user.dir")).resolve("traversal-test-3");
@@ -35,8 +37,8 @@ public class TraversalTest3 {
         grakn.databases().create(database);
 
         try (RocksSession session = grakn.session(database, Arguments.Session.Type.SCHEMA)) {
-            try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
-                final GraqlDefine query = Graql.parseQuery(schema());
+            try (RocksTransaction transaction = session.transaction(WRITE)) {
+                final GraqlDefine query = parseQuery(schema());
                 transaction.query().define(query);
                 transaction.commit();
             }
@@ -53,37 +55,28 @@ public class TraversalTest3 {
 
     @Test
     public void traversal_opencti() {
-        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
-            List<ConceptMap> user = transaction.query().insert(
-                    Graql.parseQuery(
-                            "insert $entity isa User, " +
-                                    "has internal_id 'ui1', " +
-                                    "has standard_id 'us1', " +
-                                    "has user_email 'admin@opencti.io';"
-                    )
-            ).toList();
+        try (RocksTransaction transaction = session.transaction(WRITE)) {
+            transaction.query().insert(parseQuery(
+                    "insert $entity isa User, " +
+                            "has internal_id 'ui1', " +
+                            "has standard_id 'us1', " +
+                            "has user_email 'admin@opencti.io';"
+            ));
+            transaction.query().insert(parseQuery(
+                    "insert $entity isa Token, " +
+                            "has internal_id 'ti1', " +
+                            "has standard_id 'ts1', " +
+                            "has uuid 'tu1', " +
+                            "has name 'Default', " +
+                            "has revoked false;"
+            ));
             transaction.commit();
         }
 
-        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
+        try (RocksTransaction transaction = session.transaction(WRITE)) {
             transaction.query().insert(
-                    Graql.parseQuery(
-                            "insert $entity isa Token, " +
-                                    "has internal_id 'ti1', " +
-                                    "has standard_id 'ts1', " +
-                                    "has uuid 'tu1', " +
-                                    "has name 'Default', " +
-                                    "has revoked false;"
-                    )
-            ).toList();
-            transaction.commit();
-        }
-
-        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.WRITE)) {
-            transaction.query().insert(
-                    Graql.parseQuery(
+                    parseQuery(
                             "match " +
-                                    "$from isa thing; " +
                                     "$from has internal_id 'ui1'; " +
                                     "$to has internal_id 'ti1'; " +
                                     "insert " +
@@ -96,21 +89,121 @@ public class TraversalTest3 {
             transaction.commit();
         }
 
-        try (RocksTransaction transaction = session.transaction(Arguments.Transaction.Type.READ)) {
-            ResourceIterator<ConceptMap> tokens = transaction.query().match(
-                    Graql.parseQuery("match $entity isa Token; $entity has internal_id 'ti1';").asMatch()
-            );
+        try (RocksTransaction transaction = session.transaction(READ)) {
+            ResourceIterator<ConceptMap> answers = transaction.query().match(parseQuery(
+                    "match $from has internal_id 'ui1'; "
+            ).asMatch());
+            assertTrue(answers.hasNext());
+
+            answers = transaction.query().match(parseQuery(
+                    "match $to has internal_id 'ti1';"
+            ).asMatch());
+            assertTrue(answers.hasNext());
+
+            answers = transaction.query().match(parseQuery(
+                    "match $from has internal_id 'ui1'; $to has internal_id 'ti1';"
+            ).asMatch());
+            assertTrue(answers.hasNext());
+        }
+
+        try (RocksTransaction transaction = session.transaction(READ)) {
+            ResourceIterator<ConceptMap> tokens = transaction.query().match(parseQuery(
+                    "match $entity isa Token; $entity has internal_id 'ti1';"
+            ).asMatch());
             assertEquals(1, tokens.toList().size());
 
-            ResourceIterator<ConceptMap> users = transaction.query().match(
-                    Graql.parseQuery("match $entity isa User; $entity has standard_id 'us1';").asMatch()
-            );
+            ResourceIterator<ConceptMap> users = transaction.query().match(parseQuery(
+                    "match $entity isa User; $entity has standard_id 'us1';"
+            ).asMatch());
             assertEquals(1, users.toList().size());
 
-            ResourceIterator<ConceptMap> authorisations = transaction.query().match(
-                    Graql.parseQuery("match $rel isa authorized-by;").asMatch()
-            );
+            ResourceIterator<ConceptMap> authorisations = transaction.query().match(parseQuery(
+                    "match $rel isa authorized-by;"
+            ).asMatch());
             assertEquals(1, authorisations.toList().size());
+        }
+    }
+
+    @Test
+    public void test_planning_error() {
+        String insert1 = "insert\n" +
+                "   $entity isa Label, " +
+                "       has value \"identity\", " +
+                "       has color \"#be70e8\", " +
+                "       has internal_id \"80f3ac8a-7860-4da7-a54c-72060797ea8e\", " +
+                "       has standard_id \"label--355f76bb-be36-58dd-bdc9-90a75529df85\", " +
+                "       has entity_type \"Label\", has spec_version \"2.1\", " +
+                "       has created_at 2020-12-12T01:35:22.770, " +
+                "       has i_created_at_day \"2020-12-12\", " +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\", " +
+                "       has updated_at 2020-12-12T01:35:22.770, " +
+                "       has created 2020-12-12T01:35:22.770, " +
+                "       has modified 2020-12-12T01:35:22.770, " +
+                "       has i_created_at_day \"2020-12-12\", " +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\";";
+
+        String insert2 = "insert\n" +
+                "   $entity isa Organization," +
+                "       has name \"ANSSI\", " +
+                "       has description \"\", " +
+                "       has confidence 0, " +
+                "       has revoked false, " +
+                "       has lang \"en\", " +
+                "       has x_opencti_organization_type \"CSIRT\", " +
+                "       has created 2020-02-23T23:40:53.575, " +
+                "       has modified 2020-02-27T08:45:39.351, " +
+                "       has identity_class \"organization\", " +
+                "       has internal_id \"0c5eee5b-0776-476c-a560-ba3ca0c68a9e\", " +
+                "       has standard_id \"identity--3256d0a9-31a5-5de2-88df-04b76ca1a85d\", " +
+                "       has entity_type \"Organization\", " +
+                "       has x_opencti_stix_ids \"identity--7b82b010-b1c0-4dae-981f-7756374a17df\", " +
+                "       has spec_version \"2.1\", " +
+                "       has created_at 2020-12-12T01:35:22.879, " +
+                "       has i_created_at_day \"2020-12-12\", " +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\", " +
+                "       has updated_at 2020-12-12T01:35:22.879, " +
+                "       has i_aliases_ids \"aliases--e3a5d1ef-b3d3-5deb-bddb-1756a05daf81\", " +
+                "       has i_created_at_day \"2020-12-12\", " +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\";";
+        String matchInsertStr = "match\n" +
+                "   $from has internal_id \"0c5eee5b-0776-476c-a560-ba3ca0c68a9e\"; " +
+                "   $to has internal_id \"80f3ac8a-7860-4da7-a54c-72060797ea8e\";\n" +
+                "insert\n" +
+                "   $rel(object-label_from: $from, object-label_to: $to) isa object-label, " +
+                "       has internal_id \"7c177b09-7217-4214-a412-71be757090cd\", " +
+                "       has standard_id \"relationship-meta--aba276f0-951e-47d5-9db7-d7ed3e2905b5\", " +
+                "       has entity_type \"object-label\", " +
+                "       has created_at 2020-12-12T01:35:22.881, " +
+                "       has i_created_at_day \"2020-12-12\", " +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\", " +
+                "       has updated_at 2020-12-12T01:35:22.881, " +
+                "       has i_created_at_day \"2020-12-12\"," +
+                "       has i_created_at_month \"2020-12\", " +
+                "       has i_created_at_year \"2020\"; ";
+        System.out.println("about to start writing");
+        try (RocksTransaction transaction = session.transaction(WRITE)) {
+            System.out.println("start writing insert 1");
+            transaction.query().insert(parseQuery(insert1));
+            System.out.println("start committing insert 1");
+            transaction.commit();
+            System.out.println("committed insert 1");
+        }
+
+        System.out.println("start writing in second transaction");
+        try (RocksTransaction transaction = session.transaction(WRITE)) {
+            System.out.println("start writing insert 2");
+            transaction.query().insert(parseQuery(insert2));
+            System.out.println("start writing match insert");
+            ResourceIterator<ConceptMap> answers = transaction.query().insert(parseQuery(matchInsertStr));
+            System.out.println("start writing insert 1");
+            assertTrue(answers.hasNext());
+            System.out.println("got results from match insert");
+            transaction.commit();
         }
     }
 

@@ -28,10 +28,7 @@ import grakn.core.traversal.graph.TraversalVertex;
 import static grakn.common.util.Objects.className;
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_CAST;
 import static grakn.core.traversal.common.Predicate.Operator.Equality.EQ;
-import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_COST_MAX_CHANGE;
-import static grakn.core.traversal.planner.GraphPlanner.OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE;
 
-@SuppressWarnings("NonAtomicOperationOnVolatileField") // Because Planner.optimise() is synchronised
 public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Properties>
         extends TraversalVertex<PlannerEdge.Directional<?, ?>, PROPERTIES> {
 
@@ -159,19 +156,16 @@ public abstract class PlannerVertex<PROPERTIES extends TraversalVertex.Propertie
     }
 
     protected void setObjectiveCoefficient(double cost) {
+        assert !Double.isNaN(cost);
         planner.objective().setCoefficient(
                 varIsStartingVertex, cost * Math.pow(planner.branchingFactor, planner.edges().size())
         );
-        planner.totalCostNext += cost;
-        assert costPrevious > 0;
-        if (cost / costPrevious >= OBJECTIVE_VARIABLE_COST_MAX_CHANGE &&
-                cost / planner.totalCostPrevious >= OBJECTIVE_VARIABLE_TO_PLANNER_COST_MIN_CHANGE) {
-            planner.setOutOfDate();
-        }
         costNext = cost;
+        planner.updateCostNext(costPrevious, costNext);
     }
 
     void recordCost() {
+        if (costNext == 0) costNext = 0.01;
         costPrevious = costNext;
     }
 
