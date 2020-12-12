@@ -137,8 +137,12 @@ public class GraphIterator implements ResourceIterator<VertexMap> {
     }
 
     private boolean backTrack(int pos) {
-        Identifier toId = procedure.edge(pos).to().id();
-        if (roles.containsKey(toId)) scoped.get(toId.asScoped().scope()).remove(roles.get(toId));
+        ProcedureEdge<?, ?> edge = procedure.edge(pos);
+        Identifier toId = edge.to().id();
+        if (roles.containsKey(toId)) {
+            if (edge.isRolePlayer()) scoped.get(edge.asRolePlayer().scope()).remove(roles.get(toId));
+            else scoped.get(toId.asVariable()).remove(roles.get(toId));
+        }
         return computeNext(pos - 1);
     }
 
@@ -212,7 +216,7 @@ public class GraphIterator implements ResourceIterator<VertexMap> {
 
     private boolean isClosure(ProcedureEdge<?, ?> edge, Vertex<?, ?> fromVertex, Vertex<?, ?> toVertex) {
         if (edge.isRolePlayer()) {
-            Set<ThingVertex> withinScope = scoped.get(edge.to().id().asScoped().scope());
+            Set<ThingVertex> withinScope = scoped.get(edge.asRolePlayer().scope());
             return edge.asRolePlayer().isClosure(graphMgr, fromVertex, toVertex, parameters, withinScope);
         } else {
             return edge.isClosure(graphMgr, fromVertex, toVertex, parameters);
@@ -232,7 +236,7 @@ public class GraphIterator implements ResourceIterator<VertexMap> {
                 }
             });
         } else if (edge.isRolePlayer()) {
-            Set<ThingVertex> withinScope = scoped.computeIfAbsent(edge.to().id().asScoped().scope(), id -> new HashSet<>());
+            Set<ThingVertex> withinScope = scoped.computeIfAbsent(edge.asRolePlayer().scope(), id -> new HashSet<>());
             toIter = edge.asRolePlayer().branchEdge(graphMgr, fromVertex, parameters).filter(e -> {
                 if (withinScope.contains(e.optimised().get())) return false;
                 else {

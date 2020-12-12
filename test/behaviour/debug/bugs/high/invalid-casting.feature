@@ -155,63 +155,6 @@ Feature: Invalid Casting Test
 
 
   # TODO invalid casting from Identifier.Variable.Name to Identifier.Scoped
-  Scenario: when multiple relation instances exist with the same roleplayer, matching that player returns just 1 answer
-    Given graql define
-      """
-      define
-      residency sub relation,
-        relates resident,
-        owns ref @key;
-      person plays residency:resident;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given connection close all sessions
-    Given connection open data session for database: grakn
-    Given session opens transaction of type: write
-    Given graql insert
-      """
-      insert
-      $x isa person, has ref 0;
-      $e (employee: $x) isa employment, has ref 1;
-      $f (friend: $x) isa friendship, has ref 2;
-      $r (resident: $x) isa residency, has ref 3;
-      """
-    Given transaction commits
-    Given the integrity is validated
-    Given session opens transaction of type: read
-    Given concept identifiers are
-      |     | check | value |
-      | PER | key   | ref:0 |
-      | EMP | key   | ref:1 |
-      | FRI | key   | ref:2 |
-      | RES | key   | ref:3 |
-    Given get answers of graql query
-      """
-      match $r isa relation;
-      """
-    Given uniquely identify answer concepts
-      | r   |
-      | EMP |
-      | FRI |
-      | RES |
-    When get answers of graql query
-      """
-      match ($x) isa relation;
-      """
-    Then uniquely identify answer concepts
-      | x   |
-      | PER |
-    When get answers of graql query
-      """
-      match ($x);
-      """
-    Then uniquely identify answer concepts
-      | x   |
-      | PER |
-
-
-  # TODO invalid casting from Identifier.Variable.Name to Identifier.Scoped
   Scenario: all relations and their types can be retrieved
     Given connection close all sessions
     Given connection open data session for database: grakn

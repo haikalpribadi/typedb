@@ -31,6 +31,7 @@ import grakn.core.graph.vertex.ThingVertex;
 import grakn.core.graph.vertex.TypeVertex;
 import grakn.core.graph.vertex.Vertex;
 import grakn.core.traversal.Traversal;
+import grakn.core.traversal.common.Identifier;
 import grakn.core.traversal.graph.TraversalEdge;
 import grakn.core.traversal.planner.PlannerEdge;
 
@@ -856,6 +857,11 @@ public abstract class ProcedureEdge<
 
                 @Override
                 public RolePlayer asRolePlayer() { return this; }
+
+                public Identifier.Variable scope() {
+                    if (direction().isForward()) return from.id().asVariable();
+                    else return to.id().asVariable();
+                }
 
                 static class Forward extends RolePlayer {
 
