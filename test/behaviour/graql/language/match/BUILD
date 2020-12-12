@@ -37,7 +37,7 @@ java_test(
     data = [
         "@graknlabs_behaviour//graql/language:match.feature",
     ],
-    classpath_resources = ["//test/conf:logback"],
+    classpath_resources = ["//common/test:logback"],
     size = "medium",
     visibility = ["//visibility:public"]
 )
