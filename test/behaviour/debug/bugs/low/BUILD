@@ -23,7 +23,7 @@ java_test(
     srcs = [
         "QueryValidationTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.QueryValidationTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.low.QueryValidationTest",
     deps = [
         # Internal dependencies
 
@@ -48,7 +48,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "query-validation.feature",
+        ":query-validation.feature",
     ],
     size = "medium",
 )

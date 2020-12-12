@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/query-validation.feature"
+        features = "test/behaviour/debug/bugs/low/query-validation.feature"
 )
 public class QueryValidationTest {
     // ATTENTION:

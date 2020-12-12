@@ -23,7 +23,7 @@ java_test(
     srcs = [
         "InvalidCastingTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.InvalidCastingTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.high.InvalidCastingTest",
     deps = [
         # Internal dependencies
 
@@ -48,7 +48,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "invalid-casting.feature",
+        ":invalid-casting.feature",
     ],
     size = "medium",
 )
@@ -58,7 +58,7 @@ java_test(
     srcs = [
         "StartingIteratorTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.StartingIteratorTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.high.StartingIteratorTest",
     deps = [
         # Internal dependencies
 
@@ -83,7 +83,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "start-iterator-bugs.feature",
+        ":start-iterator-bugs.feature",
     ],
     size = "medium",
 )
@@ -93,7 +93,7 @@ java_test(
     srcs = [
         "TraversalTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.TraversalTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.high.TraversalTest",
     deps = [
         # Internal dependencies
 
@@ -118,7 +118,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "traversal-bugs.feature",
+        ":traversal-bugs.feature",
     ],
     size = "medium",
 )
@@ -129,7 +129,7 @@ java_test(
     srcs = [
         "UnknownFailuresTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.UnknownFailuresTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.high.UnknownFailuresTest",
     deps = [
         # Internal dependencies
 
@@ -154,7 +154,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "unknown-failures.feature",
+        ":unknown-failures.feature",
     ],
     size = "medium",
 )

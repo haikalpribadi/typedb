@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/query-planner-bug.feature"
+        features = "test/behaviour/debug/bugs/medium/query-planner-bug.feature"
 )
 public class QueryPlannerTest {
     // ATTENTION:

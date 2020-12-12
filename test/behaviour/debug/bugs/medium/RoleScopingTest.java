@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/role-scoping.feature"
+        features = "test/behaviour/debug/bugs/medium/role-scoping.feature"
 )
 public class RoleScopingTest {
     // ATTENTION:

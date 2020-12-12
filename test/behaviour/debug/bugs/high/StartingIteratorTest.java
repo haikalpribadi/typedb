@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/start-iterator-bugs.feature"
+        features = "test/behaviour/debug/bugs/high/start-iterator-bugs.feature"
 )
 public class StartingIteratorTest {
     // ATTENTION:

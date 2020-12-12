@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/traversal-bugs.feature"
+        features = "test/behaviour/debug/bugs/high/traversal-bugs.feature"
 )
 public class TraversalTest {
     // ATTENTION:

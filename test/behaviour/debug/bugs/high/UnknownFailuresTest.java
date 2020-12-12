@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/unknown-failures.feature"
+        features = "test/behaviour/debug/bugs/high/unknown-failures.feature"
 )
 public class UnknownFailuresTest {
     // ATTENTION:

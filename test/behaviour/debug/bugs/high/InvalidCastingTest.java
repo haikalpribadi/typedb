@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/invalid-casting.feature"
+        features = "test/behaviour/debug/bugs/high/invalid-casting.feature"
 )
 public class InvalidCastingTest {
     // ATTENTION:

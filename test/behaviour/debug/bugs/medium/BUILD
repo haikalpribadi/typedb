@@ -23,7 +23,7 @@ java_test(
     srcs = [
         "PreviouslyValidQueriesTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.PreviouslyValidQueriesTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.medium.PreviouslyValidQueriesTest",
     deps = [
         # Internal dependencies
 
@@ -48,7 +48,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "previously-valid-queries.feature",
+        ":previously-valid-queries.feature",
     ],
     size = "medium",
 )
@@ -58,7 +58,7 @@ java_test(
     srcs = [
         "QueryPlannerTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.QueryPlannerTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.medium.QueryPlannerTest",
     deps = [
         # Internal dependencies
 
@@ -83,7 +83,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "query-planner-bug.feature",
+        ":query-planner-bug.feature",
     ],
     size = "medium",
 )
@@ -93,7 +93,7 @@ java_test(
     srcs = [
         "RoleScopingTest.java",
     ],
-    test_class = "grakn.core.test.behaviour.debug.bugs.RoleScopingTest",
+    test_class = "grakn.core.test.behaviour.debug.bugs.medium.RoleScopingTest",
     deps = [
         # Internal dependencies
 
@@ -118,7 +118,7 @@ java_test(
         "//test/behaviour/graql:steps",
     ],
     data = [
-        "role-scoping.feature",
+        ":role-scoping.feature",
     ],
     size = "medium",
 )

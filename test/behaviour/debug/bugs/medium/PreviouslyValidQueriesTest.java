@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
         strict = true,
         plugin = "pretty",
         glue = "grakn.core.test.behaviour",
-        features = "test/behaviour/debug/bugs/previously-valid-queries.feature"
+        features = "test/behaviour/debug/bugs/medium/previously-valid-queries.feature"
 )
 public class PreviouslyValidQueriesTest {
     // ATTENTION:
