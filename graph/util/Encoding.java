@@ -40,8 +40,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Encoding {
 
-    public static final String ROCKS_SCHEMA = "schema";
     public static final String ROCKS_DATA = "data";
+    public static final String ROCKS_SCHEMA = "schema";
     public static final int STRING_MAX_LENGTH = 255;
     public static final Charset STRING_ENCODING = UTF_8;
     public static final ZoneId TIME_ZONE_ID = ZoneId.of("Z");

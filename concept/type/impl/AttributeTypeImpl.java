@@ -775,7 +775,7 @@ public abstract class AttributeTypeImpl extends ThingTypeImpl implements Attribu
             if (vertex.regex() != null && !getRegex().matcher(value).matches()) {
                 throw exception(GraknException.of(ATTRIBUTE_VALUE_UNSATISFIES_REGEX, getLabel(), value, getRegex()));
             } else if (value.length() > Encoding.STRING_MAX_LENGTH) {
-                throw exception(GraknException.of(ILLEGAL_STRING_SIZE));
+                throw exception(GraknException.of(ILLEGAL_STRING_SIZE, Encoding.STRING_MAX_LENGTH));
             }
             final AttributeVertex<java.lang.String> attVertex = graphMgr.data().put(vertex, value, isInferred);
             return new AttributeImpl.String(attVertex);
