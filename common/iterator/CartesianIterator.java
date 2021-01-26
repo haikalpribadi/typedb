@@ -95,11 +95,6 @@ class CartesianIterator<T> extends AbstractResourceIterator<List<T>> {
     }
 
     @Override
-    public void recycle() {
-        iterators.forEach(ResourceIterator::recycle);
-    }
-
-    @Override
     public boolean hasNext() {
         switch (state) {
             case INIT:
@@ -120,5 +115,10 @@ class CartesianIterator<T> extends AbstractResourceIterator<List<T>> {
         if (!hasNext()) throw new NoSuchElementException();
         state = State.EMPTY;
         return list(result);
+    }
+
+    @Override
+    protected void recycleFn() {
+        iterators.forEach(ResourceIterator::recycle);
     }
 }

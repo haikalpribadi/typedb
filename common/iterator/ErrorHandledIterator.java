@@ -53,7 +53,7 @@ class ErrorHandledIterator<T> extends AbstractResourceIterator<T> {
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         iterator.recycle();
     }
 }

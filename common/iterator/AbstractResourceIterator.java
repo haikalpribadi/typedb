@@ -41,6 +41,12 @@ import static java.util.Spliterators.spliteratorUnknownSize;
 
 public abstract class AbstractResourceIterator<T> implements ResourceIterator<T> {
 
+    private boolean isRecycled;
+
+    protected AbstractResourceIterator() {
+        isRecycled = false;
+    }
+
     @Override
     public ResourceIterator<T> distinct() {
         return new DistinctIterator<>(this);
@@ -183,5 +189,12 @@ public abstract class AbstractResourceIterator<T> implements ResourceIterator<T>
     }
 
     @Override
-    public abstract void recycle();
+    public final void recycle() {
+        if (!isRecycled) {
+            isRecycled = true;
+            recycleFn();
+        }
+    }
+
+    protected abstract void recycleFn();
 }

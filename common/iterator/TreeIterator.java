@@ -76,7 +76,7 @@ class TreeIterator<T> extends AbstractResourceIterator<T> {
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         families.forEach(ResourceIterator::recycle);
     }
 }

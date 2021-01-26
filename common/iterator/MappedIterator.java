@@ -41,7 +41,7 @@ class MappedIterator<T, U> extends AbstractResourceIterator<U> {
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         iterator.recycle();
     }
 }

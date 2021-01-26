@@ -49,7 +49,7 @@ public class ConsumeHandledIterator<T> extends AbstractResourceIterator<T> imple
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         iterator.recycle();
     }
 }
