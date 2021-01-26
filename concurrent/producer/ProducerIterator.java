@@ -105,7 +105,7 @@ public class ProducerIterator<T> extends AbstractResourceIterator<T> {
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         // TODO: If this method is wrapped in synchronize(queue), we won't need producers to be ConcurrentLinkedQueue
         //       However, doing so would also cause a deadlock. Let's investigate this soon.
         producers.forEach(Producer::recycle);

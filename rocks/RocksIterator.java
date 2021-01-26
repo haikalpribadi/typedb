@@ -72,7 +72,7 @@ public final class RocksIterator<T> extends AbstractResourceIterator<T> implemen
     }
 
     @Override
-    public void recycle() {
+    protected void recycleFn() {
         close();
     }
 

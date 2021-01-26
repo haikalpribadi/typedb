@@ -40,6 +40,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_STATE;
+import static grakn.core.common.iterator.Iterators.iterate;
 import static java.util.stream.Collectors.toMap;
 
 public class GraphIterator extends AbstractResourceIterator<VertexMap> {
@@ -301,7 +302,9 @@ public class GraphIterator extends AbstractResourceIterator<VertexMap> {
     }
 
     @Override
-    public void recycle() {}
+    protected void recycleFn() {
+        iterate(iterators.values()).forEachRemaining(ResourceIterator::recycle);
+    }
 
     private static class SeekStack {
 
