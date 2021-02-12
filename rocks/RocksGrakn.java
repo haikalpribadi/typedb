@@ -54,7 +54,7 @@ public class RocksGrakn implements Grakn {
     private final AtomicBoolean isOpen;
 
     protected RocksGrakn(Path directory, Options.Database options, Factory.DatabaseManager databaseMgrFactory) {
-        if (!Executors.isInitialised()) Executors.initialise(MAX_THREADS);
+        if (!Executors.isInitialised()) Executors.initialise(MAX_THREADS * 2, MAX_THREADS);
         this.directory = directory;
         this.graknDBOptions = options;
         this.rocksDBOptions = new org.rocksdb.Options()

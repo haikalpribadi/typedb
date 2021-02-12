@@ -52,22 +52,22 @@ public class Executors {
     private final EventLoopGroup eventLoopPool;
     private final ScheduledThreadPoolExecutor scheduledThreadPool;
 
-    private Executors(int parallelisation) {
-        mainPool = java.util.concurrent.Executors.newFixedThreadPool(parallelisation, new NamedThreadFactory(GRAKN_CORE_MAIN_POOL_NAME));
-        asyncPool1 = java.util.concurrent.Executors.newFixedThreadPool(parallelisation, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_1_NAME));
-        asyncPool2 = java.util.concurrent.Executors.newFixedThreadPool(parallelisation, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_2_NAME));
-        eventLoopPool = new EventLoopGroup(parallelisation, new NamedThreadFactory(GRAKN_CORE_EVENTLOOP_POOL_NAME));
-        networkPool = new NioEventLoopGroup(parallelisation, NamedThreadFactory.create(GRAKN_CORE_NETWORK_POOL_NAME));
+    private Executors(int main, int other) {
+        mainPool = java.util.concurrent.Executors.newFixedThreadPool(main, new NamedThreadFactory(GRAKN_CORE_MAIN_POOL_NAME));
+        asyncPool1 = java.util.concurrent.Executors.newFixedThreadPool(other, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_1_NAME));
+        asyncPool2 = java.util.concurrent.Executors.newFixedThreadPool(other, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_2_NAME));
+        eventLoopPool = new EventLoopGroup(other, new NamedThreadFactory(GRAKN_CORE_EVENTLOOP_POOL_NAME));
+        networkPool = new NioEventLoopGroup(other, NamedThreadFactory.create(GRAKN_CORE_NETWORK_POOL_NAME));
         scheduledThreadPool = new ScheduledThreadPoolExecutor(
                 GRAKN_CORE_SCHEDULED_POOL_SIZE, new NamedThreadFactory(GRAKN_CORE_SCHEDULED_POOL_NAME)
         );
         scheduledThreadPool.setRemoveOnCancelPolicy(true);
     }
 
-    public static synchronized void initialise(int parallelisationFactor) {
+    public static synchronized void initialise(int main, int other) {
         if (isInitialised()) throw GraknException.of(ILLEGAL_OPERATION);
-        PARALLELISATION_FACTOR = parallelisationFactor;
-        singleton = new Executors(parallelisationFactor);
+        PARALLELISATION_FACTOR = other;
+        singleton = new Executors(main, other);
     }
 
     public static boolean isInitialised() {
