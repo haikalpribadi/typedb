@@ -53,10 +53,10 @@ public class Executors {
     private final ScheduledThreadPoolExecutor scheduledThreadPool;
 
     private Executors(int main, int other) {
-        mainPool = java.util.concurrent.Executors.newFixedThreadPool(main, new NamedThreadFactory(GRAKN_CORE_MAIN_POOL_NAME));
-        asyncPool1 = java.util.concurrent.Executors.newFixedThreadPool(other, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_1_NAME));
-        asyncPool2 = java.util.concurrent.Executors.newFixedThreadPool(other, new NamedThreadFactory(GRAKN_CORE_ASYNC_POOL_2_NAME));
-        eventLoopPool = new EventLoopGroup(other, new NamedThreadFactory(GRAKN_CORE_EVENTLOOP_POOL_NAME));
+        mainPool = java.util.concurrent.Executors.newFixedThreadPool(main, NamedThreadFactory.create(GRAKN_CORE_MAIN_POOL_NAME));
+        asyncPool1 = java.util.concurrent.Executors.newFixedThreadPool(other, NamedThreadFactory.create(GRAKN_CORE_ASYNC_POOL_1_NAME));
+        asyncPool2 = java.util.concurrent.Executors.newFixedThreadPool(other, NamedThreadFactory.create(GRAKN_CORE_ASYNC_POOL_2_NAME));
+        eventLoopPool = new EventLoopGroup(other, NamedThreadFactory.create(GRAKN_CORE_EVENTLOOP_POOL_NAME));
         networkPool = new NioEventLoopGroup(other, NamedThreadFactory.create(GRAKN_CORE_NETWORK_POOL_NAME));
         scheduledThreadPool = new ScheduledThreadPoolExecutor(
                 GRAKN_CORE_SCHEDULED_POOL_SIZE, new NamedThreadFactory(GRAKN_CORE_SCHEDULED_POOL_NAME)
