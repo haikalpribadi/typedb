@@ -47,6 +47,8 @@ public interface Grakn extends AutoCloseable {
 
     void close();
 
+    String statistics();
+
     /**
      * Grakn Database Manager
      */

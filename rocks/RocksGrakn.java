@@ -26,6 +26,7 @@ import grakn.core.common.parameters.Arguments;
 import grakn.core.common.parameters.Options;
 import grakn.core.concurrent.common.Executors;
 import org.rocksdb.RocksDB;
+import org.rocksdb.Statistics;
 import org.rocksdb.UInt64AddOperator;
 import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class RocksGrakn implements Grakn {
 
     private final Path directory;
     private final Options.Database graknDBOptions;
+    private final Statistics rocksDBStatistics;
     private final org.rocksdb.Options rocksDBOptions;
     private final RocksDatabaseManager databaseMgr;
     private final AtomicBoolean isOpen;
@@ -58,8 +60,10 @@ public class RocksGrakn implements Grakn {
         if (!Executors.isInitialised()) Executors.initialise(MAX_THREADS * 2, MAX_THREADS);
         this.directory = directory;
         this.graknDBOptions = options;
+        this.rocksDBStatistics = new Statistics();
         this.rocksDBOptions = new org.rocksdb.Options()
                 .setCreateIfMissing(true)
+                .setStatistics(rocksDBStatistics)
                 .setWriteBufferSize(128 * SizeUnit.MB)
                 .setMaxWriteBufferNumber(4)
                 .setMaxWriteBufferNumberToMaintain(4)
@@ -122,6 +126,11 @@ public class RocksGrakn implements Grakn {
         if (isOpen.compareAndSet(true, false)) {
             closeResources();
         }
+    }
+
+    @Override
+    public String statistics() {
+        return rocksDBStatistics.toString();
     }
 
     /**
