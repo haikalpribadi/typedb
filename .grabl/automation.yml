@@ -116,7 +116,7 @@ build:
     deploy-artifact-snapshot:
       image: graknlabs-ubuntu-20.04
       filter:
-        owner: graknlabs
+        owner: [graknlabs, haikalpribadi]
         branch: master
       # dependencies: [test-assembly-linux-targz] TODO: re-enable
       command: |
