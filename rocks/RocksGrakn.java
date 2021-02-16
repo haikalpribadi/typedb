@@ -25,6 +25,9 @@ import grakn.core.common.exception.GraknException;
 import grakn.core.common.parameters.Arguments;
 import grakn.core.common.parameters.Options;
 import grakn.core.concurrent.common.Executors;
+import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.ClockCache;
+import org.rocksdb.LRUCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.UInt64AddOperator;
 import org.slf4j.Logger;
@@ -57,9 +60,17 @@ public class RocksGrakn implements Grakn {
         if (!Executors.isInitialised()) Executors.initialise(MAX_THREADS);
         this.directory = directory;
         this.graknDBOptions = options;
+
+        BlockBasedTableConfig rocksDBTableOptions = new BlockBasedTableConfig();
+        long blockSize = Math.round(Runtime.getRuntime().totalMemory() * 0.4);
+        ClockCache uncompressedCache = new ClockCache(blockSize);
+        ClockCache compressedCache = new ClockCache(blockSize);
+        rocksDBTableOptions.setBlockCache(uncompressedCache).setBlockCacheCompressed(compressedCache);
+
         this.rocksDBOptions = new org.rocksdb.Options()
                 .setCreateIfMissing(true)
                 .setMaxBackgroundJobs(MAX_THREADS / 2)
+                .setTableFormatConfig(rocksDBTableOptions)
                 .setMergeOperator(new UInt64AddOperator());
         this.databaseMgr = databaseMgrFactory.databaseManager(this);
         this.databaseMgr.loadAll();
