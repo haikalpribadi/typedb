@@ -73,6 +73,8 @@ public class RocksGrakn implements Grakn {
                 .setMaxWriteBufferNumber(4)
                 .setMaxWriteBufferNumberToMaintain(4)
                 .setMinWriteBufferNumberToMerge(2)
+                .setLevel0FileNumCompactionTrigger(1)
+                .setMaxSubcompactions(MAX_THREADS / 4)
                 .setMaxBackgroundJobs(MAX_THREADS / 2)
                 .setTableFormatConfig(initRocksDBTableOptions())
                 .setMergeOperator(new UInt64AddOperator());

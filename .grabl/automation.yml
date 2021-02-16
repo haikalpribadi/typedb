@@ -128,8 +128,8 @@ build:
     deploy-apt-snapshot:
       image: graknlabs-ubuntu-20.04
       filter:
-        owner: graknlabs
-        branch: master
+        owner: [graknlabs, haikalpribadi]
+        branch: [master, optimise-rocksdb]
       dependencies: [test-assembly-linux-targz]
       command: |
         export DEPLOY_APT_USERNAME=$REPO_GRAKN_USERNAME
