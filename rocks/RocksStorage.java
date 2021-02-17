@@ -184,8 +184,7 @@ public abstract class RocksStorage implements Storage {
             assert isOpen();
             RocksIterator<G> iterator = new RocksIterator<>(this, key, constructor);
             iterators.add(iterator);
-            // return iterator.onFinalise(iterator::close);
-            return iterator;
+            return iterator.onFinalise(iterator::close);
         }
     }
 
