@@ -117,7 +117,7 @@ build:
       image: graknlabs-ubuntu-20.04
       filter:
         owner: [graknlabs, haikalpribadi]
-        branch: master
+          branch: [master, optimise-rocksdb]
       # dependencies: [test-assembly-linux-targz] TODO: re-enable
       command: |
         export DEPLOY_ARTIFACT_USERNAME=$REPO_GRAKN_USERNAME
@@ -128,8 +128,8 @@ build:
     deploy-apt-snapshot:
       image: graknlabs-ubuntu-20.04
       filter:
-        owner: [graknlabs, haikalpribadi]
-        branch: [master, optimise-rocksdb]
+        owner: graknlabs
+        branch: master
       dependencies: [test-assembly-linux-targz]
       command: |
         export DEPLOY_APT_USERNAME=$REPO_GRAKN_USERNAME
