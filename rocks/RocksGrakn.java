@@ -70,7 +70,7 @@ public class RocksGrakn implements Grakn {
         return new org.rocksdb.Options()
                 .setCreateIfMissing(true)
                 .setWriteBufferSize(128 * SizeUnit.MB)
-                .setMaxWriteBufferNumber(MAX_THREADS)
+                .setMaxWriteBufferNumber(MAX_THREADS / 2)
                 .setMaxWriteBufferNumberToMaintain(MAX_THREADS / 8)
                 .setMinWriteBufferNumberToMerge(MAX_THREADS / 16)
                 .setLevel0FileNumCompactionTrigger(MAX_THREADS * 2)
