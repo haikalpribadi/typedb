@@ -77,6 +77,7 @@ public class RocksGrakn implements Grakn {
                 .setMaxSubcompactions(MAX_THREADS / 2)
                 .setMaxBackgroundJobs(MAX_THREADS / 2)
                 .setMaxSuccessiveMerges(100)
+                .setUnorderedWrite(true)
                 .setTableFormatConfig(initRocksDBTableOptions())
                 .setMergeOperator(new UInt64AddOperator());
     }
