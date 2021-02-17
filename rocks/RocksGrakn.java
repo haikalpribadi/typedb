@@ -73,7 +73,7 @@ public class RocksGrakn implements Grakn {
                 .setMaxWriteBufferNumber(8)
                 .setMaxWriteBufferNumberToMaintain(8)
                 .setMinWriteBufferNumberToMerge(4)
-                .setLevel0FileNumCompactionTrigger(1)
+                .setLevel0FileNumCompactionTrigger(64)
                 .setMaxSubcompactions(MAX_THREADS / 2)
                 .setMaxBackgroundJobs(MAX_THREADS / 2)
                 .setUnorderedWrite(true)
