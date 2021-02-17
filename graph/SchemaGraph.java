@@ -242,7 +242,9 @@ public class SchemaGraph implements Graph {
     }
 
     public TypeVertex convert(VertexIID.Type iid) {
-        return typesByIID.computeIfAbsent(iid, i -> {
+        TypeVertex typeVertex = typesByIID.get(iid);
+        if (typeVertex != null) return typeVertex;
+        else return typesByIID.computeIfAbsent(iid, i -> {
             TypeVertex vertex = new TypeVertexImpl.Persisted(this, i);
             typesByLabel.putIfAbsent(vertex.scopedLabel(), vertex);
             return vertex;
