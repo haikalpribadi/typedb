@@ -109,6 +109,7 @@ public class GraknServer implements AutoCloseable {
                 .channelType(NioServerSocketChannel.class)
                 .addService(graknRPCService)
                 .addService(migratorRPCService)
+                .directExecutor()
                 .build();
     }
 
