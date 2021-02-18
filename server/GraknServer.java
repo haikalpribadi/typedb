@@ -102,14 +102,13 @@ public class GraknServer implements AutoCloseable {
     private Server rpcServer() {
         assert Executors.isInitialised();
         return NettyServerBuilder.forPort(command.port())
-                .executor(Executors.mainPool())
+                .executor(Executors.networkPool())
                 .workerEventLoopGroup(Executors.networkPool())
                 .bossEventLoopGroup(Executors.networkPool())
                 .maxConnectionIdle(1, TimeUnit.HOURS) // TODO: why 1 hour?
                 .channelType(NioServerSocketChannel.class)
                 .addService(graknRPCService)
                 .addService(migratorRPCService)
-                .directExecutor()
                 .build();
     }
 
