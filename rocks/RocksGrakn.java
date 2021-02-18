@@ -29,6 +29,7 @@ import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ClockCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.UInt64AddOperator;
+import org.rocksdb.util.SizeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,14 @@ public class RocksGrakn implements Grakn {
     private org.rocksdb.Options initRocksDBOptions() {
         return new org.rocksdb.Options()
                 .setCreateIfMissing(true)
+                .setWriteBufferSize(128 * SizeUnit.MB)
+                .setMaxWriteBufferNumber(MAX_THREADS / 2)
+                .setMaxWriteBufferNumberToMaintain(MAX_THREADS / 8)
+                .setMinWriteBufferNumberToMerge(MAX_THREADS / 16)
+                .setLevel0FileNumCompactionTrigger(MAX_THREADS * 2)
+                .setMaxSubcompactions(MAX_THREADS / 2)
                 .setMaxBackgroundJobs(MAX_THREADS / 2)
+                .setUnorderedWrite(true)
                 .setTableFormatConfig(initRocksDBTableOptions())
                 .setMergeOperator(new UInt64AddOperator());
     }
