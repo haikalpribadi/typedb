@@ -295,7 +295,7 @@ public abstract class RocksTransaction implements Grakn.Transaction {
                     conceptMgr.validateThings();
                     graphMgr.data().commit();
                     dataStorage.commit();
-                    triggerStatisticBgCounter();
+                    // triggerStatisticBgCounter();
                 } catch (RocksDBException e) {
                     rollback();
                     throw GraknException.of(e);
