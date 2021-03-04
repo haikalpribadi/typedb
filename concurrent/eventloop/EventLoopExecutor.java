@@ -117,6 +117,7 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
                 Either<Event<E>, Shutdown> event;
                 try {
                     event = queue.take();
+                    System.out.println("Event queue size: " + queue.size());
                 } catch (InterruptedException e) {
                     throw GraknException.of(UNEXPECTED_INTERRUPTION);
                 }
