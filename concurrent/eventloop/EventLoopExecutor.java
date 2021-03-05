@@ -106,9 +106,11 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
     private class EventLoop {
 
         private final Thread thread;
+        private long counter;
 
         private EventLoop(NamedThreadFactory threadFactory) {
             this.thread = threadFactory.newThread(this::run);
+            this.counter = 0;
             thread.start();
         }
 
@@ -117,7 +119,7 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
                 Either<Event<E>, Shutdown> event;
                 try {
                     event = queue.take();
-                    LOG.info("Event queue size: " + queue.size());
+                    if (counter++ % 100_000 == 0) LOG.info("Event queue size: " + queue.size());
                 } catch (InterruptedException e) {
                     throw GraknException.of(UNEXPECTED_INTERRUPTION);
                 }
