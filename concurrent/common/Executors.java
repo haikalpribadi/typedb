@@ -18,7 +18,6 @@
 
 package grakn.core.concurrent.common;
 
-import grakn.common.concurrent.NamedForkJoinWorkerThreadFactory;
 import grakn.common.concurrent.NamedThreadFactory;
 import grakn.core.common.exception.GraknException;
 import grakn.core.concurrent.actor.ActorExecutorGroup;
@@ -27,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static grakn.core.common.exception.ErrorMessage.Internal.ILLEGAL_OPERATION;
@@ -57,8 +55,7 @@ public class Executors {
     private final ScheduledThreadPoolExecutor scheduledThreadPool;
 
     private Executors(int parallelisation) {
-        NamedForkJoinWorkerThreadFactory serviceTF = forkJoinThreadFactory(GRAKN_CORE_SERVICE_THREAD_NAME);
-        serviceExecutorService = new ForkJoinPool(max(1, parallelisation / 4), serviceTF, null, true);
+        serviceExecutorService = newFixedThreadPool(max(1, parallelisation / 4), threadFactory(GRAKN_CORE_SERVICE_THREAD_NAME));
         asyncExecutorService1 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_1_NAME));
         asyncExecutorService2 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_2_NAME));
         actorExecutorService = new ActorExecutorGroup(parallelisation, threadFactory(GRAKN_CORE_ACTOR_THREAD_NAME));
@@ -70,10 +67,6 @@ public class Executors {
 
     private NamedThreadFactory threadFactory(String threadNamePrefix) {
         return NamedThreadFactory.create(threadNamePrefix);
-    }
-
-    private NamedForkJoinWorkerThreadFactory forkJoinThreadFactory(String threadNamePrefix) {
-        return NamedForkJoinWorkerThreadFactory.create(threadNamePrefix);
     }
 
     public static synchronized void initialise(int parallelisationFactor) {
