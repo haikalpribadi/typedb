@@ -25,8 +25,8 @@ import grakn.core.Grakn;
 import grakn.core.common.exception.GraknException;
 import grakn.core.common.parameters.Options;
 import grakn.core.concurrent.common.Executors;
-import grakn.core.rocks.RocksGrakn;
 import grakn.core.migrator.MigratorClient;
+import grakn.core.rocks.RocksGrakn;
 import grakn.core.server.common.ServerCommand;
 import grakn.core.server.common.ServerDefaults;
 import io.grpc.Server;
@@ -104,7 +104,7 @@ public class GraknServer implements AutoCloseable {
     private Server rpcServer() {
         assert Executors.isInitialised();
         return NettyServerBuilder.forPort(command.port())
-                .executor(Executors.service())
+                .executor(Executors.network())
                 .workerEventLoopGroup(Executors.network())
                 .bossEventLoopGroup(Executors.network())
                 .maxConnectionIdle(1, TimeUnit.HOURS) // TODO: why 1 hour?
