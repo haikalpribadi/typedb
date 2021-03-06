@@ -47,7 +47,7 @@ public class Executors {
 
     private static Executors singleton = null;
 
-    private final ExecutorService serviceExecutorService;
+    private final NioEventLoopGroup serviceExecutorService;
     private final ExecutorService asyncExecutorService1;
     private final ExecutorService asyncExecutorService2;
     private final ActorExecutorGroup actorExecutorService;
@@ -58,7 +58,7 @@ public class Executors {
         if (parallelisation <= 0) throw GraknException.of(ILLEGAL_ARGUMENT);
         // TODO: this is temporarily not used until we enable TransactionExecutor
         // serviceExecutorService = newFixedThreadPool(serviceThreadCount(parallelisation), threadFactory(GRAKN_CORE_SERVICE_THREAD_NAME));
-        serviceExecutorService = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_SERVICE_THREAD_NAME));
+        serviceExecutorService = new NioEventLoopGroup(parallelisation, threadFactory(GRAKN_CORE_SERVICE_THREAD_NAME));
         asyncExecutorService1 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_1_NAME));
         asyncExecutorService2 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_2_NAME));
         actorExecutorService = new ActorExecutorGroup(parallelisation, threadFactory(GRAKN_CORE_ACTOR_THREAD_NAME));
@@ -96,7 +96,7 @@ public class Executors {
         return singleton != null;
     }
 
-    public static ExecutorService service() {
+    public static NioEventLoopGroup service() {
         assert isInitialised();
         return singleton.serviceExecutorService;
     }
