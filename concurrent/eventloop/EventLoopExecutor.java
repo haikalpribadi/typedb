@@ -51,6 +51,7 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
         this.accessLock = new StampedLock().asReadWriteLock();
         this.isOpen = true;
         for (int i = 0; i < executors; i++) this.executors.add(new EventLoop(queuePerExecutor, threadFactory));
+        LOG.info("EventLoopExecutor parallelisation : " + executors);
     }
 
     private EventLoop next() {
@@ -113,6 +114,7 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
             this.queue = new LinkedBlockingQueue<>(queueSize);
             this.counter = 0;
             threadFactory.newThread(this::run).start();
+            LOG.info("EventLoopExecutor queue capacity  : " + queue.remainingCapacity());
         }
 
         private void submit(E event) {
@@ -136,6 +138,7 @@ public abstract class EventLoopExecutor<E> implements AutoCloseable {
                 Either<Event<E>, Shutdown> event;
                 try {
                     event = queue.take();
+                    if (counter++ % 100_000 == 0) LOG.info("EventLoopExecutor queue size      : " + queue.size());
                 } catch (InterruptedException e) {
                     throw GraknException.of(UNEXPECTED_INTERRUPTION);
                 }
