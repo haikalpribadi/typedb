@@ -19,7 +19,7 @@
 package grakn.core.server.transaction;
 
 import grakn.common.concurrent.NamedThreadFactory;
-import grakn.core.concurrent.eventloop.EventLoopExecutor;
+import grakn.core.concurrent.executor.EventLoopExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
