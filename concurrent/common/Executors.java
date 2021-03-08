@@ -22,6 +22,7 @@ import grakn.common.concurrent.NamedThreadFactory;
 import grakn.core.common.exception.GraknException;
 import grakn.core.concurrent.actor.ActorExecutorGroup;
 import grakn.core.concurrent.executor.ParallelThreadPoolExecutor;
+import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class Executors {
     private final ExecutorService asyncExecutorService1;
     private final ExecutorService asyncExecutorService2;
     private final ActorExecutorGroup actorExecutorService;
-    private final NioEventLoopGroup networkExecutorService;
+    private final DefaultEventLoopGroup networkExecutorService;
     private final ScheduledThreadPoolExecutor scheduledThreadPool;
 
     private Executors(int parallelisation) {
@@ -63,7 +64,7 @@ public class Executors {
         asyncExecutorService1 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_1_NAME));
         asyncExecutorService2 = newFixedThreadPool(parallelisation, threadFactory(GRAKN_CORE_ASYNC_THREAD_2_NAME));
         actorExecutorService = new ActorExecutorGroup(parallelisation, threadFactory(GRAKN_CORE_ACTOR_THREAD_NAME));
-        networkExecutorService = new NioEventLoopGroup(parallelisation, threadFactory(GRAKN_CORE_NETWORK_THREAD_NAME));
+        networkExecutorService = new DefaultEventLoopGroup(parallelisation, threadFactory(GRAKN_CORE_NETWORK_THREAD_NAME));
         scheduledThreadPool = new ScheduledThreadPoolExecutor(GRAKN_CORE_SCHEDULED_THREAD_SIZE,
                                                               threadFactory(GRAKN_CORE_SCHEDULED_THREAD_NAME));
         scheduledThreadPool.setRemoveOnCancelPolicy(true);
@@ -117,7 +118,7 @@ public class Executors {
         return singleton.actorExecutorService;
     }
 
-    public static NioEventLoopGroup network() {
+    public static DefaultEventLoopGroup network() {
         assert isInitialised();
         return singleton.networkExecutorService;
     }
