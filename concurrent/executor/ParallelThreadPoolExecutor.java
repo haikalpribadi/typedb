@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,22 +43,20 @@ public class ParallelThreadPoolExecutor implements Executor, AutoCloseable {
     private static final Shutdown SHUTDOWN_SIGNAL = new Shutdown();
 
     private final ArrayList<RunnableExecutor> executors;
-    private final AtomicInteger executorIndex;
     private final ReadWriteLock accessLock;
+    private final Random executorIndex;
     private volatile boolean isOpen;
 
     public ParallelThreadPoolExecutor(int executors, NamedThreadFactory threadFactory) {
         this.executors = new ArrayList<>(executors);
-        this.executorIndex = new AtomicInteger(0);
         this.accessLock = new StampedLock().asReadWriteLock();
+        this.executorIndex = new Random();
         this.isOpen = true;
         for (int i = 0; i < executors; i++) this.executors.add(new RunnableExecutor(threadFactory));
     }
 
     private RunnableExecutor next() {
-        return executors.get(executorIndex.getAndUpdate(i -> {
-            i++; if (i % executors.size() == 0) i = 0; return i;
-        }));
+        return executors.get(executorIndex.nextInt(executors.size()));
     }
 
     @Override
@@ -122,7 +121,11 @@ public class ParallelThreadPoolExecutor implements Executor, AutoCloseable {
                     throw GraknException.of(UNEXPECTED_INTERRUPTION);
                 }
                 if (runnable.isFirst()) {
-                    runnable.first().run();
+                    try {
+                        runnable.first().run();
+                    } catch (Throwable t) {
+                        LOG.error(t.getMessage(), t);
+                    }
                 } else break;
             }
         }
