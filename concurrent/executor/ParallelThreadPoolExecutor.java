@@ -45,7 +45,10 @@ public class ParallelThreadPoolExecutor implements Executor {
     private ThreadPoolExecutor next() {
         int next = 0, smallest = Integer.MAX_VALUE;
         for (int i = 0; i < executors.length; i++) {
-            if (executors[i].getQueue().size() < smallest) next = i;
+            if (executors[i].getQueue().size() < smallest) {
+                smallest = executors[i].getQueue().size();
+                next = i;
+            }
         }
         return executors[next];
     }
