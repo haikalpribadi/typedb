@@ -24,27 +24,30 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
-import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class ParallelThreadPoolExecutor implements Executor {
 
     private static final Logger LOG = LoggerFactory.getLogger(ParallelThreadPoolExecutor.class);
 
-    private final Executor[] executors;
-    private final AtomicInteger nextIndex;
+    private final ThreadPoolExecutor[] executors;
 
     public ParallelThreadPoolExecutor(int executors, NamedThreadFactory threadFactory) {
-        this.executors = new Executor[executors];
-        this.nextIndex = new AtomicInteger(0);
-        for (int i = 0; i < executors; i++) this.executors[i] = newFixedThreadPool(1, threadFactory);
+        this.executors = new ThreadPoolExecutor[executors];
+        for (int i = 0; i < executors; i++) {
+            this.executors[i] = new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LinkedBlockingQueue<>(), threadFactory);
+        }
     }
 
-    private Executor next() {
-        return executors[nextIndex.getAndUpdate(i -> {
-            i++; if (i % executors.length == 0) i = 0; return i;
-        })];
+    private ThreadPoolExecutor next() {
+        int next = 0, smallest = Integer.MAX_VALUE;
+        for (int i = 0; i < executors.length; i++) {
+            if (executors[i].getQueue().size() < smallest) next = i;
+        }
+        return executors[next];
     }
 
     @Override
