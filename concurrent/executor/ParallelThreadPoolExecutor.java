@@ -19,34 +19,35 @@
 package grakn.core.concurrent.executor;
 
 import grakn.common.concurrent.NamedThreadFactory;
+import grakn.core.common.exception.GraknException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static grakn.core.common.exception.ErrorMessage.Internal.UNEXPECTED_INTERRUPTION;
 
 public class ParallelThreadPoolExecutor implements Executor {
 
     private static final Logger LOG = LoggerFactory.getLogger(ParallelThreadPoolExecutor.class);
 
-    private final ThreadPoolExecutor[] executors;
+    private final RunnableExecutor[] executors;
 
     public ParallelThreadPoolExecutor(int executors, NamedThreadFactory threadFactory) {
-        this.executors = new ThreadPoolExecutor[executors];
+        this.executors = new RunnableExecutor[executors];
         for (int i = 0; i < executors; i++) {
-            this.executors[i] = new ThreadPoolExecutor(1, 1, 0, MILLISECONDS, new LinkedBlockingQueue<>(), threadFactory);
+            this.executors[i] = new RunnableExecutor(threadFactory);
         }
     }
 
-    private ThreadPoolExecutor next() {
+    private RunnableExecutor next() {
         int next = 0, smallest = Integer.MAX_VALUE;
         for (int i = 0; i < executors.length; i++) {
-            if (executors[i].getQueue().size() < smallest) {
-                smallest = executors[i].getQueue().size();
+            if (executors[i].queue.size() < smallest) {
+                smallest = executors[i].queue.size();
                 next = i;
             }
         }
@@ -56,5 +57,35 @@ public class ParallelThreadPoolExecutor implements Executor {
     @Override
     public void execute(@Nonnull Runnable runnable) {
         next().execute(runnable);
+    }
+
+    private static class RunnableExecutor implements Executor {
+
+        private final BlockingQueue<Runnable> queue;
+
+        private RunnableExecutor(NamedThreadFactory threadFactory) {
+            this.queue = new LinkedBlockingQueue<>();
+            threadFactory.newThread(this::run).start();
+        }
+
+        @Override
+        public void execute(@Nonnull Runnable runnable) {
+            try {
+                queue.put(runnable);
+            } catch (InterruptedException e) {
+                throw GraknException.of(UNEXPECTED_INTERRUPTION);
+            }
+        }
+
+        private void run() {
+            while (true) {
+                try {
+                    Runnable runnable = queue.take();
+                    runnable.run();
+                } catch (Throwable t) {
+                    LOG.error(t.getMessage(), t);
+                }
+            }
+        }
     }
 }
