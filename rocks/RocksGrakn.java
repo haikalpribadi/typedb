@@ -86,7 +86,7 @@ public class RocksGrakn implements Grakn {
         ClockCache uncompressedCache = new ClockCache(blockSize);
         ClockCache compressedCache = new ClockCache(blockSize);
         rocksDBTableOptions.setBlockCache(uncompressedCache).setBlockCacheCompressed(compressedCache);
-        rocksDBTableOptions.setFilterPolicy(new BloomFilter(16, false));
+        rocksDBTableOptions.setFilterPolicy(new BloomFilter(16, true));
         return rocksDBTableOptions;
     }
 
