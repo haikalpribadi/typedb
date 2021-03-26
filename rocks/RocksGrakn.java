@@ -26,6 +26,7 @@ import grakn.core.common.parameters.Arguments;
 import grakn.core.common.parameters.Options;
 import grakn.core.concurrent.executor.Executors;
 import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.BloomFilter;
 import org.rocksdb.ClockCache;
 import org.rocksdb.RocksDB;
 import org.rocksdb.UInt64AddOperator;
@@ -85,6 +86,7 @@ public class RocksGrakn implements Grakn {
         ClockCache uncompressedCache = new ClockCache(blockSize);
         ClockCache compressedCache = new ClockCache(blockSize);
         rocksDBTableOptions.setBlockCache(uncompressedCache).setBlockCacheCompressed(compressedCache);
+        rocksDBTableOptions.setFilterPolicy(new BloomFilter(16, false));
         return rocksDBTableOptions;
     }
 
