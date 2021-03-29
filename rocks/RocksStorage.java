@@ -71,7 +71,7 @@ public abstract class RocksStorage implements Storage {
         this.isReadOnly = isReadOnly;
         iterators = new ConcurrentSet<>();
         recycled = new ConcurrentLinkedQueue<>();
-        writeOptions = new WriteOptions().setDisableWAL(true);
+        writeOptions = new WriteOptions();
         transactionOptions = new OptimisticTransactionOptions().setSetSnapshot(true);
         storageTransaction = rocksDB.beginTransaction(writeOptions, transactionOptions);
         snapshot = storageTransaction.getSnapshot();

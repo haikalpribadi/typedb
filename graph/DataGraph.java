@@ -447,7 +447,7 @@ public class DataGraph implements Graph {
         ); // thingsByIID no longer contains valid mapping from IID to TypeVertex
         thingsByIID.values().stream().filter(v -> !v.isInferred()).forEach(Vertex::commit);
         attributesByIID.valuesIterator().forEachRemaining(Vertex::commit);
-        // statistics.commit(IIDMap);
+        statistics.commit(IIDMap);
 
         clear(); // we now flush the indexes after commit, and we do not expect this Graph.Thing to be used again
     }

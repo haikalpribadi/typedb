@@ -382,7 +382,7 @@ public class RocksDatabase implements Grakn.Database {
             countJobNotifications = new Semaphore(0);
             thread = NamedThreadFactory.create(session.database().name + "::statistics-background-counter")
                     .newThread(this::countFn);
-            // thread.start();
+            thread.start();
         }
 
         public void needsBackgroundCounting() {
