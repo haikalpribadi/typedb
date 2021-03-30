@@ -126,6 +126,7 @@ public abstract class AttributeVertexImpl<VALUE> extends ThingVertexImpl impleme
     }
 
     private void commitVertex() {
+        if (graph.storage().get(attributeIID.bytes()) != null) return;
         graph.storage().putUntracked(attributeIID.bytes());
         graph.storage().putUntracked(EdgeIID.InwardsISA.of(type().iid(), iid).bytes());
         graph.storage().putUntracked(index().bytes(), attributeIID.bytes());
