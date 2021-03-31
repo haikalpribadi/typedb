@@ -28,7 +28,6 @@ import grakn.core.concurrent.executor.Executors;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.BloomFilter;
 import org.rocksdb.ClockCache;
-import org.rocksdb.CompactionStyle;
 import org.rocksdb.RocksDB;
 import org.rocksdb.UInt64AddOperator;
 import org.rocksdb.util.SizeUnit;
@@ -75,9 +74,8 @@ public class RocksGrakn implements Grakn {
                 .setMaxWriteBufferNumberToMaintain(max(MAX_THREADS / 8, 1))
                 .setMinWriteBufferNumberToMerge(max(MAX_THREADS / 16, 1))
                 .setLevel0FileNumCompactionTrigger(MAX_THREADS * 4)
-                .setCompactionStyle(CompactionStyle.UNIVERSAL)
                 .setMaxSubcompactions(MAX_THREADS)
-                .setMaxBackgroundJobs(max(MAX_THREADS / 2, 1))
+                .setMaxBackgroundJobs(MAX_THREADS)
                 .setUnorderedWrite(true)
                 .setTableFormatConfig(initRocksDBTableOptions())
                 .setMergeOperator(new UInt64AddOperator());
